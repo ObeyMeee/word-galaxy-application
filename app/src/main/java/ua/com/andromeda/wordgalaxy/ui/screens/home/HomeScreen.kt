@@ -1,0 +1,78 @@
+package ua.com.andromeda.wordgalaxy.ui.screens.home
+
+import androidx.annotation.StringRes
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material3.Card
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import ua.com.andromeda.wordgalaxy.R
+
+@Composable
+fun HomeScreen(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_medium))
+    ) {
+        LearningTab(
+            icon = painterResource(R.drawable.bulb_icon),
+            textRes = R.string.learn_new_words,
+            labelRes = R.string.learned_today,
+            iconColor = Color.Yellow,
+            labelParams = arrayOf(0, 20)
+        )
+        LearningTab(
+            icon = rememberVectorPainter(image = Icons.Outlined.Refresh),
+            textRes = R.string.review_words,
+            labelRes = R.string.words_to_review,
+            iconColor = Color.Green,
+            labelParams = arrayOf(52)
+        )
+    }
+}
+
+@Composable
+private fun LearningTab(
+    icon: Painter,
+    @StringRes textRes: Int,
+    @StringRes labelRes: Int,
+    labelParams: Array<Int>,
+    iconColor: Color,
+    modifier: Modifier = Modifier
+) {
+    Card(modifier) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(dimensionResource(R.dimen.padding_medium))
+        ) {
+            Icon(
+                painter = icon,
+                contentDescription = null,
+                modifier = Modifier
+                    .height(40.dp)
+                    .padding(end = dimensionResource(R.dimen.padding_small)),
+                tint = iconColor
+            )
+            Column {
+                Text(text = stringResource(textRes))
+                Text(text = stringResource(labelRes, *labelParams))
+            }
+        }
+    }
+}

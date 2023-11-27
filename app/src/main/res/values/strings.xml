@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">WordGalaxy</string>
+    <string name="learn_new_words">Learn new words</string>
+    <string name="learned_today">Learned today: %d of %d</string>
+    <string name="review_words">Review words</string>
+    <string name="words_to_review">Words to review: %d</string>
 </resources>
