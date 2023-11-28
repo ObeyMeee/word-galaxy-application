@@ -17,12 +17,13 @@ import androidx.compose.material.icons.filled.Square
 import androidx.compose.material.icons.outlined.Keyboard
 import androidx.compose.material.icons.outlined.RemoveRedEye
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -33,7 +34,11 @@ import ua.com.andromeda.wordgalaxy.ui.theme.WordGalaxyTheme
 @Composable
 fun BrowseCardsScreen(modifier: Modifier = Modifier) {
     Column(modifier = modifier) {
-        Text(text = stringResource(R.string.new_words_memorized, 12))
+        Text(
+            text = stringResource(R.string.new_words_memorized, 12),
+            color = MaterialTheme.colorScheme.secondary,
+            style = MaterialTheme.typography.bodyMedium
+        )
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -51,7 +56,10 @@ fun BrowseCardsScreen(modifier: Modifier = Modifier) {
 
 @Composable
 private fun EnglishCard(modifier: Modifier = Modifier) {
-    Card(modifier = modifier) {
+    Card(
+        modifier = modifier,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+    ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -69,7 +77,7 @@ private fun EnglishCard(modifier: Modifier = Modifier) {
                     modifier = Modifier.padding(
                         end = dimensionResource(R.dimen.padding_small)
                     ),
-                    tint = Color.Blue
+                    tint = MaterialTheme.colorScheme.onPrimary
                 )
                 Text(text = stringResource(R.string.learning_new_word))
             }
@@ -83,11 +91,13 @@ private fun EnglishCard(modifier: Modifier = Modifier) {
         }
         Text(
             text = "Oxford 5000 - B1",
-            modifier = Modifier.padding(start = dimensionResource(R.dimen.padding_largest))
+            modifier = Modifier.padding(start = dimensionResource(R.dimen.padding_largest)),
+            style = MaterialTheme.typography.bodySmall
         )
         Text(
             text = "Ordinary",
-            modifier = Modifier.padding(start = dimensionResource(R.dimen.padding_largest))
+            modifier = Modifier.padding(start = dimensionResource(R.dimen.padding_largest)),
+            style = MaterialTheme.typography.titleLarge
         )
 
         Row(

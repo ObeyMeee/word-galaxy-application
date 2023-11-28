@@ -12,6 +12,7 @@ import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -21,6 +22,7 @@ import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -84,7 +86,12 @@ private fun LearningTab(
             )
             Column {
                 Text(text = stringResource(textRes))
-                Text(text = stringResource(labelRes, *labelParams))
+                Text(
+                    text = stringResource(labelRes, *labelParams),
+                    color = MaterialTheme.colorScheme.secondary,
+                    fontStyle = FontStyle.Italic,
+                    style = MaterialTheme.typography.labelMedium
+                )
             }
         }
     }
