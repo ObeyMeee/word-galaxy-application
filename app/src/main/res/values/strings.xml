@@ -4,4 +4,9 @@
     <string name="learned_today">Learned today: %d of %d</string>
     <string name="review_words">Review words</string>
     <string name="words_to_review">Words to review: %d</string>
+    <string name="learning_new_word">Learning new word</string>
+    <string name="show_more">Show more</string>
+    <string name="new_words_memorized">%d new words memorized</string>
+    <string name="i_have_memorized_this_word">I\'ve memorized this word, review it later</string>
+    <string name="keep_learning_this_word">Keep learning this word</string>
 </resources>

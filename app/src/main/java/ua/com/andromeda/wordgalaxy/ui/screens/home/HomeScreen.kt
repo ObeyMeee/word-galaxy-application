@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,10 +22,16 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import ua.com.andromeda.wordgalaxy.R
+import ua.com.andromeda.wordgalaxy.ui.navigation.Destination
 
 @Composable
-fun HomeScreen(modifier: Modifier = Modifier) {
+fun HomeScreen(
+    modifier: Modifier = Modifier,
+    navController: NavController = rememberNavController(),
+) {
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_medium))
@@ -34,18 +41,23 @@ fun HomeScreen(modifier: Modifier = Modifier) {
             textRes = R.string.learn_new_words,
             labelRes = R.string.learned_today,
             iconColor = Color.Yellow,
-            labelParams = arrayOf(0, 20)
-        )
+            labelParams = arrayOf(0, 20),
+        ) {
+            navController.navigate(Destination.BrowseCardsScreen())
+        }
         LearningTab(
             icon = rememberVectorPainter(image = Icons.Outlined.Refresh),
             textRes = R.string.review_words,
             labelRes = R.string.words_to_review,
             iconColor = Color.Green,
-            labelParams = arrayOf(52)
-        )
+            labelParams = arrayOf(52),
+        ) {
+            navController.navigate(Destination.BrowseCardsScreen())
+        }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun LearningTab(
     icon: Painter,
@@ -53,9 +65,10 @@ private fun LearningTab(
     @StringRes labelRes: Int,
     labelParams: Array<Int>,
     iconColor: Color,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit = {},
 ) {
-    Card(modifier) {
+    Card(modifier = modifier, onClick = onClick) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()

@@ -13,4 +13,6 @@ sealed class Destination(protected val route: String, vararg params: String) {
     }
 
     object HomeScreen: NoArgumentsDestination("home")
+
+    object BrowseCardsScreen: NoArgumentsDestination("browse-cards")
 }
