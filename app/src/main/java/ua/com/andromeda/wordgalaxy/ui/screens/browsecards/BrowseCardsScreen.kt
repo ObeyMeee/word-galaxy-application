@@ -22,17 +22,22 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import ua.com.andromeda.wordgalaxy.R
+import ua.com.andromeda.wordgalaxy.data.model.Category
 import ua.com.andromeda.wordgalaxy.ui.theme.WordGalaxyTheme
 
 @Composable
 fun BrowseCardsScreen(modifier: Modifier = Modifier) {
+    val viewModel: BrowseCardsViewModel = viewModel(factory = BrowseCardsViewModel.factory)
     Column(modifier = modifier) {
         Text(
             text = stringResource(R.string.new_words_memorized, 12),
@@ -49,78 +54,96 @@ fun BrowseCardsScreen(modifier: Modifier = Modifier) {
             }
         }
         EnglishCard(
+            viewModel,
             modifier = Modifier.fillMaxSize()
         )
     }
 }
 
 @Composable
-private fun EnglishCard(modifier: Modifier = Modifier) {
-    Card(
-        modifier = modifier,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(dimensionResource(R.dimen.padding_medium)),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Row(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(end = dimensionResource(R.dimen.padding_small))
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Square,
-                    contentDescription = null,
-                    modifier = Modifier.padding(
-                        end = dimensionResource(R.dimen.padding_small)
-                    ),
-                    tint = MaterialTheme.colorScheme.onPrimary
-                )
-                Text(text = stringResource(R.string.learning_new_word))
-            }
-            Icon(
-                imageVector = Icons.Filled.MoreHoriz,
-                contentDescription = stringResource(R.string.show_more),
-                modifier = Modifier
-                    .padding(end = dimensionResource(R.dimen.padding_small))
-                    .size(32.dp)
-            )
+private fun EnglishCard(viewModel: BrowseCardsViewModel, modifier: Modifier = Modifier) {
+    val browseCardUiState by viewModel.uiState.collectAsState()
+    when (val uiState = browseCardUiState) {
+        is BrowseCardUiState.Error -> {
+            Text(text = "An error occurred while loading")
         }
-        Text(
-            text = "Oxford 5000 - B1",
-            modifier = Modifier.padding(start = dimensionResource(R.dimen.padding_largest)),
-            style = MaterialTheme.typography.bodySmall
-        )
-        Text(
-            text = "Ordinary",
-            modifier = Modifier.padding(start = dimensionResource(R.dimen.padding_largest)),
-            style = MaterialTheme.typography.titleLarge
-        )
 
-        Row(
-            modifier = Modifier.fillMaxSize(.88f),
-            horizontalArrangement = Arrangement.SpaceAround,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.Keyboard,
-                contentDescription = null,
-                modifier = Modifier.size(50.dp)
-            )
-            Icon(
-                imageVector = Icons.Outlined.RemoveRedEye,
-                contentDescription = null,
-                modifier = Modifier.size(50.dp)
-            )
+        is BrowseCardUiState.Default -> {
+            Text(text = "Loading...")
         }
-        CardAction(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(dimensionResource(R.dimen.padding_small))
-        )
+
+        is BrowseCardUiState.Success -> {
+            Card(
+                modifier = modifier,
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(dimensionResource(R.dimen.padding_medium)),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(end = dimensionResource(R.dimen.padding_small))
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Square,
+                            contentDescription = null,
+                            modifier = Modifier.padding(
+                                end = dimensionResource(R.dimen.padding_small)
+                            ),
+                            tint = MaterialTheme.colorScheme.onPrimary
+                        )
+                        Text(text = stringResource(R.string.learning_new_word))
+                    }
+                    Icon(
+                        imageVector = Icons.Filled.MoreHoriz,
+                        contentDescription = stringResource(R.string.show_more),
+                        modifier = Modifier
+                            .padding(end = dimensionResource(R.dimen.padding_small))
+                            .size(32.dp)
+                    )
+                }
+                Text(
+                    text = uiState.wordWithCategories
+                        .categories
+                        .map(Category::name)
+                        .joinToString(separator = ", "),
+                    modifier = Modifier.padding(start = dimensionResource(R.dimen.padding_largest)),
+                    style = MaterialTheme.typography.bodySmall
+                )
+                Text(
+                    text = uiState.wordWithCategories.word.value,
+                    modifier = Modifier.padding(start = dimensionResource(R.dimen.padding_largest)),
+                    style = MaterialTheme.typography.titleLarge
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxSize(.88f),
+                    horizontalArrangement = Arrangement.SpaceAround,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Keyboard,
+                        contentDescription = null,
+                        modifier = Modifier.size(50.dp)
+                    )
+                    Icon(
+                        imageVector = Icons.Outlined.RemoveRedEye,
+                        contentDescription = null,
+                        modifier = Modifier.size(50.dp)
+                    )
+                }
+                CardAction(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(dimensionResource(R.dimen.padding_small))
+                )
+            }
+
+        }
     }
 }
 
@@ -172,10 +195,10 @@ fun BrowseCardsScreenPreview() {
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun EnglishCardPreview() {
-    WordGalaxyTheme {
-        EnglishCard(modifier = Modifier.fillMaxSize())
-    }
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun EnglishCardPreview() {
+//    WordGalaxyTheme {
+//        EnglishCard(modifier = Modifier.fillMaxSize())
+//    }
+//}
