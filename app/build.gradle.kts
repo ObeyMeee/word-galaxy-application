@@ -2,7 +2,6 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("com.google.devtools.ksp")
-//    id("com.google.dagger.hilt.android")
 }
 
 android {
@@ -54,7 +53,6 @@ android {
 dependencies {
     val lifecycle_version = "2.6.2"
     val room_version = "2.6.0"
-//    val hilt_version = "2.46"
 
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:$lifecycle_version")
@@ -70,19 +68,18 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.navigation:navigation-compose:2.7.5")
+
     // More material icons
     implementation("androidx.compose.material:material-icons-extended")
-
-    // Hilt - for di
-//    implementation("com.google.dagger:hilt-android:$hilt_version")
-//    ksp("com.google.dagger:hilt-android-compiler:$hilt_version")
-//    ksp("androidx.hilt:hilt-compiler:1.1.0")
 
     // Room database
     implementation("androidx.room:room-runtime:$room_version")
     implementation("androidx.room:room-ktx:$room_version")
     annotationProcessor("androidx.room:room-compiler:$room_version")
     ksp("androidx.room:room-compiler:$room_version")
+
+    // Preferences datastore
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")

@@ -31,30 +31,43 @@ import ua.com.andromeda.wordgalaxy.ui.navigation.Destination
 
 @Composable
 fun HomeScreen(
+    homeUiState: HomeUiState,
     modifier: Modifier = Modifier,
     navController: NavController = rememberNavController(),
 ) {
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_medium))
-    ) {
-        LearningTab(
-            icon = painterResource(R.drawable.bulb_icon),
-            textRes = R.string.learn_new_words,
-            labelRes = R.string.learned_today,
-            iconColor = Color.Yellow,
-            labelParams = arrayOf(0, 20),
-        ) {
-            navController.navigate(Destination.BrowseCardsScreen())
+    when (val uiState = homeUiState) {
+        is HomeUiState.Default -> {
+
         }
-        LearningTab(
-            icon = rememberVectorPainter(image = Icons.Outlined.Refresh),
-            textRes = R.string.review_words,
-            labelRes = R.string.words_to_review,
-            iconColor = Color.Green,
-            labelParams = arrayOf(52),
-        ) {
-            navController.navigate(Destination.BrowseCardsScreen())
+
+        is HomeUiState.Error -> {
+
+        }
+
+        is HomeUiState.Success -> {
+            Column(
+                modifier = modifier,
+                verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_medium))
+            ) {
+                LearningTab(
+                    icon = painterResource(R.drawable.bulb_icon),
+                    textRes = R.string.learn_new_words,
+                    labelRes = R.string.learned_today,
+                    iconColor = Color.Yellow,
+                    labelParams = arrayOf(uiState.learnedWordsToday, uiState.amountWordsLearnPerDay),
+                ) {
+                    navController.navigate(Destination.BrowseCardsScreen())
+                }
+                LearningTab(
+                    icon = rememberVectorPainter(image = Icons.Outlined.Refresh),
+                    textRes = R.string.review_words,
+                    labelRes = R.string.words_to_review,
+                    iconColor = Color.Green,
+                    labelParams = arrayOf(uiState.wordsToReview),
+                ) {
+                    navController.navigate(Destination.BrowseCardsScreen())
+                }
+            }
         }
     }
 }
