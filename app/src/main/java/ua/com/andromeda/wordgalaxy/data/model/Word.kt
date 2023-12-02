@@ -1,9 +1,11 @@
 package ua.com.andromeda.wordgalaxy.data.model
 
+import androidx.room.ColumnInfo
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.Relation
+import java.time.LocalDateTime
 
 @Entity
 data class Word(
@@ -13,9 +15,18 @@ data class Word(
     val transcription: String,
     val translate: String,
     val status: WordStatus,
+
+    @ColumnInfo("amount_repetition")
+    val amountRepetition: Int?,
+
+    @ColumnInfo("memorized_at")
+    val memorizedAt: LocalDateTime?,
+
+    @ColumnInfo("repeat_at")
+    val repeatAt: LocalDateTime?
 )
 
-class WordWithCategories (
+data class WordWithCategories (
     @Embedded
     val word: Word,
 

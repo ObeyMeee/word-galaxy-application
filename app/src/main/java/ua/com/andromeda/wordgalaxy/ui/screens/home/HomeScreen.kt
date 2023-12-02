@@ -35,7 +35,7 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
     navController: NavController = rememberNavController(),
 ) {
-    when (val uiState = homeUiState) {
+    when (homeUiState) {
         is HomeUiState.Default -> {
 
         }
@@ -54,7 +54,10 @@ fun HomeScreen(
                     textRes = R.string.learn_new_words,
                     labelRes = R.string.learned_today,
                     iconColor = Color.Yellow,
-                    labelParams = arrayOf(uiState.learnedWordsToday, uiState.amountWordsLearnPerDay),
+                    labelParams = arrayOf(
+                        homeUiState.learnedWordsToday,
+                        homeUiState.amountWordsLearnPerDay
+                    ),
                 ) {
                     navController.navigate(Destination.BrowseCardsScreen())
                 }
@@ -63,7 +66,7 @@ fun HomeScreen(
                     textRes = R.string.review_words,
                     labelRes = R.string.words_to_review,
                     iconColor = Color.Green,
-                    labelParams = arrayOf(uiState.wordsToReview),
+                    labelParams = arrayOf(homeUiState.wordsToReview),
                 ) {
                     navController.navigate(Destination.BrowseCardsScreen())
                 }

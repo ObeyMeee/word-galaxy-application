@@ -6,26 +6,61 @@ import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.AP
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import ua.com.andromeda.wordgalaxy.WordGalaxyApplication
+import ua.com.andromeda.wordgalaxy.data.model.WordStatus
 import ua.com.andromeda.wordgalaxy.data.repository.WordRepository
 import ua.com.andromeda.wordgalaxy.data.repository.WordRepositoryImpl
+import ua.com.andromeda.wordgalaxy.data.repository.preferences.UserPreferencesRepository
 
 class BrowseCardsViewModel(
-    private val wordRepository: WordRepository
+    private val wordRepository: WordRepository,
+    private val userPreferencesRepository: UserPreferencesRepository,
 ) : ViewModel() {
-    internal val uiState = wordRepository.findOneRandomNewWord()
-        .map {
-            if (it.isEmpty()) BrowseCardUiState.Error
-            else BrowseCardUiState.Success(it.first())
+    private val _uiState = MutableStateFlow<BrowseCardUiState>(BrowseCardUiState.Default)
+    val uiState: StateFlow<BrowseCardUiState> = _uiState
+
+    init {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val randomWord = wordRepository.findOneRandomNewWord().first()
+                val amountWordsToLearnPerDay =
+                    userPreferencesRepository.amountWordsToLearnPerDay.first()
+                val learnedWordsToday = wordRepository.countLearnedWordsToday().first()
+                _uiState.update {
+                    BrowseCardUiState.Success(
+                        wordWithCategories = randomWord,
+                        learnedWordsToday = learnedWordsToday,
+                        amountWordsLearnPerDay = amountWordsToLearnPerDay
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    BrowseCardUiState.Error
+                }
+            }
         }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = BrowseCardUiState.Default
-        )
+    }
+
+    fun updateWordStatus(wordStatus: WordStatus) {
+        viewModelScope.launch {
+            val uiStateValue = _uiState.value
+            if (uiStateValue is BrowseCardUiState.Success) {
+
+                val word = uiStateValue.wordWithCategories.word
+                wordRepository.update(
+                    word.copy(
+                        status = wordStatus
+                    )
+                )
+            }
+        }
+    }
 
     companion object {
         val factory: ViewModelProvider.Factory = viewModelFactory {
@@ -34,7 +69,7 @@ class BrowseCardsViewModel(
                 val wordRepository = WordRepositoryImpl(
                     application.appDatabase.wordDao()
                 )
-                BrowseCardsViewModel(wordRepository)
+                BrowseCardsViewModel(wordRepository, application.userPreferencesRepository)
             }
         }
     }

@@ -32,6 +32,9 @@ fun WordGalaxyNavHost(modifier: Modifier = Modifier) {
 
         composable(Destination.BrowseCardsScreen()) {
             BrowseCardsScreen(
+                navigateToNextCard = {
+                    navController.navigate(Destination.BrowseCardsScreen())
+                },
                 modifier = modifier.padding(dimensionResource(R.dimen.padding_medium))
             )
         }
