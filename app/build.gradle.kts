@@ -52,7 +52,7 @@ android {
 
 dependencies {
     val lifecycle_version = "2.6.2"
-    val room_version = "2.6.0"
+    val room_version = "2.6.1"
 
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:$lifecycle_version")
@@ -75,7 +75,6 @@ dependencies {
     // Room database
     implementation("androidx.room:room-runtime:$room_version")
     implementation("androidx.room:room-ktx:$room_version")
-    annotationProcessor("androidx.room:room-compiler:$room_version")
     ksp("androidx.room:room-compiler:$room_version")
 
     // Preferences datastore
