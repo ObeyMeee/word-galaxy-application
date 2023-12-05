@@ -1,5 +1,9 @@
 package ua.com.andromeda.wordgalaxy.ui.screens.common
 
+import android.content.Context
+import android.media.AudioAttributes
+import android.media.MediaPlayer
+import android.net.Uri
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -28,18 +32,18 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import ua.com.andromeda.wordgalaxy.R
 import ua.com.andromeda.wordgalaxy.data.model.Category
 import ua.com.andromeda.wordgalaxy.ui.screens.browsecards.BrowseCardUiState
+import java.io.IOException
 
 @Composable
 fun BrowseCard(
-    cardState: CardState,
-    uiState: BrowseCardUiState.Success,
-    modifier: Modifier = Modifier
+    cardState: CardState, uiState: BrowseCardUiState.Success, modifier: Modifier = Modifier
 ) {
     val newWordsMemorized = uiState.learnedWordsToday
     Column(modifier = modifier) {
@@ -61,19 +65,17 @@ fun BrowseCard(
             }
         }
         EnglishCard(
-            cardState = cardState,
-            uiState = uiState,
-            modifier = Modifier.fillMaxSize()
+            cardState = cardState, uiState = uiState, modifier = Modifier.fillMaxSize()
         )
     }
 }
 
 @Composable
 private fun EnglishCard(
-    cardState: CardState,
-    uiState: BrowseCardUiState.Success,
-    modifier: Modifier = Modifier
+    cardState: CardState, uiState: BrowseCardUiState.Success, modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+    val phonetics = uiState.embeddedWord.phonetics
     Card(
         modifier = modifier,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
@@ -108,9 +110,7 @@ private fun EnglishCard(
             )
         }
         Text(
-            text = uiState.embeddedWord
-                .categories
-                .map(Category::name)
+            text = uiState.embeddedWord.categories.map(Category::name)
                 .joinToString(separator = ", "),
             modifier = Modifier.padding(start = dimensionResource(R.dimen.padding_largest)),
             style = MaterialTheme.typography.bodySmall
@@ -118,7 +118,12 @@ private fun EnglishCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { },
+                .clickable {
+                    playPronunciation(
+                        context = context,
+                        audioUrls = phonetics.map { it.audio }
+                    )
+                },
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -129,7 +134,7 @@ private fun EnglishCard(
                     style = MaterialTheme.typography.titleLarge
                 )
                 Text(
-                    text = uiState.embeddedWord.phonetics.joinToString(separator = ", ") { it.text },
+                    text = phonetics.joinToString(separator = ", ") { it.text },
                     modifier = Modifier.padding(start = dimensionResource(R.dimen.padding_largest)),
                     style = MaterialTheme.typography.titleLarge
                 )
@@ -165,14 +170,29 @@ private fun EnglishCard(
     }
 }
 
+private fun playPronunciation(context: Context, audioUrls: List<String>) {
+    val mediaPlayer = MediaPlayer()
+    with(mediaPlayer) {
+        setAudioAttributes(
+            AudioAttributes
+                .Builder()
+                .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                .build()
+        )
+        audioUrls.forEach { audio ->
+            setDataSource(context, Uri.parse(audio))
+            prepareAsync()
+            setOnPreparedListener { it.start() }
+        }
+    }
+}
+
 @Composable
 private fun CardAction(
-    cardState: CardState,
-    modifier: Modifier = Modifier
+    cardState: CardState, modifier: Modifier = Modifier
 ) {
     Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically
+        modifier = modifier, verticalAlignment = Alignment.CenterVertically
     ) {
         Button(onClick = cardState.onLeftClick) {
             Row(

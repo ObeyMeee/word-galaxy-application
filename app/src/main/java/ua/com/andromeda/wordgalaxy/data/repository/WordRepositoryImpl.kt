@@ -3,7 +3,10 @@ package ua.com.andromeda.wordgalaxy.data.repository
 import androidx.room.Transaction
 import kotlinx.coroutines.flow.map
 import ua.com.andromeda.wordgalaxy.data.dao.WordDao
+import ua.com.andromeda.wordgalaxy.data.model.Category
 import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
+import ua.com.andromeda.wordgalaxy.data.model.Example
+import ua.com.andromeda.wordgalaxy.data.model.Phonetic
 import ua.com.andromeda.wordgalaxy.data.model.Word
 import ua.com.andromeda.wordgalaxy.data.model.WordStatus
 
@@ -31,27 +34,34 @@ class WordRepositoryImpl(
     @Transaction
     override suspend fun insert(embeddedWord: EmbeddedWord) {
         val wordId = wordDao.insertWord(embeddedWord.word)
-        insertSecondaeyEntites(embeddedWord, wordId)
+        insertSecondaryEntities(embeddedWord, wordId)
     }
 
-    private suspend fun insertSecondaeyEntites(
-        embeddedWord: EmbeddedWord,
-        wordId: Long
-    ) {
+    private suspend fun insertSecondaryEntities(embeddedWord: EmbeddedWord, wordId: Long) {
+        insertCategories(embeddedWord.categories, wordId)
+        insertExamples(embeddedWord.examples, wordId)
+        insertPhonetics(embeddedWord.phonetics, wordId)
+    }
 
-        val updatedCategories = embeddedWord.categories.map { category ->
+    private suspend fun insertCategories(categories: List<Category>, wordId: Long) {
+        val updatedCategories = categories.map { category ->
             category.copy(wordId = wordId)
         }
-        val updatedExamples = embeddedWord.examples.map { example ->
-            example.copy(wordId = wordId)
-        }
+        wordDao.insertCategories(updatedCategories)
+    }
 
-        val updatedPhonetics = embeddedWord.phonetics.map { phonetic ->
+    private suspend fun insertPhonetics(phonetics: List<Phonetic>, wordId: Long) {
+        val updatedPhonetics = phonetics.map { phonetic ->
             phonetic.copy(wordId = wordId)
         }
-        wordDao.insertCategories(updatedCategories)
-        wordDao.insertExamples(updatedExamples)
         wordDao.insertPhonetics(updatedPhonetics)
+    }
+
+    private suspend fun insertExamples(examples: List<Example>, wordId: Long) {
+        val updatedExamples = examples.map { example ->
+            example.copy(wordId = wordId)
+        }
+        wordDao.insertExamples(updatedExamples)
     }
 
     @Transaction
@@ -59,7 +69,7 @@ class WordRepositoryImpl(
         val words = embeddedWords.map { it.word }
         val wordIds = wordDao.insertAllWords(words)
         embeddedWords.forEachIndexed { i, embeddedWord ->
-            insertSecondaeyEntites(embeddedWord, wordIds[i])
+            insertSecondaryEntities(embeddedWord, wordIds[i])
         }
     }
 }
