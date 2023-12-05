@@ -6,7 +6,7 @@ sealed interface HomeUiState {
 
     data class Success(
         val learnedWordsToday: Int = 0,
-        val amountWordsLearnPerDay: Int = 0,
-        val wordsToReview: Int = 0
+        val amountWordsToLearnPerDay: Int = 0,
+        val amountWordsToReview: Int = 0
     ) : HomeUiState
 }

@@ -56,7 +56,7 @@ fun HomeScreen(
                     iconColor = Color.Yellow,
                     labelParams = arrayOf(
                         homeUiState.learnedWordsToday,
-                        homeUiState.amountWordsLearnPerDay
+                        homeUiState.amountWordsToLearnPerDay
                     ),
                 ) {
                     navController.navigate(Destination.BrowseCardsScreen())
@@ -66,7 +66,7 @@ fun HomeScreen(
                     textRes = R.string.review_words,
                     labelRes = R.string.words_to_review,
                     iconColor = Color.Green,
-                    labelParams = arrayOf(homeUiState.wordsToReview),
+                    labelParams = arrayOf(homeUiState.amountWordsToReview),
                 ) {
                     navController.navigate(Destination.BrowseCardsScreen())
                 }

@@ -7,12 +7,14 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import ua.com.andromeda.wordgalaxy.data.dao.WordDao
 import ua.com.andromeda.wordgalaxy.data.model.Category
+import ua.com.andromeda.wordgalaxy.data.model.Example
+import ua.com.andromeda.wordgalaxy.data.model.Phonetic
 import ua.com.andromeda.wordgalaxy.data.model.Word
 import ua.com.andromeda.wordgalaxy.data.utils.Converters
 
 @Database(
-    version = 5,
-    entities = [Category::class, Word::class],
+    version = 1,
+    entities = [Word::class, Category::class, Phonetic::class, Example::class],
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -29,7 +31,8 @@ abstract class AppDatabase : RoomDatabase() {
                     context,
                     AppDatabase::class.java,
                     "word-galaxy.db"
-                ).fallbackToDestructiveMigration()
+                ).createFromAsset("database/word-galaxy.db")
+                    .fallbackToDestructiveMigration()
                     .build()
                     .also { INSTANCE = it }
             }

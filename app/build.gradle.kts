@@ -33,6 +33,9 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+
+        // For backward compatibility to use java.time package
+        isCoreLibraryDesugaringEnabled = true
     }
     kotlinOptions {
         jvmTarget = "17"
@@ -79,6 +82,9 @@ dependencies {
 
     // Preferences datastore
     implementation("androidx.datastore:datastore-preferences:1.0.0")
+
+    // For backward compatibility to use java.time package
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")

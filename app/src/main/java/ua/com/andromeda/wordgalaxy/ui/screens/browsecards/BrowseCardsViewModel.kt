@@ -14,9 +14,12 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import ua.com.andromeda.wordgalaxy.WordGalaxyApplication
 import ua.com.andromeda.wordgalaxy.data.model.WordStatus
+import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
+import ua.com.andromeda.wordgalaxy.data.model.calculateNextRepeatAt
 import ua.com.andromeda.wordgalaxy.data.repository.WordRepository
 import ua.com.andromeda.wordgalaxy.data.repository.WordRepositoryImpl
 import ua.com.andromeda.wordgalaxy.data.repository.preferences.UserPreferencesRepository
+import java.time.LocalDateTime
 
 class BrowseCardsViewModel(
     private val wordRepository: WordRepository,
@@ -28,13 +31,16 @@ class BrowseCardsViewModel(
     init {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val randomWord = wordRepository.findOneRandomNewWord().first()
                 val amountWordsToLearnPerDay =
                     userPreferencesRepository.amountWordsToLearnPerDay.first()
                 val learnedWordsToday = wordRepository.countLearnedWordsToday().first()
+                val amountWordsInProgress =
+                    wordRepository.countWordsWhereStatusEquals(WordStatus.InProgress).first()
+                val randomWord = getRandomWord(amountWordsInProgress, amountWordsToLearnPerDay)
+
                 _uiState.update {
                     BrowseCardUiState.Success(
-                        wordWithCategories = randomWord,
+                        embeddedWord = randomWord,
                         learnedWordsToday = learnedWordsToday,
                         amountWordsLearnPerDay = amountWordsToLearnPerDay
                     )
@@ -47,15 +53,46 @@ class BrowseCardsViewModel(
         }
     }
 
+    private suspend fun getRandomWord(
+        amountWordsInProgress: Int,
+        amountWordsToLearnPerDay: Int
+    ): EmbeddedWord {
+        val wordStatus =
+            if (amountWordsInProgress < amountWordsToLearnPerDay)
+                WordStatus.New
+            else
+                WordStatus.InProgress
+        return wordRepository.findOneRandomWordWhereStatusEquals(wordStatus).first()
+    }
+
     fun updateWordStatus(wordStatus: WordStatus) {
         viewModelScope.launch {
             val uiStateValue = _uiState.value
             if (uiStateValue is BrowseCardUiState.Success) {
 
-                val word = uiStateValue.wordWithCategories.word
+                val word = uiStateValue.embeddedWord.word
                 wordRepository.update(
                     word.copy(
                         status = wordStatus
+                    )
+                )
+            }
+        }
+    }
+
+    fun memorizeWord() {
+        viewModelScope.launch {
+            val uiStateValue = _uiState.value
+            if (uiStateValue is BrowseCardUiState.Success) {
+
+                val word = uiStateValue.embeddedWord.word
+                val newAmountRepetition = 0
+                wordRepository.update(
+                    word.copy(
+                        memorizedAt = LocalDateTime.now(),
+                        amountRepetition = newAmountRepetition,
+                        status = WordStatus.Memorized,
+                        nextRepeatAt = calculateNextRepeatAt(newAmountRepetition)
                     )
                 )
             }

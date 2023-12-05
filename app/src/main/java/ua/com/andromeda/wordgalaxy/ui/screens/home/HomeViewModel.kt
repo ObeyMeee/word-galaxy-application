@@ -6,29 +6,49 @@ import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.AP
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import ua.com.andromeda.wordgalaxy.WordGalaxyApplication
+import ua.com.andromeda.wordgalaxy.data.repository.WordRepository
+import ua.com.andromeda.wordgalaxy.data.repository.WordRepositoryImpl
 import ua.com.andromeda.wordgalaxy.data.repository.preferences.UserPreferencesRepository
 
 class HomeViewModel(
-    private val userPreferencesDataStore: UserPreferencesRepository
+    private val wordRepository: WordRepository,
+    private val userPreferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
-    val uiState: StateFlow<HomeUiState> = userPreferencesDataStore.amountWordsToLearnPerDay
-        .map { HomeUiState.Success(amountWordsLearnPerDay = it) }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = HomeUiState.Default
-        )
+    private val _uiState: MutableStateFlow<HomeUiState> = MutableStateFlow(HomeUiState.Default)
+    val uiState: StateFlow<HomeUiState> = _uiState
+
+    init {
+        viewModelScope.launch(Dispatchers.IO) {
+            val amountWordsToLearnPerDay =
+                userPreferencesRepository.amountWordsToLearnPerDay.first()
+            val learnedWordsToday = wordRepository.countLearnedWordsToday().first()
+            val amountWordsToReview = wordRepository.countWordsToReview().first()
+            _uiState.update {
+                HomeUiState.Success(
+                    learnedWordsToday = learnedWordsToday,
+                    amountWordsToLearnPerDay = amountWordsToLearnPerDay,
+                    amountWordsToReview = amountWordsToReview
+                )
+            }
+        }
+    }
 
     companion object {
         val factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val application = this[APPLICATION_KEY] as WordGalaxyApplication
-                HomeViewModel(application.userPreferencesRepository)
+                val wordRepository = WordRepositoryImpl(
+                    application.appDatabase.wordDao()
+                )
+                val userPreferencesRepository = application.userPreferencesRepository
+                HomeViewModel(wordRepository, userPreferencesRepository)
             }
         }
     }

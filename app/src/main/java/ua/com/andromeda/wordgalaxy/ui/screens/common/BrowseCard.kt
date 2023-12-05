@@ -36,153 +36,132 @@ import ua.com.andromeda.wordgalaxy.data.model.Category
 import ua.com.andromeda.wordgalaxy.ui.screens.browsecards.BrowseCardUiState
 
 @Composable
-fun BrowseCard(cardState: CardState, uiState: BrowseCardUiState, modifier: Modifier = Modifier) {
-    when (uiState) {
-        is BrowseCardUiState.Error -> {
-            Text(text = "Error loading resource")
-        }
-
-        is BrowseCardUiState.Default -> {
-            Text(text = "Loading...")
-        }
-
-        is BrowseCardUiState.Success -> {
-            val newWordsMemorized = uiState.learnedWordsToday
-            Column(modifier = modifier) {
-                Text(
-                    text = stringResource(R.string.new_words_memorized, newWordsMemorized),
-                    color = MaterialTheme.colorScheme.secondary,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = dimensionResource(R.dimen.padding_small))
-                ) {
-                    (1..newWordsMemorized).forEach { _ ->
-                        Icon(imageVector = Icons.Filled.Rectangle, contentDescription = null)
-                    }
-                    (newWordsMemorized..uiState.amountWordsLearnPerDay).forEach { _ ->
-                        Icon(imageVector = Icons.Outlined.Rectangle, contentDescription = null)
-                    }
-                }
-                EnglishCard(
-                    cardState = cardState,
-                    uiState = uiState,
-                    modifier = Modifier.fillMaxSize()
-                )
+fun BrowseCard(
+    cardState: CardState,
+    uiState: BrowseCardUiState.Success,
+    modifier: Modifier = Modifier
+) {
+    val newWordsMemorized = uiState.learnedWordsToday
+    Column(modifier = modifier) {
+        Text(
+            text = stringResource(R.string.new_words_memorized, newWordsMemorized),
+            color = MaterialTheme.colorScheme.secondary,
+            style = MaterialTheme.typography.bodyMedium
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = dimensionResource(R.dimen.padding_small))
+        ) {
+            (1..newWordsMemorized).forEach { _ ->
+                Icon(imageVector = Icons.Filled.Rectangle, contentDescription = null)
+            }
+            (newWordsMemorized..uiState.amountWordsLearnPerDay).forEach { _ ->
+                Icon(imageVector = Icons.Outlined.Rectangle, contentDescription = null)
             }
         }
+        EnglishCard(
+            cardState = cardState,
+            uiState = uiState,
+            modifier = Modifier.fillMaxSize()
+        )
     }
 }
 
 @Composable
 private fun EnglishCard(
     cardState: CardState,
-    uiState: BrowseCardUiState,
+    uiState: BrowseCardUiState.Success,
     modifier: Modifier = Modifier
 ) {
-    when (uiState) {
-        is BrowseCardUiState.Error -> {
-            Text(text = "An error occurred while loading")
-        }
-
-        is BrowseCardUiState.Default -> {
-            Text(text = "Loading...")
-        }
-
-        is BrowseCardUiState.Success -> {
-            Card(
-                modifier = modifier,
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+    Card(
+        modifier = modifier,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(dimensionResource(R.dimen.padding_medium)),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = dimensionResource(R.dimen.padding_small))
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(dimensionResource(R.dimen.padding_medium)),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(end = dimensionResource(R.dimen.padding_small))
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Square,
-                            contentDescription = null,
-                            modifier = Modifier.padding(
-                                end = dimensionResource(R.dimen.padding_small)
-                            ),
-                            tint = cardState.iconColor
-                        )
-                        Text(text = stringResource(cardState.headerLabelRes))
-                    }
-                    Icon(
-                        imageVector = Icons.Filled.MoreHoriz,
-                        contentDescription = stringResource(R.string.show_more),
-                        modifier = Modifier
-                            .padding(end = dimensionResource(R.dimen.padding_small))
-                            .size(32.dp)
-                    )
-                }
-                Text(
-                    text = uiState.wordWithCategories
-                        .categories
-                        .map(Category::name)
-                        .joinToString(separator = ", "),
-                    modifier = Modifier.padding(start = dimensionResource(R.dimen.padding_largest)),
-                    style = MaterialTheme.typography.bodySmall
+                Icon(
+                    imageVector = Icons.Filled.Square,
+                    contentDescription = null,
+                    modifier = Modifier.padding(
+                        end = dimensionResource(R.dimen.padding_small)
+                    ),
+                    tint = cardState.iconColor
                 )
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { },
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Column {
-                        Text(
-                            text = uiState.wordWithCategories.word.value,
-                            modifier = Modifier.padding(start = dimensionResource(R.dimen.padding_largest)),
-                            style = MaterialTheme.typography.titleLarge
-                        )
-                        Text(
-                            text = uiState.wordWithCategories.word.transcription,
-                            modifier = Modifier.padding(start = dimensionResource(R.dimen.padding_largest)),
-                            style = MaterialTheme.typography.titleLarge
-                        )
-                    }
-                    Icon(
-                        imageVector = Icons.Filled.PlayCircleFilled, contentDescription = null,
-                        modifier = Modifier.padding(end = dimensionResource(R.dimen.padding_large)),
-                    )
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxSize(.88f),
-                    horizontalArrangement = Arrangement.SpaceAround,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Keyboard,
-                        contentDescription = null,
-                        modifier = Modifier.size(50.dp)
-                    )
-                    Icon(
-                        imageVector = Icons.Outlined.RemoveRedEye,
-                        contentDescription = null,
-                        modifier = Modifier.size(50.dp)
-                    )
-                }
-                CardAction(
-                    cardState = cardState,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(dimensionResource(R.dimen.padding_small))
+                Text(text = stringResource(cardState.headerLabelRes))
+            }
+            Icon(
+                imageVector = Icons.Filled.MoreHoriz,
+                contentDescription = stringResource(R.string.show_more),
+                modifier = Modifier
+                    .padding(end = dimensionResource(R.dimen.padding_small))
+                    .size(32.dp)
+            )
+        }
+        Text(
+            text = uiState.embeddedWord
+                .categories
+                .map(Category::name)
+                .joinToString(separator = ", "),
+            modifier = Modifier.padding(start = dimensionResource(R.dimen.padding_largest)),
+            style = MaterialTheme.typography.bodySmall
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { },
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column {
+                Text(
+                    text = uiState.embeddedWord.word.value,
+                    modifier = Modifier.padding(start = dimensionResource(R.dimen.padding_largest)),
+                    style = MaterialTheme.typography.titleLarge
+                )
+                Text(
+                    text = uiState.embeddedWord.phonetics.joinToString(separator = ", ") { it.text },
+                    modifier = Modifier.padding(start = dimensionResource(R.dimen.padding_largest)),
+                    style = MaterialTheme.typography.titleLarge
                 )
             }
-
+            Icon(
+                imageVector = Icons.Filled.PlayCircleFilled, contentDescription = null,
+                modifier = Modifier.padding(end = dimensionResource(R.dimen.padding_large)),
+            )
         }
+
+        Row(
+            modifier = Modifier.fillMaxSize(.88f),
+            horizontalArrangement = Arrangement.SpaceAround,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Keyboard,
+                contentDescription = null,
+                modifier = Modifier.size(50.dp)
+            )
+            Icon(
+                imageVector = Icons.Outlined.RemoveRedEye,
+                contentDescription = null,
+                modifier = Modifier.size(50.dp)
+            )
+        }
+        CardAction(
+            cardState = cardState,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(dimensionResource(R.dimen.padding_small))
+        )
     }
 }
 

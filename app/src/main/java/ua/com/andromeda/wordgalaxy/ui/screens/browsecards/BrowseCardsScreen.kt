@@ -2,6 +2,7 @@ package ua.com.andromeda.wordgalaxy.ui.screens.browsecards
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -21,23 +22,46 @@ fun BrowseCardsScreen(
     modifier: Modifier = Modifier
 ) {
     val viewModel: BrowseCardsViewModel = viewModel(factory = BrowseCardsViewModel.factory)
-    val uiState by viewModel.uiState.collectAsState()
-    BrowseCard(
-        cardState = CardState.NewWord(
-            onLeftClick = {
-                viewModel.updateWordStatus(WordStatus.AlreadyKnown)
-                navigateToNextCard()
-            },
-            onRightClick = {
-                viewModel.updateWordStatus(WordStatus.InProgress)
-                navigateToNextCard()
-            }
-        ),
-        uiState = uiState,
-        modifier = modifier
-    )
-}
+    val browseCardUiState by viewModel.uiState.collectAsState()
 
+    when (val uiState = browseCardUiState) {
+        is BrowseCardUiState.Default -> {
+            Text(text = "Loading...")
+        }
+
+        is BrowseCardUiState.Error -> {
+            Text(text = "Unexpected error occurred")
+        }
+
+        is BrowseCardUiState.Success -> {
+            val isWordStatusNew = uiState.embeddedWord.word.status == WordStatus.New
+            val cardState = if (isWordStatusNew) {
+                CardState.NewWord(
+                    onLeftClick = {
+                        viewModel.updateWordStatus(WordStatus.AlreadyKnown)
+                        navigateToNextCard()
+                    },
+                    onRightClick = {
+                        viewModel.updateWordStatus(WordStatus.InProgress)
+                        navigateToNextCard()
+                    })
+            } else {
+                CardState.InProgress(
+                    onLeftClick = {
+                        viewModel.memorizeWord()
+                        navigateToNextCard()
+                    },
+                    onRightClick = navigateToNextCard
+                )
+            }
+            BrowseCard(
+                cardState = cardState,
+                uiState = uiState,
+                modifier = modifier
+            )
+        }
+    }
+}
 
 @Preview(showBackground = true)
 @Composable
