@@ -20,7 +20,7 @@ class WordRepositoryImpl(
 
 
     override fun countLearnedWordsToday() =
-        wordDao.countLearnedWordsToday()
+        wordDao.countMemorizedWordsToday()
 
     override fun countWordsWhereStatusEquals(status: WordStatus) =
         wordDao.countWordsWhereStatusEquals(status)

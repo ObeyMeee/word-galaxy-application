@@ -60,7 +60,8 @@ fun BrowseCard(
             (1..newWordsMemorized).forEach { _ ->
                 Icon(imageVector = Icons.Filled.Rectangle, contentDescription = null)
             }
-            (newWordsMemorized..uiState.amountWordsLearnPerDay).forEach { _ ->
+
+            (newWordsMemorized..<uiState.amountWordsLearnPerDay).forEach { _ ->
                 Icon(imageVector = Icons.Outlined.Rectangle, contentDescription = null)
             }
         }

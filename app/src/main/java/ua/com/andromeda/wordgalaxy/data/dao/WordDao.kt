@@ -31,18 +31,18 @@ interface WordDao {
         """
         SELECT COUNT(*) 
         FROM word
-        WHERE amount_repetition = 0 
-        AND memorized_at BETWEEN JulianDay('now') AND JulianDay('now','+1 day','-0.001 second')
+        WHERE status = 'Memorized' 
+        AND strftime('%Y-%m-%d', memorized_at) = strftime('%Y-%m-%d', 'now');
         """
     )
-    fun countLearnedWordsToday(): Flow<Int>
+    fun countMemorizedWordsToday(): Flow<Int>
 
     @Query(
         """
         SELECT COUNT(*)
         FROM word
         WHERE status = 'Memorized'
-        AND next_repeat_at > JulianDay('now')
+        AND strftime('%Y-%m-%d', 'now') > strftime('%Y-%m-%d', next_repeat_at);
         """
     )
     fun countWordsToReview(): Flow<Int>
@@ -73,5 +73,4 @@ interface WordDao {
 
     @Insert
     suspend fun insertCategories(categories: List<Category>): List<Long>
-
 }
