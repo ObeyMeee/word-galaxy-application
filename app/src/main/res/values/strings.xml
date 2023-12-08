@@ -12,4 +12,9 @@
     <string name="start_learning_this_word">Start learning this word</string>
     <string name="i_have_memorized_this_word">I\'ve memorized this word, review it later</string>
     <string name="keep_learning_this_word">Keep learning this word</string>
+    <string name="memorized_word">Memorized word(review %d)</string>
+    <string name="forgot_it">Forgot it</string>
+    <string name="got_it">Got it</string>
+    <string name="words_reviewed">%d words reviewed</string>
+    <string name="back">Back</string>
 </resources>

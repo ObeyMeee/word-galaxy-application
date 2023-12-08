@@ -12,7 +12,9 @@ sealed class Destination(protected val route: String, vararg params: String) {
         operator fun invoke() = route
     }
 
-    object HomeScreen: NoArgumentsDestination("home")
+    data object HomeScreen: NoArgumentsDestination("home")
 
-    object BrowseCardsScreen: NoArgumentsDestination("browse-cards")
+    data object LearnWordsScreen: NoArgumentsDestination("learn-words")
+
+    data object ReviewWordsScreen: NoArgumentsDestination("review-words")
 }

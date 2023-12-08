@@ -27,6 +27,18 @@ interface WordDao {
     )
     fun findOneRandomWordWhereStatusEquals(status: WordStatus): Flow<List<EmbeddedWord>>
 
+    @Transaction
+    @Query(
+        """
+        SELECT *
+        FROM word
+        WHERE strftime('%s', 'now') > strftime('%s', next_repeat_at)
+        ORDER BY RANDOM() 
+        LIMIT 1
+        """
+    )
+    fun findRandomWordToReview(): Flow<List<EmbeddedWord>>
+
     @Query(
         """
         SELECT COUNT(*) 
@@ -39,10 +51,20 @@ interface WordDao {
 
     @Query(
         """
+        SELECT COUNT(*) 
+        FROM word
+        WHERE status = 'Memorized' 
+        AND strftime('%Y-%m-%d', 'now') < strftime('%Y-%m-%d', repeated_at);
+        """
+    )
+    fun countReviewedWordsToday(): Flow<Int>
+
+    @Query(
+        """
         SELECT COUNT(*)
         FROM word
         WHERE status = 'Memorized'
-        AND strftime('%Y-%m-%d', 'now') > strftime('%Y-%m-%d', next_repeat_at);
+        AND strftime('%s', 'now') > strftime('%s', next_repeat_at);
         """
     )
     fun countWordsToReview(): Flow<Int>

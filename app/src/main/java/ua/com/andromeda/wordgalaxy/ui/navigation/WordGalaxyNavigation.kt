@@ -11,9 +11,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import ua.com.andromeda.wordgalaxy.R
-import ua.com.andromeda.wordgalaxy.ui.screens.browsecards.BrowseCardsScreen
+import ua.com.andromeda.wordgalaxy.ui.screens.common.CardState
+import ua.com.andromeda.wordgalaxy.ui.screens.learnwords.LearnWordsScreen
 import ua.com.andromeda.wordgalaxy.ui.screens.home.HomeScreen
 import ua.com.andromeda.wordgalaxy.ui.screens.home.HomeViewModel
+import ua.com.andromeda.wordgalaxy.ui.screens.reviewwords.ReviewWordsScreen
 
 @Composable
 fun WordGalaxyNavHost(modifier: Modifier = Modifier) {
@@ -30,12 +32,19 @@ fun WordGalaxyNavHost(modifier: Modifier = Modifier) {
             )
         }
 
-        composable(Destination.BrowseCardsScreen()) {
-            BrowseCardsScreen(
+        composable(Destination.LearnWordsScreen()) {
+            LearnWordsScreen(
                 navigateToNextCard = {
-                    navController.navigate(Destination.BrowseCardsScreen())
+                    navController.navigate(Destination.LearnWordsScreen())
                 },
                 modifier = modifier.padding(dimensionResource(R.dimen.padding_medium))
+            )
+        }
+
+        composable(Destination.ReviewWordsScreen()) {
+            ReviewWordsScreen(
+                modifier = Modifier.padding(dimensionResource(R.dimen.padding_medium)),
+                navigateUp = { navController.navigateUp() }
             )
         }
     }

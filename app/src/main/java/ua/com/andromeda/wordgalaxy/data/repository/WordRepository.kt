@@ -8,11 +8,15 @@ import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
 interface WordRepository {
     fun findOneRandomWordWhereStatusEquals(status: WordStatus): Flow<EmbeddedWord>
 
+    fun findWordToReview(): Flow<EmbeddedWord?>
+
     fun countLearnedWordsToday(): Flow<Int>
 
     fun countWordsWhereStatusEquals(status: WordStatus): Flow<Int>
 
     fun countWordsToReview(): Flow<Int>
+
+    fun countReviewedWordsToday(): Flow<Int>
 
     suspend fun update(word: Word)
 

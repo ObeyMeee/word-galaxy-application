@@ -1,9 +1,5 @@
 package ua.com.andromeda.wordgalaxy.ui.screens.common
 
-import android.content.Context
-import android.media.AudioAttributes
-import android.media.MediaPlayer
-import android.net.Uri
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -38,12 +34,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import ua.com.andromeda.wordgalaxy.R
 import ua.com.andromeda.wordgalaxy.data.model.Category
-import ua.com.andromeda.wordgalaxy.ui.screens.browsecards.BrowseCardUiState
-import java.io.IOException
+import ua.com.andromeda.wordgalaxy.data.utils.playPronunciation
+import ua.com.andromeda.wordgalaxy.ui.screens.learnwords.LearnWordsUiState
 
 @Composable
 fun BrowseCard(
-    cardState: CardState, uiState: BrowseCardUiState.Success, modifier: Modifier = Modifier
+    cardState: CardState,
+    uiState: LearnWordsUiState.Success,
+    modifier: Modifier = Modifier
 ) {
     val newWordsMemorized = uiState.learnedWordsToday
     Column(modifier = modifier) {
@@ -73,7 +71,7 @@ fun BrowseCard(
 
 @Composable
 private fun EnglishCard(
-    cardState: CardState, uiState: BrowseCardUiState.Success, modifier: Modifier = Modifier
+    cardState: CardState, uiState: LearnWordsUiState.Success, modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     val phonetics = uiState.embeddedWord.phonetics
@@ -120,8 +118,7 @@ private fun EnglishCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable {
-                    playPronunciation(
-                        context = context,
+                    context.playPronunciation(
                         audioUrls = phonetics.map { it.audio }
                     )
                 },
@@ -168,23 +165,6 @@ private fun EnglishCard(
                 .fillMaxWidth()
                 .padding(dimensionResource(R.dimen.padding_small))
         )
-    }
-}
-
-private fun playPronunciation(context: Context, audioUrls: List<String>) {
-    val mediaPlayer = MediaPlayer()
-    with(mediaPlayer) {
-        setAudioAttributes(
-            AudioAttributes
-                .Builder()
-                .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
-                .build()
-        )
-        audioUrls.forEach { audio ->
-            setDataSource(context, Uri.parse(audio))
-            prepareAsync()
-            setOnPreparedListener { it.start() }
-        }
     }
 }
 

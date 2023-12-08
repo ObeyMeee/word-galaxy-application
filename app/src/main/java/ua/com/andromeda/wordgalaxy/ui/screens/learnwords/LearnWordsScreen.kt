@@ -1,4 +1,4 @@
-package ua.com.andromeda.wordgalaxy.ui.screens.browsecards
+package ua.com.andromeda.wordgalaxy.ui.screens.learnwords
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -17,23 +17,23 @@ import ua.com.andromeda.wordgalaxy.ui.screens.common.CardState
 import ua.com.andromeda.wordgalaxy.ui.theme.WordGalaxyTheme
 
 @Composable
-fun BrowseCardsScreen(
+fun LearnWordsScreen(
     navigateToNextCard: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val viewModel: BrowseCardsViewModel = viewModel(factory = BrowseCardsViewModel.factory)
+    val viewModel: LearnWordsViewModel = viewModel(factory = LearnWordsViewModel.factory)
     val browseCardUiState by viewModel.uiState.collectAsState()
 
     when (val uiState = browseCardUiState) {
-        is BrowseCardUiState.Default -> {
+        is LearnWordsUiState.Default -> {
             Text(text = "Loading...")
         }
 
-        is BrowseCardUiState.Error -> {
+        is LearnWordsUiState.Error -> {
             Text(text = "Unexpected error occurred")
         }
 
-        is BrowseCardUiState.Success -> {
+        is LearnWordsUiState.Success -> {
             val isWordStatusNew = uiState.embeddedWord.word.status == WordStatus.New
             val cardState = if (isWordStatusNew) {
                 CardState.NewWord(
@@ -67,7 +67,7 @@ fun BrowseCardsScreen(
 @Composable
 fun BrowseCardsScreenPreview() {
     WordGalaxyTheme {
-        BrowseCardsScreen(
+        LearnWordsScreen(
             navigateToNextCard = {},
             modifier = Modifier
                 .fillMaxWidth()

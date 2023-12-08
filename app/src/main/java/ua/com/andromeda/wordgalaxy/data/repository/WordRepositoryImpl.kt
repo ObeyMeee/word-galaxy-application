@@ -1,6 +1,7 @@
 package ua.com.andromeda.wordgalaxy.data.repository
 
 import androidx.room.Transaction
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import ua.com.andromeda.wordgalaxy.data.dao.WordDao
 import ua.com.andromeda.wordgalaxy.data.model.Category
@@ -18,6 +19,8 @@ class WordRepositoryImpl(
         wordDao.findOneRandomWordWhereStatusEquals(status)
             .map { it.first() }
 
+    override fun findWordToReview() =
+        wordDao.findRandomWordToReview().map { it.firstOrNull() }
 
     override fun countLearnedWordsToday() =
         wordDao.countMemorizedWordsToday()
@@ -27,6 +30,9 @@ class WordRepositoryImpl(
 
     override fun countWordsToReview() =
         wordDao.countWordsToReview()
+
+    override fun countReviewedWordsToday(): Flow<Int> =
+        wordDao.countReviewedWordsToday()
 
     override suspend fun update(word: Word) =
         wordDao.updateWord(word)
