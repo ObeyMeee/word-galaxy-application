@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -16,11 +17,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Keyboard
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.MoreHoriz
@@ -28,6 +32,7 @@ import androidx.compose.material.icons.filled.PlayCircleFilled
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.RemoveRedEye
 import androidx.compose.material.icons.filled.Square
+import androidx.compose.material.icons.outlined.PlayCircleOutline
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -60,12 +65,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ua.com.andromeda.wordgalaxy.R
+import ua.com.andromeda.wordgalaxy.data.DefaultStorage
 import ua.com.andromeda.wordgalaxy.data.model.Category
-import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
-import ua.com.andromeda.wordgalaxy.data.model.Example
-import ua.com.andromeda.wordgalaxy.data.model.Phonetic
-import ua.com.andromeda.wordgalaxy.data.model.Word
-import ua.com.andromeda.wordgalaxy.data.model.WordStatus
 import ua.com.andromeda.wordgalaxy.data.utils.playPronunciation
 import ua.com.andromeda.wordgalaxy.ui.screens.common.CardState
 import ua.com.andromeda.wordgalaxy.ui.screens.common.ReviewMode
@@ -221,7 +222,9 @@ private fun EnglishCard(
     updateReviewMode: (ReviewMode) -> Unit = {}
 ) {
     val context = LocalContext.current
-    val phonetics = uiState.wordToReview.phonetics
+    val wordToReview = uiState.wordToReview
+    val word = wordToReview.word
+    val phonetics = wordToReview.phonetics
     Card(
         modifier = modifier.fillMaxSize(),
         colors = CardDefaults.cardColors(
@@ -247,7 +250,7 @@ private fun EnglishCard(
                     ),
                     tint = cardState.iconColor
                 )
-                val amountRepetition = uiState.wordToReview.word.amountRepetition ?: 0
+                val amountRepetition = word.amountRepetition ?: 0
                 Text(text = stringResource(cardState.headerLabelRes, amountRepetition + 1))
             }
             Icon(
@@ -259,65 +262,141 @@ private fun EnglishCard(
             )
         }
         Text(
-            text = uiState.wordToReview.categories.map(Category::name)
+            text = wordToReview.categories.map(Category::name)
                 .joinToString(separator = ", "),
             modifier = Modifier.padding(start = dimensionResource(R.dimen.padding_largest)),
             style = MaterialTheme.typography.bodySmall
         )
         Text(
-            text = uiState.wordToReview.word.translate,
-            modifier = Modifier.padding(start = dimensionResource(R.dimen.padding_largest)),
+            text = word.translate,
+            modifier = Modifier.padding(
+                start = dimensionResource(R.dimen.padding_largest),
+                bottom = dimensionResource(R.dimen.padding_medium)
+            ),
             style = MaterialTheme.typography.titleLarge
         )
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(.91f),
-            horizontalArrangement = Arrangement.SpaceAround,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(
-                onClick = {
-                    updateReviewMode(ReviewMode.TypeAnswer)
-                },
-                modifier = Modifier
-                    .border(
-                        BorderStroke(
-                            width = 1.dp,
-                            color = MaterialTheme.colorScheme.secondary
-                        ),
-                        shape = RoundedCornerShape(dimensionResource(R.dimen.round_medium))
-                    )
-                    .padding(dimensionResource(R.dimen.padding_large))
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Keyboard,
-                    contentDescription = null,
-                    modifier = Modifier.size(30.dp)
+        when (uiState.reviewMode) {
+            ReviewMode.ShowAnswer -> {
+                Spacer(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(1.dp)
+                        .background(color = MaterialTheme.colorScheme.surface)
                 )
+                Row(
+                    modifier = Modifier
+                        .padding(
+                            horizontal = dimensionResource(R.dimen.padding_largest),
+                            vertical = dimensionResource(R.dimen.padding_medium)
+                        )
+                        .clickable {
+                            context.playPronunciation(audioUrls = phonetics.map { it.audio })
+                        },
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(modifier = Modifier.weight(.8f)) {
+                        Text(
+                            text = word.value,
+                            style = MaterialTheme.typography.titleLarge
+                        )
+                        Text(
+                            text = phonetics.joinToString(separator = ", ") { it.text },
+                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                    Icon(
+                        imageVector = Icons.Default.PlayCircleFilled,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+                LazyColumn(
+                    contentPadding = PaddingValues(dimensionResource(R.dimen.padding_medium)),
+                    verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_small))
+                ) {
+                    items(wordToReview.examples, key = { it.id }) { example ->
+                        Row(
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.KeyboardArrowDown,
+                                contentDescription = stringResource(R.string.expand)
+                            )
+                            Spacer(modifier = Modifier.width(dimensionResource(R.dimen.padding_small)))
+                            Text(
+                                text = example.text,
+                                modifier = Modifier.weight(.8f),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            Icon(
+                                imageVector = Icons.Outlined.PlayCircleOutline,
+                                contentDescription = stringResource(R.string.play_example)
+                            )
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.weight(1f))
             }
-            IconButton(
-                onClick = {
-                    updateReviewMode(ReviewMode.ShowAnswer)
-                },
-                modifier = Modifier
-                    .border(
-                        BorderStroke(
-                            width = 1.dp,
-                            color = MaterialTheme.colorScheme.secondary
-                        ),
-                        shape = RoundedCornerShape(dimensionResource(R.dimen.round_medium))
-                    )
-                    .padding(dimensionResource(R.dimen.padding_large))
-            ) {
-                Icon(
-                    imageVector = Icons.Default.RemoveRedEye,
-                    contentDescription = null,
-                    modifier = Modifier.size(30.dp)
-                )
+
+            ReviewMode.TypeAnswer -> {
+
+            }
+
+            ReviewMode.Default -> {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    horizontalArrangement = Arrangement.SpaceAround,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(
+                        onClick = {
+                            updateReviewMode(ReviewMode.TypeAnswer)
+                        },
+                        modifier = Modifier
+                            .border(
+                                BorderStroke(
+                                    width = 1.dp,
+                                    color = MaterialTheme.colorScheme.secondary
+                                ),
+                                shape = RoundedCornerShape(dimensionResource(R.dimen.round_medium))
+                            )
+                            .padding(dimensionResource(R.dimen.padding_large))
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Keyboard,
+                            contentDescription = null,
+                            modifier = Modifier.size(30.dp)
+                        )
+                    }
+                    IconButton(
+                        onClick = {
+                            updateReviewMode(ReviewMode.ShowAnswer)
+                        },
+                        modifier = Modifier
+                            .border(
+                                BorderStroke(
+                                    width = 1.dp,
+                                    color = MaterialTheme.colorScheme.secondary
+                                ),
+                                shape = RoundedCornerShape(dimensionResource(R.dimen.round_medium))
+                            )
+                            .padding(dimensionResource(R.dimen.padding_large))
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.RemoveRedEye,
+                            contentDescription = null,
+                            modifier = Modifier.size(30.dp)
+                        )
+                    }
+                }
             }
         }
+
         CardAction(
             cardState = cardState,
             modifier = Modifier.fillMaxWidth()
@@ -362,7 +441,6 @@ private fun CardAction(
                     contentDescription = null,
                     modifier = Modifier.size(25.dp)
                 )
-
             }
         }
         Button(
@@ -410,28 +488,27 @@ fun ReviewWordsTopAppBarPreview() {
 
 @Preview
 @Composable
-fun ReviewWordsEnglishCardPreview() {
+fun ReviewWordsEnglishCardDefaultModePreview() {
+    WordGalaxyTheme {
+        Surface {
+            EnglishCard(
+                CardState.Review(onRightClick = {}, onLeftClick = {}),
+                ReviewWordsUiState.Success(DefaultStorage.embeddedWord)
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+fun ReviewWordsEnglishCardShowAnswerModePreview() {
     WordGalaxyTheme {
         Surface {
             EnglishCard(
                 CardState.Review(onRightClick = {}, onLeftClick = {}),
                 ReviewWordsUiState.Success(
-                    EmbeddedWord(
-                        word = Word(
-                            value = "table",
-                            translate = "стіл",
-                            status = WordStatus.Memorized,
-                            amountRepetition = 0,
-                        ),
-                        categories = listOf(Category(name = "A1", wordId = 0)),
-                        phonetics = listOf(Phonetic(text = "[ˈteɪbl̩]", audio = "", wordId = 0)),
-                        examples = listOf(
-                            Example(
-                                text = "Corner table for the student can profitably save space in the apartment.",
-                                wordId = 0
-                            )
-                        )
-                    )
+                    wordToReview = DefaultStorage.embeddedWord,
+                    reviewMode = ReviewMode.ShowAnswer
                 )
             )
         }

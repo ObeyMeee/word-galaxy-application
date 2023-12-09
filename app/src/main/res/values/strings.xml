@@ -17,4 +17,6 @@
     <string name="got_it">Got it</string>
     <string name="words_reviewed">%d words reviewed</string>
     <string name="back">Back</string>
+    <string name="expand">expand</string>
+    <string name="play_example">Play example</string>
 </resources>
