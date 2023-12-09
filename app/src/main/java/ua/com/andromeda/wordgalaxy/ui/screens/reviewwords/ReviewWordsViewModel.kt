@@ -64,6 +64,15 @@ class ReviewWordsViewModel(
         }
     }
 
+    fun updateUserGuess(value: String) {
+        _uiState.update {
+            if (it is ReviewWordsUiState.Success) {
+                it.copy(userGuess = value)
+            } else
+                throw IllegalStateException()
+        }
+    }
+
     companion object {
         private const val TAG = "ReviewWordsViewModel"
 

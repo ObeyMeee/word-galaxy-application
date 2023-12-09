@@ -19,4 +19,6 @@
     <string name="back">Back</string>
     <string name="expand">expand</string>
     <string name="play_example">Play example</string>
+    <string name="check">Check</string>
+    <string name="type_here">Type here</string>
 </resources>
