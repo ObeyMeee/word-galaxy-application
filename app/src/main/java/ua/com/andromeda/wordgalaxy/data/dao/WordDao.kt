@@ -7,11 +7,11 @@ import androidx.room.Transaction
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 import ua.com.andromeda.wordgalaxy.data.model.Category
-import ua.com.andromeda.wordgalaxy.data.model.Word
-import ua.com.andromeda.wordgalaxy.data.model.WordStatus
 import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
 import ua.com.andromeda.wordgalaxy.data.model.Example
 import ua.com.andromeda.wordgalaxy.data.model.Phonetic
+import ua.com.andromeda.wordgalaxy.data.model.Word
+import ua.com.andromeda.wordgalaxy.data.model.WordStatus
 
 @Dao
 interface WordDao {

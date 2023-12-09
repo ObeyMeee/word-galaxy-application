@@ -1,9 +1,9 @@
 package ua.com.andromeda.wordgalaxy.data.repository
 
 import kotlinx.coroutines.flow.Flow
+import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
 import ua.com.andromeda.wordgalaxy.data.model.Word
 import ua.com.andromeda.wordgalaxy.data.model.WordStatus
-import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
 
 interface WordRepository {
     fun findOneRandomWordWhereStatusEquals(status: WordStatus): Flow<EmbeddedWord>
