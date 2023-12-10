@@ -13,4 +13,6 @@
     <dimen name="round_larger">32dp</dimen>
     <dimen name="round_largest">40dp</dimen>
 
+    <dimen name="action_button_height">50dp</dimen>
+
 </resources>
