@@ -23,6 +23,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -56,11 +57,15 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
@@ -214,7 +219,9 @@ fun ReviewWordsMain(modifier: Modifier = Modifier) {
                     cardState = cardState,
                     uiState = uiState,
                     updateReviewMode = viewModel::updateReviewMode,
-                    updateInputValue = viewModel::updateUserGuess
+                    updateInputValue = viewModel::updateUserGuess,
+                    revealOneLetter = viewModel::revealOneLetter,
+                    checkAnswer = viewModel::checkAnswer
                 )
             }
         }
@@ -228,12 +235,16 @@ private fun EnglishCard(
     uiState: ReviewWordsUiState.Success,
     modifier: Modifier = Modifier,
     updateReviewMode: (ReviewMode) -> Unit = {},
-    updateInputValue: (String) -> Unit = {}
+    updateInputValue: (String) -> Unit = {},
+    revealOneLetter: () -> Unit = {},
+    checkAnswer: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val wordToReview = uiState.wordToReview
     val word = wordToReview.word
     val phonetics = wordToReview.phonetics
+    val focusRequester = remember { FocusRequester() }
+
     Card(
         modifier = modifier.fillMaxSize(),
         colors = CardDefaults.cardColors(
@@ -359,17 +370,21 @@ private fun EnglishCard(
                     TextField(
                         value = uiState.userGuess,
                         onValueChange = updateInputValue,
+                        modifier = Modifier.focusRequester(focusRequester),
                         placeholder = { Text(text = stringResource(R.string.type_here)) },
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                        keyboardActions = KeyboardActions { /*TODO*/ },
+                        keyboardActions = KeyboardActions { checkAnswer() },
                         singleLine = true,
                         colors = TextFieldDefaults.textFieldColors(containerColor = Color.Transparent)
                     )
+                    LaunchedEffect(Unit) {
+                        focusRequester.requestFocus()
+                    }
                     Row(
                         modifier = Modifier.padding(top = dimensionResource(R.dimen.padding_small))
                     ) {
                         OutlinedButton(
-                            onClick = { /*TODO*/ },
+                            onClick = revealOneLetter,
                             shape = MaterialTheme.shapes.small,
                             contentPadding = PaddingValues(dimensionResource(R.dimen.padding_smaller))
                         ) {
@@ -380,11 +395,12 @@ private fun EnglishCard(
                         }
                         Spacer(Modifier.width(dimensionResource(R.dimen.padding_large)))
                         Button(
-                            onClick = { /*TODO*/ },
+                            onClick = { checkAnswer() },
                             modifier = Modifier.fillMaxWidth(),
                             shape = MaterialTheme.shapes.small
                         ) {
-                            Text(text = stringResource(R.string.check))
+                            Icon(imageVector = Icons.Default.Check, contentDescription = null)
+                            Text(text = stringResource(R.string.check, uiState.amountAttempts))
                         }
                     }
                 }
@@ -539,7 +555,7 @@ fun ReviewWordsEnglishCardDefaultModePreview() {
         Surface {
             EnglishCard(
                 CardState.Review(onRightClick = {}, onLeftClick = {}),
-                ReviewWordsUiState.Success(DefaultStorage.embeddedWord),
+                ReviewWordsUiState.Success(DefaultStorage.embeddedWord)
             )
         }
     }
@@ -555,7 +571,7 @@ fun ReviewWordsEnglishCardShowAnswerModePreview() {
                 ReviewWordsUiState.Success(
                     wordToReview = DefaultStorage.embeddedWord,
                     reviewMode = ReviewMode.ShowAnswer
-                ),
+                )
             )
         }
     }

@@ -34,9 +34,26 @@ class ReviewWordsViewModel(
             val reviewedToday = wordRepository.countReviewedWordsToday().first()
             _uiState.update {
                 if (wordToReview == null)
-                    ReviewWordsUiState.Error(message = "No words to repeat. You do a great work!")
+                    errorUiState("No words to repeat. You do a great work!")
                 else
                     ReviewWordsUiState.Success(wordToReview, reviewedToday, ReviewMode.Default)
+            }
+        }
+    }
+
+    private fun errorUiState(message: String) =
+        ReviewWordsUiState.Error(message)
+
+
+    private fun updateUiState(
+        errorMessage: String = "Something went wrong",
+        action: (ReviewWordsUiState.Success) -> ReviewWordsUiState.Success
+    ) {
+        _uiState.update { uiState ->
+            if (uiState is ReviewWordsUiState.Success) {
+                action(uiState)
+            } else {
+                errorUiState(errorMessage)
             }
         }
     }
@@ -56,21 +73,64 @@ class ReviewWordsViewModel(
     }
 
     fun updateReviewMode(reviewMode: ReviewMode) {
-        _uiState.update {
-            if (it is ReviewWordsUiState.Success) {
-                it.copy(reviewMode = reviewMode)
-            } else
-                throw IllegalStateException()
-        }
+        updateUiState(action = {
+            it.copy(reviewMode = reviewMode)
+        })
     }
 
     fun updateUserGuess(value: String) {
-        _uiState.update {
-            if (it is ReviewWordsUiState.Success) {
-                it.copy(userGuess = value)
-            } else
-                throw IllegalStateException()
+        val trimmedAndLowerCaseValue = value.trim().lowercase()
+        updateUiState(action = {
+            it.copy(userGuess = trimmedAndLowerCaseValue)
+        })
+    }
+
+    private fun indexOfFirstDifference(str1: String, str2: String): Int {
+        val minLength = minOf(str1.length, str2.length)
+
+        for (i in 0 until minLength) {
+            if (str1[i] != str2[i]) {
+                return i
+            }
         }
+
+        // If the loop completes without finding a difference in the common prefix,
+        // return the length of the shorter string (or -1 if the strings are identical).
+        return if (str1.length != str2.length) minLength else -1
+    }
+
+    fun revealOneLetter() {
+        updateUiState { uiState ->
+            val actualValue = uiState.wordToReview.word.value
+            val userGuess = uiState.userGuess
+            val indexOfFirstDifference = indexOfFirstDifference(actualValue, userGuess)
+
+            if (indexOfFirstDifference == -1) {
+                uiState.copy(reviewMode = ReviewMode.ShowAnswer)
+            } else {
+                val updatedUserGuess =
+                    if (indexOfFirstDifference > actualValue.lastIndex)
+                        actualValue
+                    else
+                        actualValue.replaceRange(
+                            range = (indexOfFirstDifference..actualValue.lastIndex),
+                            replacement = actualValue[indexOfFirstDifference].toString()
+                        )
+                uiState.copy(userGuess = updatedUserGuess)
+            }
+        }
+    }
+
+    fun checkAnswer() {
+        updateUiState(action = {
+            val actual = it.wordToReview.word.value
+            val userGuess = it.userGuess
+            val amountAttemptsLeft = it.amountAttempts - 1
+            if (actual == userGuess || amountAttemptsLeft == 0)
+                it.copy(reviewMode = ReviewMode.ShowAnswer)
+            else
+                it.copy(amountAttempts = amountAttemptsLeft)
+        })
     }
 
     companion object {

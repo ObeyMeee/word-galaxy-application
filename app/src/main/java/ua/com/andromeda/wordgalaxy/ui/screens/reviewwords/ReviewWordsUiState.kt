@@ -3,6 +3,7 @@ package ua.com.andromeda.wordgalaxy.ui.screens.reviewwords
 import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
 import ua.com.andromeda.wordgalaxy.ui.screens.common.ReviewMode
 
+
 sealed interface ReviewWordsUiState {
 
     data object Default : ReviewWordsUiState
@@ -13,6 +14,7 @@ sealed interface ReviewWordsUiState {
         val wordToReview: EmbeddedWord,
         val reviewedToday: Int = 0,
         val reviewMode: ReviewMode = ReviewMode.Default,
-        val userGuess: String = ""
+        val userGuess: String = "",
+        val amountAttempts: Int = 3
     ) : ReviewWordsUiState
 }
