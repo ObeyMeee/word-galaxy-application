@@ -1,7 +1,8 @@
 package ua.com.andromeda.wordgalaxy.ui.screens.reviewwords
 
 import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
-import ua.com.andromeda.wordgalaxy.ui.screens.common.ReviewMode
+import ua.com.andromeda.wordgalaxy.ui.DEFAULT_AMOUNT_USER_ATTEMPTS_TO_GUESS
+import ua.com.andromeda.wordgalaxy.ui.screens.common.CardMode
 
 
 sealed interface ReviewWordsUiState {
@@ -13,8 +14,8 @@ sealed interface ReviewWordsUiState {
     data class Success(
         val wordToReview: EmbeddedWord,
         val reviewedToday: Int = 0,
-        val reviewMode: ReviewMode = ReviewMode.Default,
+        val cardMode: CardMode = CardMode.Default,
         val userGuess: String = "",
-        val amountAttempts: Int = 3
+        val amountAttempts: Int = DEFAULT_AMOUNT_USER_ATTEMPTS_TO_GUESS
     ) : ReviewWordsUiState
 }

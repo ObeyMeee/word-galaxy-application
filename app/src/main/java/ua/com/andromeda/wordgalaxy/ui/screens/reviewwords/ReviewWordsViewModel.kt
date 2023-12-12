@@ -15,7 +15,7 @@ import ua.com.andromeda.wordgalaxy.WordGalaxyApplication
 import ua.com.andromeda.wordgalaxy.data.model.repeat
 import ua.com.andromeda.wordgalaxy.data.repository.WordRepository
 import ua.com.andromeda.wordgalaxy.data.repository.WordRepositoryImpl
-import ua.com.andromeda.wordgalaxy.ui.screens.common.ReviewMode
+import ua.com.andromeda.wordgalaxy.ui.screens.common.CardMode
 
 class ReviewWordsViewModel(
     private val wordRepository: WordRepository
@@ -36,7 +36,7 @@ class ReviewWordsViewModel(
                 if (wordToReview == null)
                     errorUiState("No words to repeat. You do a great work!")
                 else
-                    ReviewWordsUiState.Success(wordToReview, reviewedToday, ReviewMode.Default)
+                    ReviewWordsUiState.Success(wordToReview, reviewedToday, CardMode.Default)
             }
         }
     }
@@ -64,6 +64,7 @@ class ReviewWordsViewModel(
             if (uiStateValue is ReviewWordsUiState.Success) {
                 val word = uiStateValue.wordToReview.word
                 wordRepository.update(word.repeat())
+                fetchUiState()
             }
         }
     }
@@ -72,9 +73,9 @@ class ReviewWordsViewModel(
         fetchUiState()
     }
 
-    fun updateReviewMode(reviewMode: ReviewMode) {
+    fun updateReviewMode(cardMode: CardMode) {
         updateUiState(action = {
-            it.copy(reviewMode = reviewMode)
+            it.copy(cardMode = cardMode)
         })
     }
 
@@ -106,7 +107,7 @@ class ReviewWordsViewModel(
             val indexOfFirstDifference = indexOfFirstDifference(actualValue, userGuess)
 
             if (indexOfFirstDifference == -1) {
-                uiState.copy(reviewMode = ReviewMode.ShowAnswer)
+                uiState.copy(cardMode = CardMode.ShowAnswer)
             } else {
                 val updatedUserGuess =
                     if (indexOfFirstDifference > actualValue.lastIndex)
@@ -127,7 +128,7 @@ class ReviewWordsViewModel(
             val userGuess = it.userGuess
             val amountAttemptsLeft = it.amountAttempts - 1
             if (actual == userGuess || amountAttemptsLeft == 0)
-                it.copy(reviewMode = ReviewMode.ShowAnswer)
+                it.copy(cardMode = CardMode.ShowAnswer)
             else
                 it.copy(amountAttempts = amountAttemptsLeft)
         })

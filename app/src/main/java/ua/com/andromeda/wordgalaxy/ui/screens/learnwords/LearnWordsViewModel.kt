@@ -19,6 +19,7 @@ import ua.com.andromeda.wordgalaxy.data.model.memorize
 import ua.com.andromeda.wordgalaxy.data.repository.WordRepository
 import ua.com.andromeda.wordgalaxy.data.repository.WordRepositoryImpl
 import ua.com.andromeda.wordgalaxy.data.repository.preferences.UserPreferencesRepository
+import ua.com.andromeda.wordgalaxy.ui.screens.common.CardMode
 
 class LearnWordsViewModel(
     private val wordRepository: WordRepository,
@@ -28,6 +29,10 @@ class LearnWordsViewModel(
     val uiState: StateFlow<LearnWordsUiState> = _uiState
 
     init {
+        fetchUiState()
+    }
+
+    private fun fetchUiState() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val amountWordsToLearnPerDay =
@@ -46,7 +51,7 @@ class LearnWordsViewModel(
                 }
             } catch (e: Exception) {
                 _uiState.update {
-                    LearnWordsUiState.Error
+                    LearnWordsUiState.Error(e.message ?: "Unknown error")
                 }
             }
         }
@@ -64,6 +69,22 @@ class LearnWordsViewModel(
         return wordRepository.findOneRandomWordWhereStatusEquals(wordStatus).first()
     }
 
+    private fun updateUiState(
+        errorMessage: String = "Something went wrong",
+        action: (LearnWordsUiState.Success) -> LearnWordsUiState.Success
+    ) {
+        _uiState.update { uiState ->
+            if (uiState is LearnWordsUiState.Success) {
+                action(uiState)
+            } else {
+                errorUiState(errorMessage)
+            }
+        }
+    }
+
+    private fun errorUiState(message: String) =
+        LearnWordsUiState.Error(message)
+
     fun updateWordStatus(wordStatus: WordStatus) {
         viewModelScope.launch {
             val uiStateValue = _uiState.value
@@ -78,12 +99,92 @@ class LearnWordsViewModel(
         }
     }
 
+    fun moveToNextCard() {
+        fetchUiState()
+    }
+
+    fun startLearningWord() {
+        updateWordStatus(WordStatus.InProgress)
+        moveToNextCard()
+    }
+
+    fun alreadyKnowWord() {
+        updateWordStatus(WordStatus.AlreadyKnown)
+        moveToNextCard()
+    }
+
+    fun skipWord() {
+        fetchUiState()
+    }
+
+    fun updateCardMode(cardMode: CardMode) {
+        updateUiState(action = {
+            it.copy(cardMode = cardMode)
+        })
+    }
+
+    fun updateUserGuess(value: String) {
+        val trimmedAndLowerCaseValue = value.trim().lowercase()
+        updateUiState(action = {
+            it.copy(userGuess = trimmedAndLowerCaseValue)
+        })
+    }
+
+    private fun indexOfFirstDifference(str1: String, str2: String): Int {
+        val minLength = minOf(str1.length, str2.length)
+
+        for (i in 0 until minLength) {
+            if (str1[i] != str2[i]) {
+                return i
+            }
+        }
+
+        // If the loop completes without finding a difference in the common prefix,
+        // return the length of the shorter string (or -1 if the strings are identical).
+        return if (str1.length != str2.length) minLength else -1
+    }
+
+    fun revealOneLetter() {
+        updateUiState { uiState ->
+            val actualValue = uiState.embeddedWord.word.value
+            val userGuess = uiState.userGuess
+            val indexOfFirstDifference = indexOfFirstDifference(actualValue, userGuess)
+
+            if (indexOfFirstDifference == -1) {
+                uiState.copy(cardMode = CardMode.ShowAnswer)
+            } else {
+                val updatedUserGuess =
+                    if (indexOfFirstDifference > actualValue.lastIndex)
+                        actualValue
+                    else
+                        actualValue.replaceRange(
+                            range = (indexOfFirstDifference..actualValue.lastIndex),
+                            replacement = actualValue[indexOfFirstDifference].toString()
+                        )
+                uiState.copy(userGuess = updatedUserGuess)
+            }
+        }
+    }
+
+    fun checkAnswer() {
+        updateUiState(action = {
+            val actual = it.embeddedWord.word.value
+            val userGuess = it.userGuess
+            val amountAttemptsLeft = it.amountAttempts - 1
+            if (actual == userGuess || amountAttemptsLeft == 0)
+                it.copy(cardMode = CardMode.ShowAnswer)
+            else
+                it.copy(amountAttempts = amountAttemptsLeft)
+        })
+    }
+
     fun memorizeWord() {
         viewModelScope.launch {
             val uiStateValue = _uiState.value
             if (uiStateValue is LearnWordsUiState.Success) {
                 val word = uiStateValue.embeddedWord.word
                 wordRepository.update(word.memorize())
+                moveToNextCard()
             }
         }
     }

@@ -20,8 +20,10 @@ import ua.com.andromeda.wordgalaxy.ui.screens.reviewwords.ReviewWordsScreen
 fun WordGalaxyNavHost(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
     val startDestination = Destination.HomeScreen()
+
     val homeViewModel: HomeViewModel = viewModel(factory = HomeViewModel.factory)
     val homeUiState by homeViewModel.uiState.collectAsState()
+
     NavHost(navController = navController, startDestination = startDestination) {
         composable(startDestination) {
             HomeScreen(
@@ -33,17 +35,15 @@ fun WordGalaxyNavHost(modifier: Modifier = Modifier) {
 
         composable(Destination.LearnWordsScreen()) {
             LearnWordsScreen(
-                navigateToNextCard = {
-                    navController.navigate(Destination.LearnWordsScreen())
-                },
+                navController = navController,
                 modifier = modifier.padding(dimensionResource(R.dimen.padding_medium))
             )
         }
 
         composable(Destination.ReviewWordsScreen()) {
             ReviewWordsScreen(
-                modifier = Modifier.padding(dimensionResource(R.dimen.padding_medium)),
-                navigateUp = { navController.navigateUp() }
+                navController = navController,
+                modifier = Modifier.padding(dimensionResource(R.dimen.padding_medium))
             )
         }
     }

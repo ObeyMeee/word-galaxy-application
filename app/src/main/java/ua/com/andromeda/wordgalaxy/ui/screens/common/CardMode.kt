@@ -1,5 +1,5 @@
 package ua.com.andromeda.wordgalaxy.ui.screens.common
 
-enum class ReviewMode {
+enum class CardMode {
     Default, TypeAnswer, ShowAnswer
 }
