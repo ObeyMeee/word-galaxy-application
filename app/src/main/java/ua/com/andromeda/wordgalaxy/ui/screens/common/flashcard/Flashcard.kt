@@ -3,6 +3,7 @@ package ua.com.andromeda.wordgalaxy.ui.screens.common.flashcard
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
@@ -187,7 +188,8 @@ private fun RowScope.ActionButton(
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.secondaryContainer,
             contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-        )
+        ),
+        contentPadding = PaddingValues(dimensionResource(R.dimen.padding_smaller))
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),

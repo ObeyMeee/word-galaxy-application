@@ -40,6 +40,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
@@ -179,7 +180,11 @@ fun ReviewWordsMain(modifier: Modifier = Modifier) {
 @Composable
 private fun ScreenHeader(reviewedWordsToday: Int) {
     Text(
-        text = stringResource(R.string.words_reviewed, reviewedWordsToday),
+        text = pluralStringResource(
+            R.plurals.words_reviewed,
+            reviewedWordsToday,
+            reviewedWordsToday
+        ),
         color = MaterialTheme.colorScheme.secondary,
         style = MaterialTheme.typography.bodyMedium,
         modifier = Modifier.padding(top = dimensionResource(R.dimen.padding_small))

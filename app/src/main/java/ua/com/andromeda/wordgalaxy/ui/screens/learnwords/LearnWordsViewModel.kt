@@ -85,7 +85,7 @@ class LearnWordsViewModel(
     private fun errorUiState(message: String) =
         LearnWordsUiState.Error(message)
 
-    fun updateWordStatus(wordStatus: WordStatus) {
+    private fun updateWordStatus(wordStatus: WordStatus) {
         viewModelScope.launch {
             val uiStateValue = _uiState.value
             if (uiStateValue is LearnWordsUiState.Success) {
@@ -99,7 +99,7 @@ class LearnWordsViewModel(
         }
     }
 
-    fun moveToNextCard() {
+    private fun moveToNextCard() {
         fetchUiState()
     }
 

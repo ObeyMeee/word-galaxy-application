@@ -43,6 +43,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
@@ -180,7 +181,7 @@ fun LearnWordsMain(modifier: Modifier = Modifier) {
 
         is LearnWordsUiState.Success -> {
             val isWordStatusNew = uiState.embeddedWord.word.status == WordStatus.New
-            val wordCard = if (isWordStatusNew) {
+            val flashcardState = if (isWordStatusNew) {
                 FlashcardState.New(
                     onLeftClick = viewModel::alreadyKnowWord,
                     onRightClick = viewModel::startLearningWord
@@ -193,8 +194,7 @@ fun LearnWordsMain(modifier: Modifier = Modifier) {
             }
             Flashcard(
                 embeddedWord = uiState.embeddedWord,
-                flashcardState = wordCard,
-                modifier = modifier,
+                flashcardState = flashcardState,
                 screenHeader = {
                     ScreenHeader(
                         learnedWordsToday = uiState.learnedWordsToday,
@@ -203,7 +203,8 @@ fun LearnWordsMain(modifier: Modifier = Modifier) {
                 },
                 content = {
                     CardModeContent(uiState, viewModel, isWordStatusNew)
-                }
+                },
+                modifier = modifier
             )
         }
     }
@@ -215,7 +216,7 @@ private fun ScreenHeader(
     amountWordsLearnPerDay: Int
 ) {
     Text(
-        text = stringResource(R.string.new_words_memorized, learnedWordsToday),
+        text = pluralStringResource(R.plurals.new_words_memorized, learnedWordsToday, learnedWordsToday),
         color = MaterialTheme.colorScheme.secondary,
         style = MaterialTheme.typography.bodyMedium
     )

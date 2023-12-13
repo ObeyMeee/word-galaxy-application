@@ -7,7 +7,10 @@
     <string name="new_word">New word</string>
     <string name="learning_new_word">Learning new word</string>
     <string name="show_more">Show more</string>
-    <string name="new_words_memorized">%d new words memorized</string>
+    <plurals name="new_words_memorized">
+        <item quantity="one">%d new word memorized</item>
+        <item quantity="other">%d new words memorized</item>
+    </plurals>
     <string name="i_already_know_this_word">I already know this word</string>
     <string name="start_learning_this_word">Start learning this word</string>
     <string name="i_have_memorized_this_word">I\'ve memorized this word, review it later</string>
@@ -15,7 +18,10 @@
     <string name="memorized_word">Memorized word(review %d)</string>
     <string name="forgot_it">Forgot it</string>
     <string name="got_it">Got it</string>
-    <string name="words_reviewed">%d words reviewed</string>
+    <plurals name="words_reviewed">
+        <item quantity="one">%d word reviewed</item>
+        <item quantity="other">%d words reviewed</item>
+    </plurals>
     <string name="back">Back</string>
     <string name="expand">expand</string>
     <string name="play_example">Play example</string>
