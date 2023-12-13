@@ -6,10 +6,9 @@ import ua.com.andromeda.wordgalaxy.ui.screens.common.CardMode
 
 
 sealed interface ReviewWordsUiState {
-
     data object Default : ReviewWordsUiState
 
-    data class Error(val message: String) : ReviewWordsUiState
+    data class Error(val message: String = "Unexpected error occurred") : ReviewWordsUiState
 
     data class Success(
         val wordToReview: EmbeddedWord,

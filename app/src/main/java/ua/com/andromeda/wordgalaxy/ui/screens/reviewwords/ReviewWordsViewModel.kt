@@ -73,7 +73,7 @@ class ReviewWordsViewModel(
         fetchUiState()
     }
 
-    fun updateReviewMode(cardMode: CardMode) {
+    fun updateCardMode(cardMode: CardMode) {
         updateUiState(action = {
             it.copy(cardMode = cardMode)
         })
