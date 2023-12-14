@@ -1,4 +1,4 @@
-package ua.com.andromeda.wordgalaxy.ui.screens.reviewwords
+package ua.com.andromeda.wordgalaxy.ui.screens.study.reviewwords
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -13,6 +13,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.RemoveRedEye
@@ -54,7 +55,7 @@ import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
 import ua.com.andromeda.wordgalaxy.ui.navigation.Destination
 import ua.com.andromeda.wordgalaxy.ui.screens.common.CardMode
 import ua.com.andromeda.wordgalaxy.ui.screens.common.CenteredLoadingSpinner
-import ua.com.andromeda.wordgalaxy.ui.screens.common.ErrorMessage
+import ua.com.andromeda.wordgalaxy.ui.screens.common.Message
 import ua.com.andromeda.wordgalaxy.ui.screens.common.flashcard.Flashcard
 import ua.com.andromeda.wordgalaxy.ui.screens.common.flashcard.FlashcardScope.CardModeSelectorRow
 import ua.com.andromeda.wordgalaxy.ui.screens.common.flashcard.FlashcardScope.ExampleList
@@ -73,9 +74,16 @@ fun ReviewWordsScreen(
 ) {
     Scaffold(
         topBar = {
+            val homeRoute = Destination.Start.HomeScreen()
             ReviewWordsTopAppBar(
-                navigateUp = { navController.navigate(Destination.HomeScreen()) },
-                navigateToLearnNewWords = { navController.navigate(Destination.LearnWordsScreen()) },
+                navigateUp = {
+                    navController.navigate(homeRoute) {
+                        popUpTo(homeRoute) {
+                            inclusive = true
+                        }
+                    }
+                },
+                navigateToLearnNewWords = { navController.navigate(Destination.Study.LearnWordsScreen()) },
                 modifier = Modifier.fillMaxWidth()
             )
         },
@@ -154,7 +162,17 @@ fun ReviewWordsMain(modifier: Modifier = Modifier) {
         }
 
         is ReviewWordsUiState.Error -> {
-            ErrorMessage(message = uiState.message, modifier = Modifier.fillMaxSize())
+            Message(
+                message = uiState.message,
+                backgroundColor = MaterialTheme.colorScheme.primaryContainer,
+                modifier = Modifier.fillMaxSize()
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Info,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
         }
 
         is ReviewWordsUiState.Success -> {

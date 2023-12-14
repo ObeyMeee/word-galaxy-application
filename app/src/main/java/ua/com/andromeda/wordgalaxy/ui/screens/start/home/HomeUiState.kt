@@ -1,4 +1,4 @@
-package ua.com.andromeda.wordgalaxy.ui.screens.home
+package ua.com.andromeda.wordgalaxy.ui.screens.start.home
 
 sealed interface HomeUiState {
     data object Default : HomeUiState

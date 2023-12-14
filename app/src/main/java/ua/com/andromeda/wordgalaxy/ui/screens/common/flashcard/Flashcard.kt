@@ -68,7 +68,7 @@ fun Flashcard(
             )
             CategoriesText(
                 categories = embeddedWord.categories,
-                modifier = Modifier.padding(dimensionResource(R.dimen.padding_largest))
+                modifier = Modifier.padding(start = dimensionResource(R.dimen.padding_largest))
             )
             if (flashcardState is FlashcardState.New) {
                 FlashcardScope.WordWithTranscription(
@@ -76,7 +76,7 @@ fun Flashcard(
                     phonetics = embeddedWord.phonetics,
                     modifier = Modifier.padding(
                         horizontal = dimensionResource(R.dimen.padding_largest),
-                        vertical = dimensionResource(R.dimen.padding_medium)
+                        vertical = dimensionResource(R.dimen.padding_small)
                     )
                 )
             } else {

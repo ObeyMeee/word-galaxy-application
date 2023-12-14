@@ -1,4 +1,4 @@
-package ua.com.andromeda.wordgalaxy.ui.screens.learnwords
+package ua.com.andromeda.wordgalaxy.ui.screens.study.learnwords
 
 import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
 import ua.com.andromeda.wordgalaxy.ui.DEFAULT_AMOUNT_USER_ATTEMPTS_TO_GUESS

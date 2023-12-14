@@ -15,4 +15,7 @@
 
     <dimen name="action_button_height">70dp</dimen>
 
+    <dimen name="icon_size_default">24dp</dimen>
+    <dimen name="icon_size_large">32dp</dimen>
+
 </resources>

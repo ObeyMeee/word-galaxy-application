@@ -27,4 +27,7 @@
     <string name="play_example">Play example</string>
     <string name="check">Check</string>
     <string name="type_here">Type here</string>
+    <string name="learn">Learn</string>
+    <string name="vocabulary">Vocabulary</string>
+    <string name="settings">Settings</string>
 </resources>

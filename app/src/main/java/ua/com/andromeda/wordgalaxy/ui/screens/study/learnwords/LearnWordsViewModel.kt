@@ -1,4 +1,4 @@
-package ua.com.andromeda.wordgalaxy.ui.screens.learnwords
+package ua.com.andromeda.wordgalaxy.ui.screens.study.learnwords
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider

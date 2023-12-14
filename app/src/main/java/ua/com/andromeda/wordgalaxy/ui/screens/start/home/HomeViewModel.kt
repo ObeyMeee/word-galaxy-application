@@ -1,4 +1,4 @@
-package ua.com.andromeda.wordgalaxy.ui.screens.home
+package ua.com.andromeda.wordgalaxy.ui.screens.start.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider

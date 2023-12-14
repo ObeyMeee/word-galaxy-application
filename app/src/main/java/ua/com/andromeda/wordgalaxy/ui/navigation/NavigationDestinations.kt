@@ -1,20 +1,17 @@
 package ua.com.andromeda.wordgalaxy.ui.navigation
 
-sealed class Destination(protected val route: String, vararg params: String) {
-    val fullRoute: String = if (params.isEmpty()) route else {
-        // TODO: refactor
-        val builder = StringBuilder(route)
-        params.forEach { builder.append("/{$it}") }
-        builder.toString()
+sealed class Destination(val route: String) {
+
+    operator fun invoke() = route
+
+    data object Start : Destination("start") {
+        data object HomeScreen : Destination("home")
+        data object VocabularyScreen : Destination("vocabulary")
+        data object Settings : Destination("settings")
     }
 
-    sealed class NoArgumentsDestination(route: String): Destination(route) {
-        operator fun invoke() = route
+    data object Study : Destination("study") {
+        data object LearnWordsScreen : Destination("learn_words")
+        data object ReviewWordsScreen : Destination("review_words")
     }
-
-    data object HomeScreen: NoArgumentsDestination("home")
-
-    data object LearnWordsScreen: NoArgumentsDestination("learn-words")
-
-    data object ReviewWordsScreen: NoArgumentsDestination("review-words")
 }
