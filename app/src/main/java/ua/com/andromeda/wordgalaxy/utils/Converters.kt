@@ -1,4 +1,4 @@
-package ua.com.andromeda.wordgalaxy.data.utils
+package ua.com.andromeda.wordgalaxy.utils
 
 import android.os.Build
 import androidx.annotation.RequiresApi

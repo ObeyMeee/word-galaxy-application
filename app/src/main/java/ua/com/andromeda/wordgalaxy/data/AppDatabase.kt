@@ -10,7 +10,7 @@ import ua.com.andromeda.wordgalaxy.data.model.Category
 import ua.com.andromeda.wordgalaxy.data.model.Example
 import ua.com.andromeda.wordgalaxy.data.model.Phonetic
 import ua.com.andromeda.wordgalaxy.data.model.Word
-import ua.com.andromeda.wordgalaxy.data.utils.Converters
+import ua.com.andromeda.wordgalaxy.utils.Converters
 
 @Database(
     version = 1,

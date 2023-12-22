@@ -83,6 +83,9 @@ dependencies {
     // Preferences datastore
     implementation("androidx.datastore:datastore-preferences:1.0.0")
 
+    // Work manager
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
+
     // For backward compatibility to use java.time package
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 

@@ -52,6 +52,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.FlowPreview
 import ua.com.andromeda.wordgalaxy.R
 import ua.com.andromeda.wordgalaxy.data.model.WordStatus
 import ua.com.andromeda.wordgalaxy.ui.navigation.Destination
@@ -74,11 +75,7 @@ fun LearnWordsScreen(
 ) {
     val viewModel: LearnWordsViewModel = viewModel(factory = LearnWordsViewModel.factory)
     val uiState by viewModel.uiState.collectAsState()
-    val amountWordsToReview =
-        if (uiState is LearnWordsUiState.Success)
-            (uiState as LearnWordsUiState.Success).amountWordsToReview
-        else
-            0
+    val amountWordsToReview = getAmountWordsToReview(uiState)
 
     Scaffold(
         topBar = {
@@ -102,6 +99,12 @@ fun LearnWordsScreen(
         LearnWordsMain(modifier = Modifier.padding(innerPadding))
     }
 }
+
+fun getAmountWordsToReview(uiState: LearnWordsUiState) =
+    when (uiState) {
+        is LearnWordsUiState.Success -> uiState.amountWordsToReview
+        else -> 0
+    }
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -260,7 +263,7 @@ private fun ScreenHeader(
 }
 
 @Composable
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, FlowPreview::class)
 private fun ColumnScope.CardModeContent(
     uiState: LearnWordsUiState.Success,
     viewModel: LearnWordsViewModel,
@@ -319,6 +322,7 @@ private fun ColumnScope.CardModeContent(
                 LaunchedEffect(Unit) {
                     focusRequester.requestFocus()
                 }
+
                 RowWithWordControls(
                     revealOneLetter = viewModel::revealOneLetter,
                     checkAnswer = viewModel::checkAnswer,

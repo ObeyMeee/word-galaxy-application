@@ -44,8 +44,9 @@ import androidx.compose.ui.unit.dp
 import ua.com.andromeda.wordgalaxy.R
 import ua.com.andromeda.wordgalaxy.data.model.Example
 import ua.com.andromeda.wordgalaxy.data.model.Phonetic
-import ua.com.andromeda.wordgalaxy.data.utils.playPronunciation
 import ua.com.andromeda.wordgalaxy.ui.screens.common.CardMode
+import ua.com.andromeda.wordgalaxy.utils.playPronunciation
+
 object FlashcardScope {
     @Composable
     fun WordWithTranscription(
