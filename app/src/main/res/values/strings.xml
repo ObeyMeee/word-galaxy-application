@@ -31,4 +31,9 @@
     <string name="vocabulary">Vocabulary</string>
     <string name="settings">Settings</string>
     <string name="error_sending_notification">Error sending notification</string>
+    <string name="reset_progress_for_this_word">Reset progress for this word</string>
+    <string name="copy_to_my_category">Copy to my category</string>
+    <string name="report_a_mistake">Report a mistake</string>
+    <string name="edit">Edit</string>
+    <string name="remove">Remove</string>
 </resources>

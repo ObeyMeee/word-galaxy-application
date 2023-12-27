@@ -1,6 +1,12 @@
 package ua.com.andromeda.wordgalaxy.ui.screens.common.flashcard
 
 import androidx.annotation.StringRes
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
@@ -10,35 +16,55 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.EditNote
+import androidx.compose.material.icons.filled.FolderCopy
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.MoreHoriz
+import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material.icons.filled.Report
 import androidx.compose.material.icons.filled.Square
+import androidx.compose.material.icons.filled.Undo
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import ua.com.andromeda.wordgalaxy.R
 import ua.com.andromeda.wordgalaxy.data.DefaultStorage
 import ua.com.andromeda.wordgalaxy.data.model.Category
 import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
+import ua.com.andromeda.wordgalaxy.ui.SWIPE_CARD_BOUND
+import kotlin.math.roundToInt
+
+const val TAG = "Flashcard"
 
 @Composable
 fun Flashcard(
@@ -51,10 +77,29 @@ fun Flashcard(
     val word = embeddedWord.word
     val amountRepetition = word.amountRepetition ?: 0
     val numberReview = amountRepetition + 1
+
+    var cardOffset by remember { mutableStateOf(IntOffset.Zero) }
     Column(modifier = modifier) {
         screenHeader()
         Card(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .offset { cardOffset }
+                .pointerInput(Unit) {
+                    detectDragGestures(onDragEnd = {
+                        cardOffset = IntOffset.Zero
+                    }) { change, dragAmount ->
+                        change.consume()
+                        val dragX = dragAmount.x
+                        val offsetChange = IntOffset(dragX.roundToInt(), 0)
+                        cardOffset += offsetChange
+                        when {
+                            dragX > SWIPE_CARD_BOUND -> flashcardState.onRightClick() // Swipe right
+                            dragX < -SWIPE_CARD_BOUND -> flashcardState.onLeftClick() // Swipe left
+                        }
+                    }
+                }
+                .rotate(cardOffset.x * .01f),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.secondaryContainer
             )
@@ -94,11 +139,11 @@ fun Flashcard(
             Spacer(modifier = Modifier.weight(1f))
             FlashcardActionRow(
                 flashcardState = flashcardState,
+                cardOffset = cardOffset,
                 modifier = Modifier.fillMaxWidth()
             )
         }
     }
-
 }
 
 @Composable
@@ -121,6 +166,8 @@ private fun FlashcardHeader(
     label: String,
     modifier: Modifier = Modifier
 ) {
+    var expanded by remember { mutableStateOf(false) }
+
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically
@@ -134,18 +181,86 @@ private fun FlashcardHeader(
             tint = squareColor
         )
         Text(text = label, modifier = Modifier.weight(1f))
-        Icon(
-            imageVector = Icons.Filled.MoreHoriz,
-            contentDescription = stringResource(R.string.show_more),
-            modifier = Modifier
-                .padding(end = dimensionResource(R.dimen.padding_small))
-                .size(32.dp)
-        )
+        IconButton(onClick = { expanded = true }) {
+            Icon(
+                imageVector = Icons.Filled.MoreHoriz,
+                contentDescription = stringResource(R.string.show_more),
+                modifier = Modifier
+                    .padding(end = dimensionResource(R.dimen.padding_small))
+                    .size(32.dp)
+            )
+        }
+        AnimatedVisibility(
+            visible = expanded,
+            enter = expandVertically(expandFrom = Alignment.Top) { 20 },
+            exit = shrinkVertically(animationSpec = tween()) { fullHeight ->
+                fullHeight / 2
+            }
+        ) {
+            Box {
+                DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                    DropdownMenuItem(
+                        text = { Text(text = stringResource(R.string.reset_progress_for_this_word)) },
+                        onClick = { /*TODO*/ },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Undo,
+                                contentDescription = null
+                            )
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text(text = stringResource(R.string.copy_to_my_category)) },
+                        onClick = { /*TODO*/ },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.FolderCopy,
+                                contentDescription = null
+                            )
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text(text = stringResource(R.string.report_a_mistake)) },
+                        onClick = { /*TODO*/ },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Report,
+                                contentDescription = null
+                            )
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text(text = stringResource(R.string.edit)) },
+                        onClick = { /*TODO*/ },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.EditNote,
+                                contentDescription = null
+                            )
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text(text = stringResource(R.string.remove)) },
+                        onClick = { /*TODO*/ },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Remove,
+                                contentDescription = null
+                            )
+                        }
+                    )
+                }
+            }
+        }
     }
 }
 
 @Composable
-private fun FlashcardActionRow(flashcardState: FlashcardState, modifier: Modifier = Modifier) {
+private fun FlashcardActionRow(
+    flashcardState: FlashcardState,
+    cardOffset: IntOffset,
+    modifier: Modifier = Modifier
+) {
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically
@@ -154,11 +269,13 @@ private fun FlashcardActionRow(flashcardState: FlashcardState, modifier: Modifie
             onClick = flashcardState.onLeftClick,
             icon = Icons.Filled.KeyboardArrowLeft,
             labelRes = flashcardState.actionLabelResLeft,
+            active = cardOffset.x < 0,
             isTextBeforeIcon = true
         )
         ActionButton(
             onClick = flashcardState.onRightClick,
             icon = Icons.Filled.KeyboardArrowRight,
+            active = cardOffset.x > 0,
             labelRes = flashcardState.actionLabelResRight
         )
     }
@@ -170,6 +287,7 @@ private fun RowScope.ActionButton(
     @StringRes labelRes: Int,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    active: Boolean,
     isTextBeforeIcon: Boolean = false
 ) {
     val labelText: @Composable () -> Unit = {
@@ -186,7 +304,10 @@ private fun RowScope.ActionButton(
             .weight(1f),
         shape = MaterialTheme.shapes.small,
         colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            containerColor = if (active)
+                MaterialTheme.colorScheme.tertiaryContainer
+            else
+                MaterialTheme.colorScheme.secondaryContainer,
             contentColor = MaterialTheme.colorScheme.onSecondaryContainer
         ),
         contentPadding = PaddingValues(dimensionResource(R.dimen.padding_smaller))
@@ -205,7 +326,6 @@ private fun RowScope.ActionButton(
         }
     }
 }
-
 
 @Preview
 @Composable
@@ -271,7 +391,8 @@ fun FlashcardActionRowPreview() {
     Surface {
         MaterialTheme {
             FlashcardActionRow(
-                FlashcardState.New({}, {})
+                FlashcardState.New({}, {}),
+                IntOffset.Zero
             )
         }
     }

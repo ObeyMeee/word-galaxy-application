@@ -52,7 +52,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import kotlinx.coroutines.FlowPreview
 import ua.com.andromeda.wordgalaxy.R
 import ua.com.andromeda.wordgalaxy.data.model.WordStatus
 import ua.com.andromeda.wordgalaxy.ui.navigation.Destination
@@ -263,7 +262,7 @@ private fun ScreenHeader(
 }
 
 @Composable
-@OptIn(ExperimentalMaterial3Api::class, FlowPreview::class)
+@OptIn(ExperimentalMaterial3Api::class)
 private fun ColumnScope.CardModeContent(
     uiState: LearnWordsUiState.Success,
     viewModel: LearnWordsViewModel,
