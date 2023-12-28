@@ -36,4 +36,6 @@
     <string name="report_a_mistake">Report a mistake</string>
     <string name="edit">Edit</string>
     <string name="remove">Remove</string>
+    <string name="add_category">Add category</string>
+    <string name="word">Word</string>
 </resources>

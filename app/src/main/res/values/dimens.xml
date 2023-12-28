@@ -17,5 +17,7 @@
 
     <dimen name="icon_size_default">24dp</dimen>
     <dimen name="icon_size_large">32dp</dimen>
+    <dimen name="icon_size_larger">40dp</dimen>
+    <dimen name="icon_size_largest">48dp</dimen>
 
 </resources>
