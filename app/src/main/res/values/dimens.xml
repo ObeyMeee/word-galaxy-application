@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <dimen name="padding_smallest">2dp</dimen>
     <dimen name="padding_smaller">4dp</dimen>
     <dimen name="padding_small">8dp</dimen>
+    <dimen name="padding_mediumish">12dp</dimen>
     <dimen name="padding_medium">16dp</dimen>
     <dimen name="padding_large">24dp</dimen>
     <dimen name="padding_larger">32dp</dimen>
@@ -13,11 +15,19 @@
     <dimen name="round_larger">32dp</dimen>
     <dimen name="round_largest">40dp</dimen>
 
-    <dimen name="action_button_height">70dp</dimen>
+    <dimen name="border_smallest">1dp</dimen>
+    <dimen name="border_smaller">2dp</dimen>
+    <dimen name="border_small">4dp</dimen>
+    <dimen name="border_medium">6dp</dimen>
+    <dimen name="border_large">8dp</dimen>
+    <dimen name="border_larger">12dp</dimen>
+    <dimen name="border_largest">16dp</dimen>
 
     <dimen name="icon_size_default">24dp</dimen>
     <dimen name="icon_size_large">32dp</dimen>
     <dimen name="icon_size_larger">40dp</dimen>
     <dimen name="icon_size_largest">48dp</dimen>
 
+    <dimen name="day_of_week_size_box">32dp</dimen>
+    <dimen name="action_button_height">70dp</dimen>
 </resources>

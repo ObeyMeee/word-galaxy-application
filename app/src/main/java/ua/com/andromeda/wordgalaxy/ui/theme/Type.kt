@@ -22,6 +22,13 @@ val Typography = Typography(
         lineHeight = 28.sp,
         letterSpacing = 0.sp
     ),
+    titleMedium = TextStyle(
+        fontFamily = quicksand,
+        fontWeight = FontWeight.Bold,
+        fontSize = 20.sp,
+        lineHeight = 26.sp,
+        letterSpacing = 1.sp,
+    ),
     bodyLarge = TextStyle(
         fontFamily = quicksand,
         fontWeight = FontWeight.Normal,

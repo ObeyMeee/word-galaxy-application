@@ -64,7 +64,7 @@ import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
 import ua.com.andromeda.wordgalaxy.ui.SWIPE_CARD_BOUND
 import kotlin.math.roundToInt
 
-const val TAG = "Flashcard"
+private const val TAG = "Flashcard"
 
 @Composable
 fun Flashcard(

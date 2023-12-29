@@ -38,4 +38,18 @@
     <string name="remove">Remove</string>
     <string name="add_category">Add category</string>
     <string name="word">Word</string>
+    <string name="repetition">Repetition</string>
+    <string name="stats">Stats</string>
+    <string name="current_streak">Current streak</string>
+    <string name="best_streak">Best streak</string>
+    <string name="share">Share</string>
+
+    <plurals name="days">
+        <item quantity="one">day</item>
+        <item quantity="other">days</item>
+    </plurals>
+    <plurals name="days_in_a_row">
+        <item quantity="one">day in a row</item>
+        <item quantity="other">days in a row</item>
+    </plurals>
 </resources>
