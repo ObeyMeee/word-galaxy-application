@@ -13,7 +13,7 @@ import ua.com.andromeda.wordgalaxy.data.model.Word
 import ua.com.andromeda.wordgalaxy.utils.Converters
 
 @Database(
-    version = 1,
+    version = 2,
     entities = [Word::class, Category::class, Phonetic::class, Example::class],
     exportSchema = false
 )

@@ -1,19 +1,23 @@
 package ua.com.andromeda.wordgalaxy.utils
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.room.TypeConverter
+import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.temporal.Temporal
 
 class Converters {
-    @RequiresApi(Build.VERSION_CODES.O)
     @TypeConverter
     fun fromTimestamp(value: String?): LocalDateTime? {
         return value?.let { LocalDateTime.parse(it) }
     }
 
     @TypeConverter
-    fun dateToTimestamp(date: LocalDateTime?): String? {
+    fun fromLocalDate(value: String?): LocalDate? {
+        return value?.let { LocalDate.parse(it) }
+    }
+
+    @TypeConverter
+    fun dateToTimestamp(date: Temporal?): String? {
         return date?.toString()
     }
 }

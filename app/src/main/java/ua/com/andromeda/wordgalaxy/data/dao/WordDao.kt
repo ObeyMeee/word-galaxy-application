@@ -2,6 +2,7 @@ package ua.com.andromeda.wordgalaxy.data.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
+import androidx.room.MapColumn
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
@@ -12,6 +13,7 @@ import ua.com.andromeda.wordgalaxy.data.model.Example
 import ua.com.andromeda.wordgalaxy.data.model.Phonetic
 import ua.com.andromeda.wordgalaxy.data.model.Word
 import ua.com.andromeda.wordgalaxy.data.model.WordStatus
+import java.time.LocalDate
 
 @Dao
 interface WordDao {
@@ -32,7 +34,7 @@ interface WordDao {
         """
         SELECT *
         FROM word
-        WHERE strftime('%s', 'now') > strftime('%s', next_repeat_at)
+        WHERE strftime('%s', 'now', 'localtime') > strftime('%s', next_repeat_at)
         ORDER BY RANDOM() 
         LIMIT 1
         """
@@ -44,7 +46,7 @@ interface WordDao {
         SELECT COUNT(*) 
         FROM word
         WHERE status = 'Memorized' 
-        AND strftime('%Y-%m-%d', memorized_at) = strftime('%Y-%m-%d', 'now');
+        AND strftime('%Y-%m-%d', status_changed_at) = strftime('%Y-%m-%d', 'now', 'localtime');
         """
     )
     fun countMemorizedWordsToday(): Flow<Int>
@@ -54,7 +56,7 @@ interface WordDao {
         SELECT COUNT(*) 
         FROM word
         WHERE status = 'Memorized' 
-        AND strftime('%Y-%m-%d', 'now') < strftime('%Y-%m-%d', repeated_at);
+        AND strftime('%Y-%m-%d', 'now', 'localtime') < strftime('%Y-%m-%d', repeated_at);
         """
     )
     fun countReviewedWordsToday(): Flow<Int>
@@ -64,7 +66,7 @@ interface WordDao {
         SELECT COUNT(*)
         FROM word
         WHERE status = 'Memorized'
-        AND strftime('%s', 'now') > strftime('%s', next_repeat_at);
+        AND strftime('%s', 'now', 'localtime') > strftime('%s', next_repeat_at);
         """
     )
     fun countWordsToReview(): Flow<Int>
@@ -77,6 +79,18 @@ interface WordDao {
         """
     )
     fun countWordsWhereStatusEquals(status: WordStatus): Flow<Int>
+
+
+    @Query(
+        """
+        SELECT status, COUNT(*) as count
+        FROM Word
+        WHERE strftime('%Y-%m-%d', status_changed_at) = strftime('%Y-%m-%d', :date)
+        GROUP BY status
+        """
+    )
+    fun countWordsByStatusAt(date: LocalDate):
+            Map<@MapColumn(columnName = "status") WordStatus, @MapColumn(columnName = "count") Int>
 
     @Update
     suspend fun updateWord(word: Word)

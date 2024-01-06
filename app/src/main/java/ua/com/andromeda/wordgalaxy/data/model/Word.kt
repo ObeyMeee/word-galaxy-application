@@ -20,8 +20,8 @@ data class Word(
     @ColumnInfo("amount_repetition")
     val amountRepetition: Int?,
 
-    @ColumnInfo("memorized_at")
-    val memorizedAt: LocalDateTime? = null,
+    @ColumnInfo("status_changed_at")
+    val statusChangedAt: LocalDateTime? = null,
 
     @ColumnInfo("repeated_at")
     val repeatedAt: LocalDateTime? = null,
@@ -60,7 +60,7 @@ private const val INTERVAL_MULTIPLIER: Double = 2.0
 fun Word.memorize(): Word {
     val newAmountRepetition = 0
     return copy(
-        memorizedAt = LocalDateTime.now(),
+        statusChangedAt = LocalDateTime.now(),
         amountRepetition = newAmountRepetition,
         status = WordStatus.Memorized,
         nextRepeatAt = calculateNextRepeatAt(newAmountRepetition)

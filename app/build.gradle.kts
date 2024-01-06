@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId = "ua.com.andromeda.wordgalaxy"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -53,6 +53,11 @@ android {
     }
 }
 
+repositories {
+    mavenCentral()
+    maven("https://jitpack.io")
+}
+
 dependencies {
     val lifecycle_version = "2.6.2"
     val room_version = "2.6.1"
@@ -85,6 +90,12 @@ dependencies {
 
     // Work manager
     implementation("androidx.work:work-runtime-ktx:2.9.0")
+
+    // Gson to convert json to actual object
+    implementation("com.google.code.gson:gson:2.10.1")
+
+    // Charts
+    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
 
     // For backward compatibility to use java.time package
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")

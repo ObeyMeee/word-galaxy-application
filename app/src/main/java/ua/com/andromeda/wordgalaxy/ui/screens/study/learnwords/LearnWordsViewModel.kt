@@ -20,6 +20,7 @@ import ua.com.andromeda.wordgalaxy.data.repository.WordRepository
 import ua.com.andromeda.wordgalaxy.data.repository.WordRepositoryImpl
 import ua.com.andromeda.wordgalaxy.data.repository.preferences.UserPreferencesRepository
 import ua.com.andromeda.wordgalaxy.ui.screens.common.CardMode
+import java.time.LocalDateTime
 
 class LearnWordsViewModel(
     private val wordRepository: WordRepository,
@@ -92,7 +93,8 @@ class LearnWordsViewModel(
                 val word = uiStateValue.embeddedWord.word
                 wordRepository.update(
                     word.copy(
-                        status = wordStatus
+                        status = wordStatus,
+                        statusChangedAt = LocalDateTime.now()
                     )
                 )
             }

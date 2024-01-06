@@ -1,7 +1,6 @@
 package ua.com.andromeda.wordgalaxy.data.repository
 
 import androidx.room.Transaction
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import ua.com.andromeda.wordgalaxy.data.dao.WordDao
 import ua.com.andromeda.wordgalaxy.data.model.Category
@@ -10,6 +9,8 @@ import ua.com.andromeda.wordgalaxy.data.model.Example
 import ua.com.andromeda.wordgalaxy.data.model.Phonetic
 import ua.com.andromeda.wordgalaxy.data.model.Word
 import ua.com.andromeda.wordgalaxy.data.model.WordStatus
+import ua.com.andromeda.wordgalaxy.utils.getLastNDates
+import java.time.temporal.TemporalUnit
 
 
 class WordRepositoryImpl(
@@ -31,8 +32,20 @@ class WordRepositoryImpl(
     override fun countWordsToReview() =
         wordDao.countWordsToReview()
 
-    override fun countReviewedWordsToday(): Flow<Int> =
+    override fun countReviewedWordsToday() =
         wordDao.countReviewedWordsToday()
+
+    override fun countWordsByStatusLast(
+        value: Int,
+        unit: TemporalUnit
+    ): List<Map<WordStatus, Int>> {
+        val lastNDates = getLastNDates(value, unit)
+        return lastNDates.map { datetime ->
+            val countWordsByStatus = wordDao.countWordsByStatusAt(datetime.toLocalDate())
+            fillMissingStatusValues(countWordsByStatus)
+        }
+    }
+
 
     override suspend fun update(word: Word) =
         wordDao.updateWord(word)
@@ -78,4 +91,15 @@ class WordRepositoryImpl(
             insertSecondaryEntities(embeddedWord, wordIds[i])
         }
     }
+}
+
+private fun fillMissingStatusValues(
+    wordsCountByStatus: Map<WordStatus, Int>,
+    defaultValue: Int = 0
+): Map<WordStatus, Int> {
+    return WordStatus
+        .entries
+        .associateWith { status ->
+            wordsCountByStatus.getOrDefault(status, defaultValue)
+        }
 }

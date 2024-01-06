@@ -43,6 +43,7 @@
     <string name="current_streak">Current streak</string>
     <string name="best_streak">Best streak</string>
     <string name="share">Share</string>
+    <string name="chart">Chart</string>
 
     <plurals name="days">
         <item quantity="one">day</item>

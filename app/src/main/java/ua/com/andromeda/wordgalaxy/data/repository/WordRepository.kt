@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.Flow
 import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
 import ua.com.andromeda.wordgalaxy.data.model.Word
 import ua.com.andromeda.wordgalaxy.data.model.WordStatus
+import java.time.temporal.TemporalUnit
 
 interface WordRepository {
     fun findOneRandomWordWhereStatusEquals(status: WordStatus): Flow<EmbeddedWord>
@@ -17,6 +18,8 @@ interface WordRepository {
     fun countWordsToReview(): Flow<Int>
 
     fun countReviewedWordsToday(): Flow<Int>
+
+    fun countWordsByStatusLast(value: Int, unit: TemporalUnit): List<Map<WordStatus, Int>>
 
     suspend fun update(word: Word)
 

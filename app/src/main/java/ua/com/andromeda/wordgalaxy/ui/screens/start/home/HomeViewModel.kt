@@ -16,6 +16,7 @@ import ua.com.andromeda.wordgalaxy.WordGalaxyApplication
 import ua.com.andromeda.wordgalaxy.data.repository.WordRepository
 import ua.com.andromeda.wordgalaxy.data.repository.WordRepositoryImpl
 import ua.com.andromeda.wordgalaxy.data.repository.preferences.UserPreferencesRepository
+import java.time.temporal.ChronoUnit
 
 class HomeViewModel(
     private val wordRepository: WordRepository,
@@ -30,11 +31,14 @@ class HomeViewModel(
                 userPreferencesRepository.amountWordsToLearnPerDay.first()
             val learnedWordsToday = wordRepository.countLearnedWordsToday().first()
             val amountWordsToReview = wordRepository.countWordsToReview().first()
+            val listOfWordsCountByStatus = wordRepository.countWordsByStatusLast(7, ChronoUnit.DAYS)
+
             _uiState.update {
                 HomeUiState.Success(
                     learnedWordsToday = learnedWordsToday,
                     amountWordsToLearnPerDay = amountWordsToLearnPerDay,
-                    amountWordsToReview = amountWordsToReview
+                    amountWordsToReview = amountWordsToReview,
+                    listOfWordsCountOfStatus = listOfWordsCountByStatus
                 )
             }
         }
