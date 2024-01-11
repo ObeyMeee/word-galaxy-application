@@ -14,7 +14,7 @@ data class Word(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
     val value: String,
-    val translate: String,
+    val translation: String,
     val status: WordStatus,
 
     @ColumnInfo("amount_repetition")
@@ -73,6 +73,16 @@ fun Word.repeat(): Word {
         amountRepetition = amountRepetition + 1,
         repeatedAt = LocalDateTime.now(),
         nextRepeatAt = calculateNextRepeatAt(amountRepetition)
+    )
+}
+
+fun Word.reset(): Word {
+    return copy(
+        status = WordStatus.New,
+        amountRepetition = 0,
+        statusChangedAt = null,
+        repeatedAt = null,
+        nextRepeatAt = null
     )
 }
 

@@ -83,10 +83,16 @@ interface WordDao {
 
     @Query(
         """
-        SELECT status, COUNT(*) as count
+        SELECT 
+            CASE 
+                WHEN (status = 'Memorized' AND amount_repetition = 0) THEN 'InProgress'
+                ELSE status
+            END as status,
+            COUNT(*) as count
         FROM Word
-        WHERE strftime('%Y-%m-%d', status_changed_at) = strftime('%Y-%m-%d', :date)
-        GROUP BY status
+        WHERE (status != 'Memorized' AND strftime('%Y-%m-%d', status_changed_at) = strftime('%Y-%m-%d', :date))
+           OR ((status = 'Memorized' AND amount_repetition > 0) AND strftime('%Y-%m-%d', repeated_at) = strftime('%Y-%m-%d', :date))
+        GROUP BY status;
         """
     )
     fun countWordsByStatusAt(date: LocalDate):

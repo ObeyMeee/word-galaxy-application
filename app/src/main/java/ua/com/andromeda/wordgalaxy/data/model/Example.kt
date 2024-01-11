@@ -9,6 +9,7 @@ data class Example (
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
     val text: String,
+    val translation: String,
 
     @ColumnInfo(name = "word_id")
     val wordId: Long

@@ -62,7 +62,7 @@ import ua.com.andromeda.wordgalaxy.ui.screens.common.flashcard.Flashcard
 import ua.com.andromeda.wordgalaxy.ui.screens.common.flashcard.FlashcardScope.CardModeSelectorRow
 import ua.com.andromeda.wordgalaxy.ui.screens.common.flashcard.FlashcardScope.ExampleList
 import ua.com.andromeda.wordgalaxy.ui.screens.common.flashcard.FlashcardScope.RowWithWordControls
-import ua.com.andromeda.wordgalaxy.ui.screens.common.flashcard.FlashcardScope.WordWithTranscription
+import ua.com.andromeda.wordgalaxy.ui.screens.common.flashcard.FlashcardScope.WordWithTranscriptionOrTranslation
 import ua.com.andromeda.wordgalaxy.ui.screens.common.flashcard.FlashcardState
 import ua.com.andromeda.wordgalaxy.ui.theme.WordGalaxyTheme
 
@@ -224,7 +224,7 @@ fun LearnWordsMain(modifier: Modifier = Modifier) {
                     )
                 },
                 content = {
-                    CardModeContent(uiState, viewModel, isWordStatusNew)
+                    CardModeContent(uiState, viewModel)
                 },
                 modifier = modifier
             )
@@ -266,12 +266,22 @@ private fun ScreenHeader(
 private fun ColumnScope.CardModeContent(
     uiState: LearnWordsUiState.Success,
     viewModel: LearnWordsViewModel,
-    isWordNew: Boolean
 ) {
     val wordToReview = uiState.embeddedWord
     val word = wordToReview.word
     val phonetics = wordToReview.phonetics
+    val isWordNew = word.status == WordStatus.New
     val focusRequester = remember { FocusRequester() }
+
+    // TODO:
+//    AnimatedContent(
+//        targetState = uiState.cardMode,
+//        label = "CardModeAnimation",
+//        transitionSpec = {
+//            (fadeIn() + slideInVertically { -it }) togetherWith
+//                    (fadeOut() + slideOutVertically { it })
+//        }
+//    ) { cardMode ->
     when (uiState.cardMode) {
         CardMode.ShowAnswer -> {
             Spacer(
@@ -280,26 +290,15 @@ private fun ColumnScope.CardModeContent(
                     .height(1.dp)
                     .background(color = MaterialTheme.colorScheme.surface)
             )
-            if (!isWordNew) {
-                WordWithTranscription(
-                    value = word.value,
-                    phonetics = phonetics,
-                    modifier = Modifier.padding(
-                        horizontal = dimensionResource(R.dimen.padding_largest),
-                        vertical = dimensionResource(R.dimen.padding_medium)
-                    )
-                )
-            } else {
-                Text(
-                    text = word.translate,
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(
-                        horizontal = dimensionResource(R.dimen.padding_largest),
-                        vertical = dimensionResource(R.dimen.padding_medium)
-                    )
-                )
-            }
-            ExampleList(wordToReview.examples)
+            WordWithTranscriptionOrTranslation(
+                word = word,
+                phonetics = phonetics,
+                predicate = { !isWordNew }
+            )
+            ExampleList(
+                wordToReview.examples,
+                modifier = Modifier.weight(1f)
+            )
         }
 
         CardMode.TypeAnswer -> {
@@ -344,9 +343,11 @@ private fun ColumnScope.CardModeContent(
                 updateCardMode = viewModel::updateCardMode,
                 modifier = Modifier.fillMaxWidth()
             )
+            Spacer(modifier = Modifier.weight(1f))
         }
     }
 }
+//}
 
 @Preview(showBackground = true)
 @Composable

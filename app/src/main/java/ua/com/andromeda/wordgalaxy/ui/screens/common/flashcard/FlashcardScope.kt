@@ -1,6 +1,13 @@
 package ua.com.andromeda.wordgalaxy.ui.screens.common.flashcard
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkOut
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -9,12 +16,15 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -31,8 +41,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
@@ -44,10 +59,41 @@ import androidx.compose.ui.unit.dp
 import ua.com.andromeda.wordgalaxy.R
 import ua.com.andromeda.wordgalaxy.data.model.Example
 import ua.com.andromeda.wordgalaxy.data.model.Phonetic
+import ua.com.andromeda.wordgalaxy.data.model.Word
 import ua.com.andromeda.wordgalaxy.ui.screens.common.CardMode
 import ua.com.andromeda.wordgalaxy.utils.playPronunciation
 
 object FlashcardScope {
+    @Composable
+    fun WordWithTranscriptionOrTranslation(
+        word: Word,
+        phonetics: List<Phonetic>,
+        predicate: () -> Boolean,
+    ) {
+        if (predicate()) {
+            WordWithTranscription(
+                value = word.value,
+                phonetics = phonetics,
+                modifier = Modifier.padding(
+                    horizontal = dimensionResource(R.dimen.padding_largest),
+                    vertical = dimensionResource(R.dimen.padding_small)
+                )
+            )
+        } else {
+            Text(
+                text = word.translation,
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier
+                    .height(120.dp)
+                    .verticalScroll(rememberScrollState())
+                    .padding(
+                        start = dimensionResource(R.dimen.padding_largest),
+                        bottom = dimensionResource(R.dimen.padding_medium)
+                    )
+            )
+        }
+    }
+
     @Composable
     fun WordWithTranscription(
         value: String,
@@ -102,14 +148,21 @@ object FlashcardScope {
         example: Example,
         modifier: Modifier = Modifier
     ) {
+        var expanded by remember { mutableStateOf(false) }
+        val rotationAngle by animateFloatAsState(
+            targetValue = if (expanded) 180f else 0f,
+            label = "Expand icon animation"
+        )
+
         Row(
-            modifier = modifier,
+            modifier = modifier.clickable { expanded = !expanded },
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
                 imageVector = Icons.Default.KeyboardArrowDown,
-                contentDescription = stringResource(R.string.expand)
+                contentDescription = stringResource(R.string.expand),
+                modifier = Modifier.rotate(rotationAngle)
             )
             Spacer(modifier = Modifier.width(dimensionResource(R.dimen.padding_small)))
             Text(
@@ -121,6 +174,24 @@ object FlashcardScope {
                 imageVector = Icons.Outlined.PlayCircleOutline,
                 contentDescription = stringResource(R.string.play_example)
             )
+        }
+        AnimatedVisibility(
+            visible = expanded,
+            enter = expandVertically() + fadeIn(),
+            exit = shrinkOut() + fadeOut()
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.primaryContainer)
+                    .padding(dimensionResource(R.dimen.padding_small))
+            ) {
+                Text(
+                    text = example.translation,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
         }
     }
 

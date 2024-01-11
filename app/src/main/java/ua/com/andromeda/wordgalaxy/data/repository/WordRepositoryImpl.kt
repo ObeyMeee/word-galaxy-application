@@ -42,10 +42,9 @@ class WordRepositoryImpl(
         val lastNDates = getLastNDates(value, unit)
         return lastNDates.map { datetime ->
             val countWordsByStatus = wordDao.countWordsByStatusAt(datetime.toLocalDate())
-            fillMissingStatusValues(countWordsByStatus)
+            addMissingStatusesExceptNew(countWordsByStatus)
         }
     }
-
 
     override suspend fun update(word: Word) =
         wordDao.updateWord(word)
@@ -93,12 +92,13 @@ class WordRepositoryImpl(
     }
 }
 
-private fun fillMissingStatusValues(
+private fun addMissingStatusesExceptNew(
     wordsCountByStatus: Map<WordStatus, Int>,
     defaultValue: Int = 0
 ): Map<WordStatus, Int> {
     return WordStatus
         .entries
+        .filter { it != WordStatus.New }
         .associateWith { status ->
             wordsCountByStatus.getOrDefault(status, defaultValue)
         }

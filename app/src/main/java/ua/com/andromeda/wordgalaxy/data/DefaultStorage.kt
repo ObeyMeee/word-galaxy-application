@@ -11,7 +11,7 @@ object DefaultStorage {
     val embeddedWord = EmbeddedWord(
         word = Word(
             value = "table",
-            translate = "стіл",
+            translation = "стіл",
             status = WordStatus.Memorized,
             amountRepetition = 0,
         ),
@@ -20,6 +20,7 @@ object DefaultStorage {
         examples = listOf(
             Example(
                 text = "Corner table for the student can profitably save space in the apartment.",
+                translation = "Кутовий стіл для школяра може вигідно зекономити місце в квартирі.",
                 wordId = 0
             )
         )

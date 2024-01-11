@@ -39,7 +39,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
@@ -47,28 +46,16 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.github.mikephil.charting.charts.BarChart
-import com.github.mikephil.charting.components.Legend
-import com.github.mikephil.charting.components.XAxis
-import com.github.mikephil.charting.data.BarData
-import com.github.mikephil.charting.data.BarDataSet
-import com.github.mikephil.charting.data.BarEntry
-import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
-import com.github.mikephil.charting.utils.ColorTemplate
 import ua.com.andromeda.wordgalaxy.R
 import ua.com.andromeda.wordgalaxy.ui.navigation.Destination
 import ua.com.andromeda.wordgalaxy.ui.screens.common.CenteredLoadingSpinner
 import ua.com.andromeda.wordgalaxy.ui.screens.common.Message
+import ua.com.andromeda.wordgalaxy.ui.screens.start.home.graphics.ResultBarChart
 import ua.com.andromeda.wordgalaxy.ui.theme.WordGalaxyTheme
-import ua.com.andromeda.wordgalaxy.utils.getLastNDates
 import java.time.DayOfWeek
 import java.time.LocalDateTime
-import java.time.format.TextStyle
-import java.time.temporal.ChronoUnit
-import java.util.Locale
 
 
 private const val TAG = "HomeScreen"
@@ -211,6 +198,7 @@ fun StatsSection(
     }
 }
 
+@OptIn(ExperimentalStdlibApi::class)
 @Composable
 private fun DaysOfWeekRow(modifier: Modifier = Modifier) {
     val dayOfWeeks = DayOfWeek.entries
@@ -253,6 +241,7 @@ private fun DayOfWeekItem(dayOfWeek: DayOfWeek) {
     }
 }
 
+@OptIn(ExperimentalStdlibApi::class)
 @Composable
 private fun ActiveDayOfWeekArrow(modifier: Modifier = Modifier) {
     val dayOfWeeks = DayOfWeek.entries
@@ -356,76 +345,6 @@ fun ChartSection(homeUiState: HomeUiState.Success, modifier: Modifier = Modifier
     }
 }
 
-@Composable
-fun ResultBarChart(homeUiState: HomeUiState.Success, modifier: Modifier = Modifier) {
-    val context = LocalContext.current
-
-    val lastTimePeriodDays = getLastNDates(homeUiState.timePeriod, ChronoUnit.DAYS)
-    val lastTimePeriodDaysFormatted = lastTimePeriodDays.map { date ->
-        val shortMonth = date.month.getDisplayName(
-            TextStyle.SHORT,
-            Locale.UK
-        )
-        "$shortMonth ${date.dayOfMonth}"
-    }
-    val entries = lastTimePeriodDays.indices.map { i ->
-        val wordsCountOfStatus = homeUiState.listOfWordsCountOfStatus[i]
-        BarEntry(
-            i.toFloat(),
-            wordsCountOfStatus
-                .values
-                .map {count -> count.toFloat() }
-                .toFloatArray()
-        )
-    }
-
-    AndroidView(factory = {
-        BarChart(context).apply {
-            // Creating dataset for each stack
-            val dataset = BarDataSet(entries, "")
-            dataset.stackLabels =
-                arrayOf("Already known", "Reviewed", "New words learning", "Mastered")
-            dataset.setDrawIcons(true)
-
-            // Setting colors for each stack
-            dataset.colors = ColorTemplate.MATERIAL_COLORS.asList()
-
-            // Creating BarData object and adding datasets
-            val barData = BarData(dataset)
-
-            // Configure the BarChart
-            data = barData
-            setDrawValueAboveBar(false)
-            description.isEnabled = false
-            setFitBars(true)
-            this.setScaleEnabled(true)
-            // Y-axis configuration
-            axisLeft.apply {
-                axisMinimum = 0f
-                granularity = 5f // Adjust as needed
-            }
-            axisRight.isEnabled = false
-
-            // X-axis configuration
-            xAxis.apply {
-                position = XAxis.XAxisPosition.BOTTOM
-                valueFormatter = IndexAxisValueFormatter(lastTimePeriodDaysFormatted)
-                setDrawGridLines(false)
-            }
-
-            // Legend configuration
-            legend.apply {
-                form = Legend.LegendForm.SQUARE
-                verticalAlignment = Legend.LegendVerticalAlignment.BOTTOM
-                horizontalAlignment = Legend.LegendHorizontalAlignment.CENTER
-                orientation = Legend.LegendOrientation.HORIZONTAL
-                formToTextSpace = 4f
-                xEntrySpace = 12f // space between legend items
-            }
-        }
-    }, modifier = modifier)
-}
-
 @Preview
 @Composable
 fun HomeScreenPreview() {
@@ -445,21 +364,6 @@ fun StatsSectionPreview() {
     WordGalaxyTheme {
         Surface {
             StatsSection(HomeUiState.Success())
-        }
-    }
-}
-
-@Preview
-@Composable
-fun ResultBarChartPreview() {
-    WordGalaxyTheme {
-        Surface {
-            ResultBarChart(
-                homeUiState = HomeUiState.Success(),
-                modifier = Modifier
-                    .height(400.dp)
-                    .fillMaxSize()
-            )
         }
     }
 }
