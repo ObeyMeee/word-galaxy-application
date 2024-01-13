@@ -25,15 +25,10 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.EditNote
-import androidx.compose.material.icons.filled.FolderCopy
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.MoreHoriz
-import androidx.compose.material.icons.filled.Remove
-import androidx.compose.material.icons.filled.Report
 import androidx.compose.material.icons.filled.Square
-import androidx.compose.material.icons.filled.Undo
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -68,6 +63,7 @@ import ua.com.andromeda.wordgalaxy.data.model.Category
 import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
 import ua.com.andromeda.wordgalaxy.data.model.WordStatus
 import ua.com.andromeda.wordgalaxy.ui.SWIPE_CARD_BOUND
+import ua.com.andromeda.wordgalaxy.ui.screens.common.DropdownItemState
 import ua.com.andromeda.wordgalaxy.ui.screens.common.flashcard.FlashcardScope.WordWithTranscriptionOrTranslation
 import kotlin.math.roundToInt
 
@@ -80,6 +76,7 @@ fun Flashcard(
     screenHeader: @Composable () -> Unit,
     content: @Composable (ColumnScope.() -> Unit),
     modifier: Modifier = Modifier,
+    menuItems: List<DropdownItemState> = listOf()
 ) {
     val word = embeddedWord.word
     val amountRepetition = word.amountRepetition ?: 0
@@ -147,6 +144,7 @@ fun Flashcard(
                 FlashcardHeader(
                     squareColor = flashcardState.iconColor,
                     label = stringResource(flashcardState.headerLabelRes, numberReview),
+                    dropdownItemStates = menuItems,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(dimensionResource(R.dimen.padding_medium))
@@ -198,7 +196,8 @@ private fun CategoriesText(
 private fun FlashcardHeader(
     squareColor: Color,
     label: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    dropdownItemStates: List<DropdownItemState> = listOf()
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -233,56 +232,18 @@ private fun FlashcardHeader(
         ) {
             Box {
                 DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                    DropdownMenuItem(
-                        text = { Text(text = stringResource(R.string.reset_progress_for_this_word)) },
-                        onClick = { /*TODO*/ },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Undo,
-                                contentDescription = null
-                            )
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text(text = stringResource(R.string.copy_to_my_category)) },
-                        onClick = { /*TODO*/ },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.FolderCopy,
-                                contentDescription = null
-                            )
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text(text = stringResource(R.string.report_a_mistake)) },
-                        onClick = { /*TODO*/ },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Report,
-                                contentDescription = null
-                            )
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text(text = stringResource(R.string.edit)) },
-                        onClick = { /*TODO*/ },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.EditNote,
-                                contentDescription = null
-                            )
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text(text = stringResource(R.string.remove)) },
-                        onClick = { /*TODO*/ },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Remove,
-                                contentDescription = null
-                            )
-                        }
-                    )
+                    dropdownItemStates.forEach {
+                        DropdownMenuItem(
+                            text = { Text(text = stringResource(it.labelRes)) },
+                            onClick = it.onClick,
+                            leadingIcon = {
+                                Icon(
+                                    painter = it.icon,
+                                    contentDescription = null
+                                )
+                            }
+                        )
+                    }
                 }
             }
         }

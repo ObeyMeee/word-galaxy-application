@@ -137,7 +137,7 @@ object FlashcardScope {
             verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_small)),
             modifier = modifier
         ) {
-            items(examples, key = { it.id }) {
+            items(examples, key = Example::id) {
                 ExampleItem(it)
             }
         }

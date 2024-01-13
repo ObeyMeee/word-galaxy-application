@@ -4,7 +4,6 @@ import android.app.Notification
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import androidx.core.app.NotificationCompat
 import ua.com.andromeda.wordgalaxy.MainActivity
 import ua.com.andromeda.wordgalaxy.R
@@ -26,7 +25,7 @@ class ReviewWordsNotificationService(context: Context) : AbstractNotificationSer
             context,
             1,
             activityIntent,
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) PendingIntent.FLAG_IMMUTABLE else 0
+            PendingIntent.FLAG_IMMUTABLE
         )
     }
 

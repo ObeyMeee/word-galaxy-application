@@ -2,14 +2,30 @@ package ua.com.andromeda.wordgalaxy.data.model
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
 typealias AudioUrl = String
 
-@Entity
+@Entity(
+    tableName = "phonetics",
+    indices = [
+        Index(value = ["word_id"])
+    ],
+
+    foreignKeys = [
+        ForeignKey(
+            entity = Word::class,
+            parentColumns = ["id"],
+            childColumns = ["word_id"],
+            onUpdate = ForeignKey.CASCADE
+        )
+    ]
+)
 data class Phonetic(
     @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
+    val id: Long = 0,
     val text: String,
     val audio: AudioUrl,
 

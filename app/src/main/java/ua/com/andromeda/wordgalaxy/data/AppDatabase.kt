@@ -10,12 +10,19 @@ import ua.com.andromeda.wordgalaxy.data.model.Category
 import ua.com.andromeda.wordgalaxy.data.model.Example
 import ua.com.andromeda.wordgalaxy.data.model.Phonetic
 import ua.com.andromeda.wordgalaxy.data.model.Word
+import ua.com.andromeda.wordgalaxy.data.model.WordAndCategoryCrossRef
 import ua.com.andromeda.wordgalaxy.utils.Converters
 
 @Database(
-    version = 2,
-    entities = [Word::class, Category::class, Phonetic::class, Example::class],
-    exportSchema = false
+    version = 1,
+    exportSchema = false,
+    entities = [
+        Word::class,
+        Category::class,
+        WordAndCategoryCrossRef::class,
+        Phonetic::class,
+        Example::class
+    ]
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
@@ -31,7 +38,7 @@ abstract class AppDatabase : RoomDatabase() {
                     context,
                     AppDatabase::class.java,
                     "word-galaxy.db"
-                ).createFromAsset("database/word-galaxy.db")
+                )
                     .fallbackToDestructiveMigration()
                     .build()
                     .also { INSTANCE = it }

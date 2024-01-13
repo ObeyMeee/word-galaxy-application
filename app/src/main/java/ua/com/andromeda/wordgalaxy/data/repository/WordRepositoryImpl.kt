@@ -3,12 +3,13 @@ package ua.com.andromeda.wordgalaxy.data.repository
 import androidx.room.Transaction
 import kotlinx.coroutines.flow.map
 import ua.com.andromeda.wordgalaxy.data.dao.WordDao
-import ua.com.andromeda.wordgalaxy.data.model.Category
 import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
 import ua.com.andromeda.wordgalaxy.data.model.Example
 import ua.com.andromeda.wordgalaxy.data.model.Phonetic
 import ua.com.andromeda.wordgalaxy.data.model.Word
 import ua.com.andromeda.wordgalaxy.data.model.WordStatus
+import ua.com.andromeda.wordgalaxy.data.model.WordWithCategories
+import ua.com.andromeda.wordgalaxy.data.model.toWordWithCategories
 import ua.com.andromeda.wordgalaxy.utils.getLastNDates
 import java.time.temporal.TemporalUnit
 
@@ -51,21 +52,13 @@ class WordRepositoryImpl(
 
     @Transaction
     override suspend fun insert(embeddedWord: EmbeddedWord) {
-        val wordId = wordDao.insertWord(embeddedWord.word)
+        val wordId = wordDao.insertWordWithCategories(embeddedWord.toWordWithCategories())
         insertSecondaryEntities(embeddedWord, wordId)
     }
 
     private suspend fun insertSecondaryEntities(embeddedWord: EmbeddedWord, wordId: Long) {
-        insertCategories(embeddedWord.categories, wordId)
         insertExamples(embeddedWord.examples, wordId)
         insertPhonetics(embeddedWord.phonetics, wordId)
-    }
-
-    private suspend fun insertCategories(categories: List<Category>, wordId: Long) {
-        val updatedCategories = categories.map { category ->
-            category.copy(wordId = wordId)
-        }
-        wordDao.insertCategories(updatedCategories)
     }
 
     private suspend fun insertPhonetics(phonetics: List<Phonetic>, wordId: Long) {
@@ -84,12 +77,16 @@ class WordRepositoryImpl(
 
     @Transaction
     override suspend fun insertAll(embeddedWords: List<EmbeddedWord>) {
-        val words = embeddedWords.map { it.word }
-        val wordIds = wordDao.insertAllWords(words)
+        val wordsWordWithCategories = embeddedWords.map(EmbeddedWord::toWordWithCategories)
+        val wordIds = wordDao.insertAllWords(wordsWordWithCategories)
         embeddedWords.forEachIndexed { i, embeddedWord ->
             insertSecondaryEntities(embeddedWord, wordIds[i])
         }
     }
+
+    override suspend fun updateWordWithCategories(wordWithCategories: WordWithCategories) =
+        wordDao.updateWordWithCategories(wordWithCategories)
+
 }
 
 private fun addMissingStatusesExceptNew(

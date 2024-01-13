@@ -1,10 +1,8 @@
 package ua.com.andromeda.wordgalaxy.data.model
 
 import androidx.room.ColumnInfo
-import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import androidx.room.Relation
 import ua.com.andromeda.wordgalaxy.exception.WordNotMemorized
 import java.time.LocalDateTime
 import kotlin.math.pow
@@ -12,7 +10,7 @@ import kotlin.math.pow
 @Entity
 data class Word(
     @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
+    val id: Long = 0,
     val value: String,
     val translation: String,
     val status: WordStatus,
@@ -28,30 +26,6 @@ data class Word(
 
     @ColumnInfo("next_repeat_at")
     val nextRepeatAt: LocalDateTime? = null,
-)
-
-data class EmbeddedWord(
-    @Embedded
-    val word: Word,
-
-    @Relation(
-        parentColumn = "id",
-        entityColumn = "word_id"
-    )
-    val categories: List<Category>,
-
-    @Relation(
-        parentColumn = "id",
-        entityColumn = "word_id"
-    )
-    val phonetics: List<Phonetic>,
-
-    @Relation(
-        parentColumn = "id",
-        entityColumn = "word_id"
-    )
-    val examples: List<Example>
-
 )
 
 private const val FIRST_HOURS_INTERVAL: Int = 4

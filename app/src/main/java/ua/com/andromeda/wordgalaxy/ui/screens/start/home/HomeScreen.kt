@@ -198,7 +198,6 @@ fun StatsSection(
     }
 }
 
-@OptIn(ExperimentalStdlibApi::class)
 @Composable
 private fun DaysOfWeekRow(modifier: Modifier = Modifier) {
     val dayOfWeeks = DayOfWeek.entries
@@ -241,7 +240,6 @@ private fun DayOfWeekItem(dayOfWeek: DayOfWeek) {
     }
 }
 
-@OptIn(ExperimentalStdlibApi::class)
 @Composable
 private fun ActiveDayOfWeekArrow(modifier: Modifier = Modifier) {
     val dayOfWeeks = DayOfWeek.entries

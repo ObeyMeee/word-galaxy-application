@@ -15,7 +15,7 @@ object DefaultStorage {
             status = WordStatus.Memorized,
             amountRepetition = 0,
         ),
-        categories = listOf(Category(name = "A1", wordId = 0)),
+        categories = listOf(Category(name = "A1")),
         phonetics = listOf(Phonetic(text = "[ˈteɪbl̩]", audio = "", wordId = 0)),
         examples = listOf(
             Example(

@@ -62,8 +62,8 @@ class ReviewWordsViewModel(
         viewModelScope.launch {
             val uiStateValue = _uiState.value
             if (uiStateValue is ReviewWordsUiState.Success) {
-                val word = uiStateValue.wordToReview.word
-                wordRepository.update(word.repeat())
+                val currentWord = uiStateValue.wordToReview.word
+                wordRepository.update(currentWord.repeat())
                 fetchUiState()
             }
         }

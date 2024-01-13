@@ -16,6 +16,7 @@ import ua.com.andromeda.wordgalaxy.WordGalaxyApplication
 import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
 import ua.com.andromeda.wordgalaxy.data.model.WordStatus
 import ua.com.andromeda.wordgalaxy.data.model.memorize
+import ua.com.andromeda.wordgalaxy.data.model.reset
 import ua.com.andromeda.wordgalaxy.data.repository.WordRepository
 import ua.com.andromeda.wordgalaxy.data.repository.WordRepositoryImpl
 import ua.com.andromeda.wordgalaxy.data.repository.preferences.UserPreferencesRepository
@@ -87,7 +88,7 @@ class LearnWordsViewModel(
         LearnWordsUiState.Error(message)
 
     private fun updateWordStatus(wordStatus: WordStatus) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             val uiStateValue = _uiState.value
             if (uiStateValue is LearnWordsUiState.Success) {
                 val word = uiStateValue.embeddedWord.word
@@ -113,6 +114,17 @@ class LearnWordsViewModel(
     fun alreadyKnowWord() {
         updateWordStatus(WordStatus.AlreadyKnown)
         moveToNextCard()
+    }
+
+    fun resetWord() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val wordsUiState = _uiState.value
+            if (wordsUiState is LearnWordsUiState.Success) {
+                val currentWord = wordsUiState.embeddedWord.word
+                wordRepository.update(currentWord.reset())
+            }
+        }
+        fetchUiState()
     }
 
     fun skipWord() {
@@ -181,14 +193,38 @@ class LearnWordsViewModel(
     }
 
     fun memorizeWord() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             val uiStateValue = _uiState.value
             if (uiStateValue is LearnWordsUiState.Success) {
-                val word = uiStateValue.embeddedWord.word
-                wordRepository.update(word.memorize())
+                val currentWord = uiStateValue.embeddedWord.word
+                wordRepository.update(currentWord.memorize())
                 moveToNextCard()
             }
         }
+    }
+
+    fun copyWordToMyCategory() {
+        TODO("Not yet implemented")
+//        viewModelScope.launch {
+//            val learnWordsUiState = _uiState.value
+//            if (learnWordsUiState is LearnWordsUiState.Success) {
+//                val wordWithCategories = learnWordsUiState.embeddedWord.wordWithCategories
+//                val categories = wordWithCategories.categories
+//                wordRepository.updateWordWithCategories(wordWithCategories.copy(categories = categories))
+//            }
+//        }
+    }
+
+    fun reportMistake() {
+        TODO("Not yet implemented")
+    }
+
+    fun edit() {
+        TODO("Not yet implemented")
+    }
+
+    fun removeWord() {
+        TODO("Not yet implemented")
     }
 
     companion object {

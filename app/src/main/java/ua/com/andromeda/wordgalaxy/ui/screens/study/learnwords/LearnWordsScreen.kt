@@ -14,11 +14,16 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.EditNote
+import androidx.compose.material.icons.filled.FolderCopy
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.Rectangle
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.RemoveRedEye
+import androidx.compose.material.icons.filled.Report
+import androidx.compose.material.icons.filled.Undo
 import androidx.compose.material.icons.outlined.Rectangle
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
@@ -42,6 +47,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
@@ -57,6 +63,7 @@ import ua.com.andromeda.wordgalaxy.data.model.WordStatus
 import ua.com.andromeda.wordgalaxy.ui.navigation.Destination
 import ua.com.andromeda.wordgalaxy.ui.screens.common.CardMode
 import ua.com.andromeda.wordgalaxy.ui.screens.common.CenteredLoadingSpinner
+import ua.com.andromeda.wordgalaxy.ui.screens.common.DropdownItemState
 import ua.com.andromeda.wordgalaxy.ui.screens.common.Message
 import ua.com.andromeda.wordgalaxy.ui.screens.common.flashcard.Flashcard
 import ua.com.andromeda.wordgalaxy.ui.screens.common.flashcard.FlashcardScope.CardModeSelectorRow
@@ -181,6 +188,33 @@ private fun TopAppNavigationBar(
 fun LearnWordsMain(modifier: Modifier = Modifier) {
     val viewModel: LearnWordsViewModel = viewModel(factory = LearnWordsViewModel.factory)
     val learnWordsUiState by viewModel.uiState.collectAsState()
+    val menuItems = listOf(
+        DropdownItemState(
+            labelRes = R.string.reset_progress_for_this_word,
+            onClick = viewModel::resetWord,
+            icon = rememberVectorPainter(Icons.Default.Undo),
+        ),
+        DropdownItemState(
+            labelRes = R.string.copy_to_my_category,
+            onClick = viewModel::copyWordToMyCategory,
+            icon = rememberVectorPainter(Icons.Default.FolderCopy),
+        ),
+        DropdownItemState(
+            labelRes = R.string.report_a_mistake,
+            onClick = viewModel::reportMistake,
+            icon = rememberVectorPainter(Icons.Default.Report),
+        ),
+        DropdownItemState(
+            labelRes = R.string.edit,
+            onClick = viewModel::edit,
+            icon = rememberVectorPainter(Icons.Default.EditNote),
+        ),
+        DropdownItemState(
+            labelRes = R.string.remove,
+            onClick = viewModel::removeWord,
+            icon = rememberVectorPainter(Icons.Default.Remove),
+        )
+    )
 
     when (val uiState = learnWordsUiState) {
         is LearnWordsUiState.Default -> {
@@ -202,7 +236,8 @@ fun LearnWordsMain(modifier: Modifier = Modifier) {
         }
 
         is LearnWordsUiState.Success -> {
-            val isWordStatusNew = uiState.embeddedWord.word.status == WordStatus.New
+            val word = uiState.embeddedWord.word
+            val isWordStatusNew = word.status == WordStatus.New
             val flashcardState = if (isWordStatusNew) {
                 FlashcardState.New(
                     onLeftClick = viewModel::alreadyKnowWord,
@@ -217,6 +252,7 @@ fun LearnWordsMain(modifier: Modifier = Modifier) {
             Flashcard(
                 embeddedWord = uiState.embeddedWord,
                 flashcardState = flashcardState,
+                menuItems = menuItems,
                 screenHeader = {
                     ScreenHeader(
                         learnedWordsToday = uiState.learnedWordsToday,

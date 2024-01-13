@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.Flow
 import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
 import ua.com.andromeda.wordgalaxy.data.model.Word
 import ua.com.andromeda.wordgalaxy.data.model.WordStatus
+import ua.com.andromeda.wordgalaxy.data.model.WordWithCategories
 import java.time.temporal.TemporalUnit
 
 interface WordRepository {
@@ -26,4 +27,6 @@ interface WordRepository {
     suspend fun insert(embeddedWord: EmbeddedWord)
 
     suspend fun insertAll(embeddedWords: List<EmbeddedWord>)
+
+    suspend fun updateWordWithCategories(wordWithCategories: WordWithCategories)
 }
