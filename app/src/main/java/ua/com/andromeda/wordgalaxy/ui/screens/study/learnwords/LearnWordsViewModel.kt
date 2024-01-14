@@ -1,5 +1,7 @@
 package ua.com.andromeda.wordgalaxy.ui.screens.study.learnwords
 
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
@@ -14,9 +16,11 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import ua.com.andromeda.wordgalaxy.WordGalaxyApplication
 import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
+import ua.com.andromeda.wordgalaxy.data.model.MY_WORDS_CATEGORY
 import ua.com.andromeda.wordgalaxy.data.model.WordStatus
 import ua.com.andromeda.wordgalaxy.data.model.memorize
 import ua.com.andromeda.wordgalaxy.data.model.reset
+import ua.com.andromeda.wordgalaxy.data.model.toWordWithCategories
 import ua.com.andromeda.wordgalaxy.data.repository.WordRepository
 import ua.com.andromeda.wordgalaxy.data.repository.WordRepositoryImpl
 import ua.com.andromeda.wordgalaxy.data.repository.preferences.UserPreferencesRepository
@@ -102,18 +106,18 @@ class LearnWordsViewModel(
         }
     }
 
-    private fun moveToNextCard() {
+    fun moveToNextWord() {
         fetchUiState()
     }
 
     fun startLearningWord() {
         updateWordStatus(WordStatus.InProgress)
-        moveToNextCard()
+        moveToNextWord()
     }
 
     fun alreadyKnowWord() {
         updateWordStatus(WordStatus.AlreadyKnown)
-        moveToNextCard()
+        moveToNextWord()
     }
 
     fun resetWord() {
@@ -127,20 +131,15 @@ class LearnWordsViewModel(
         fetchUiState()
     }
 
-    fun skipWord() {
-        fetchUiState()
-    }
-
     fun updateCardMode(cardMode: CardMode) {
         updateUiState(action = {
             it.copy(cardMode = cardMode)
         })
     }
 
-    fun updateUserGuess(value: String) {
-        val trimmedAndLowerCaseValue = value.trim().lowercase()
+    fun updateUserGuess(value: TextFieldValue) {
         updateUiState(action = {
-            it.copy(userGuess = trimmedAndLowerCaseValue)
+            it.copy(userGuess = value)
         })
     }
 
@@ -162,7 +161,7 @@ class LearnWordsViewModel(
         updateUiState { uiState ->
             val actualValue = uiState.embeddedWord.word.value
             val userGuess = uiState.userGuess
-            val indexOfFirstDifference = indexOfFirstDifference(actualValue, userGuess)
+            val indexOfFirstDifference = indexOfFirstDifference(actualValue, userGuess.text)
 
             if (indexOfFirstDifference == -1) {
                 uiState.copy(cardMode = CardMode.ShowAnswer)
@@ -175,7 +174,12 @@ class LearnWordsViewModel(
                             range = (indexOfFirstDifference..actualValue.lastIndex),
                             replacement = actualValue[indexOfFirstDifference].toString()
                         )
-                uiState.copy(userGuess = updatedUserGuess)
+                uiState.copy(
+                    userGuess = TextFieldValue(
+                        text = updatedUserGuess,
+                        selection = TextRange(updatedUserGuess.length)
+                    )
+                )
             }
         }
     }
@@ -185,7 +189,7 @@ class LearnWordsViewModel(
             val actual = it.embeddedWord.word.value
             val userGuess = it.userGuess
             val amountAttemptsLeft = it.amountAttempts - 1
-            if (actual == userGuess || amountAttemptsLeft == 0)
+            if (actual == userGuess.text || amountAttemptsLeft == 0)
                 it.copy(cardMode = CardMode.ShowAnswer)
             else
                 it.copy(amountAttempts = amountAttemptsLeft)
@@ -198,21 +202,21 @@ class LearnWordsViewModel(
             if (uiStateValue is LearnWordsUiState.Success) {
                 val currentWord = uiStateValue.embeddedWord.word
                 wordRepository.update(currentWord.memorize())
-                moveToNextCard()
+                moveToNextWord()
             }
         }
     }
 
     fun copyWordToMyCategory() {
-        TODO("Not yet implemented")
-//        viewModelScope.launch {
-//            val learnWordsUiState = _uiState.value
-//            if (learnWordsUiState is LearnWordsUiState.Success) {
-//                val wordWithCategories = learnWordsUiState.embeddedWord.wordWithCategories
-//                val categories = wordWithCategories.categories
-//                wordRepository.updateWordWithCategories(wordWithCategories.copy(categories = categories))
-//            }
-//        }
+        viewModelScope.launch(Dispatchers.IO) {
+            (_uiState.value as? LearnWordsUiState.Success)?.let {
+                val wordWithCategories = it.embeddedWord.toWordWithCategories()
+                val updatedCategories = wordWithCategories.categories + MY_WORDS_CATEGORY
+                wordRepository.updateWordWithCategories(
+                    wordWithCategories.copy(categories = updatedCategories)
+                )
+            }
+        }
     }
 
     fun reportMistake() {
@@ -224,7 +228,12 @@ class LearnWordsViewModel(
     }
 
     fun removeWord() {
-        TODO("Not yet implemented")
+        viewModelScope.launch(Dispatchers.IO) {
+            (_uiState.value as? LearnWordsUiState.Success)?.let {
+                wordRepository.remove(it.embeddedWord)
+            }
+        }
+        moveToNextWord()
     }
 
     companion object {

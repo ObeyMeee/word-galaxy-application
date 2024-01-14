@@ -16,7 +16,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -82,13 +82,13 @@ object FlashcardScope {
         } else {
             Text(
                 text = word.translation,
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier
-                    .height(120.dp)
+                    .heightIn(min = 0.dp, max = 120.dp)
                     .verticalScroll(rememberScrollState())
                     .padding(
-                        start = dimensionResource(R.dimen.padding_largest),
-                        bottom = dimensionResource(R.dimen.padding_medium)
+                        horizontal = dimensionResource(R.dimen.padding_largest),
+                        vertical = dimensionResource(R.dimen.padding_small)
                     )
             )
         }

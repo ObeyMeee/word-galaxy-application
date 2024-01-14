@@ -56,6 +56,9 @@ class WordRepositoryImpl(
         insertSecondaryEntities(embeddedWord, wordId)
     }
 
+    override suspend fun remove(embeddedWord: EmbeddedWord) =
+        wordDao.remove(embeddedWord)
+
     private suspend fun insertSecondaryEntities(embeddedWord: EmbeddedWord, wordId: Long) {
         insertExamples(embeddedWord.examples, wordId)
         insertPhonetics(embeddedWord.phonetics, wordId)

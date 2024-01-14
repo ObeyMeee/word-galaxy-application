@@ -1,6 +1,7 @@
 package ua.com.andromeda.wordgalaxy.data.dao
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.MapColumn
 import androidx.room.OnConflictStrategy
@@ -112,7 +113,7 @@ interface WordDao {
     )
     """
     )
-    fun getCategoriesForWord(wordId: Long): List<Category>
+    fun findCategoriesByWordId(wordId: Long): List<Category>
 
     @Query(
         """
@@ -128,6 +129,25 @@ interface WordDao {
     """
     )
     suspend fun deleteWordAndCategories(wordId: Long, categoryIds: List<Long>)
+
+    @Transaction
+    suspend fun remove(embeddedWord: EmbeddedWord) {
+        val (word, categories, phonetics, examples) = embeddedWord
+        removePhonetics(phonetics)
+        removeExamples(examples)
+        deleteWordAndCategories(word.id, categories.map(Category::id))
+        removeWord(word)
+    }
+
+    @Delete
+    suspend fun removeWord(word: Word)
+
+    @Delete
+    suspend fun removePhonetics(phonetics: List<Phonetic>)
+
+    @Delete
+    suspend fun removeExamples(examples: List<Example>)
+
 
     @Update
     suspend fun updateWord(word: Word)
@@ -159,24 +179,22 @@ interface WordDao {
     suspend fun updateWordWithCategories(wordWithCategories: WordWithCategories) {
         val (word, categories) = wordWithCategories
 
-        // Update the word
-        updateWord(word)
-
         // Update the categories
         val wordId = word.id
-        val existingCategories = getCategoriesForWord(wordId)
+        val existingCategories = findCategoriesByWordId(wordId)
         val newCategories = categories.filterNot { it in existingCategories }
 
         // Insert new categories
-        val newCategoriesIds = insertCategories(newCategories).map { it }
+        val newCategoriesIds = insertCategories(newCategories)
 
         // Delete categories that are no longer associated with the word
         val categoriesToDelete = existingCategories.filterNot { it in categories }
         deleteWordAndCategories(wordId, categoriesToDelete.map { it.id })
 
         // Insert the associations between the updated word and its categories
-        val updatedWordAndCategoryCrossRefs =
-            newCategoriesIds.map { WordAndCategoryCrossRef(wordId, it) }
+        val updatedWordAndCategoryCrossRefs = newCategoriesIds.map {
+            WordAndCategoryCrossRef(wordId, it)
+        }
         insertWordAndCategories(updatedWordAndCategoryCrossRefs)
     }
 

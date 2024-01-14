@@ -26,6 +26,8 @@ interface WordRepository {
 
     suspend fun insert(embeddedWord: EmbeddedWord)
 
+    suspend fun remove(embeddedWord: EmbeddedWord)
+
     suspend fun insertAll(embeddedWords: List<EmbeddedWord>)
 
     suspend fun updateWordWithCategories(wordWithCategories: WordWithCategories)

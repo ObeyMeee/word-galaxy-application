@@ -1,5 +1,6 @@
 package ua.com.andromeda.wordgalaxy.ui.screens.study.learnwords
 
+import androidx.compose.ui.text.input.TextFieldValue
 import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
 import ua.com.andromeda.wordgalaxy.ui.DEFAULT_AMOUNT_USER_ATTEMPTS_TO_GUESS
 import ua.com.andromeda.wordgalaxy.ui.screens.common.CardMode
@@ -13,7 +14,7 @@ sealed interface LearnWordsUiState {
         val learnedWordsToday: Int = 0,
         val amountWordsLearnPerDay: Int = 0,
         val amountWordsToReview: Int = 0,
-        val userGuess: String = "",
+        val userGuess: TextFieldValue = TextFieldValue(),
         val amountAttempts: Int = DEFAULT_AMOUNT_USER_ATTEMPTS_TO_GUESS
     ) : LearnWordsUiState
 }

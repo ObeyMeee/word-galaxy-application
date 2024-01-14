@@ -191,27 +191,32 @@ fun LearnWordsMain(modifier: Modifier = Modifier) {
     val menuItems = listOf(
         DropdownItemState(
             labelRes = R.string.reset_progress_for_this_word,
-            onClick = viewModel::resetWord,
             icon = rememberVectorPainter(Icons.Default.Undo),
+            toastMessageRes = R.string.progress_has_been_reset_successfully,
+            onClick = viewModel::resetWord
         ),
         DropdownItemState(
             labelRes = R.string.copy_to_my_category,
-            onClick = viewModel::copyWordToMyCategory,
             icon = rememberVectorPainter(Icons.Default.FolderCopy),
+            toastMessageRes = R.string.word_has_been_copied_to_your_category,
+            onClick = viewModel::copyWordToMyCategory
         ),
         DropdownItemState(
             labelRes = R.string.report_a_mistake,
-            onClick = viewModel::reportMistake,
             icon = rememberVectorPainter(Icons.Default.Report),
+            showToast = false,
+            onClick = viewModel::reportMistake
         ),
         DropdownItemState(
             labelRes = R.string.edit,
             onClick = viewModel::edit,
+            showToast = false,
             icon = rememberVectorPainter(Icons.Default.EditNote),
         ),
         DropdownItemState(
             labelRes = R.string.remove,
             onClick = viewModel::removeWord,
+            toastMessageRes = R.string.word_has_been_successfully_removed,
             icon = rememberVectorPainter(Icons.Default.Remove),
         )
     )
@@ -246,7 +251,7 @@ fun LearnWordsMain(modifier: Modifier = Modifier) {
             } else {
                 FlashcardState.InProgress(
                     onLeftClick = viewModel::memorizeWord,
-                    onRightClick = viewModel::skipWord
+                    onRightClick = viewModel::moveToNextWord
                 )
             }
             Flashcard(
@@ -330,6 +335,12 @@ private fun ColumnScope.CardModeContent(
                 word = word,
                 phonetics = phonetics,
                 predicate = { !isWordNew }
+            )
+            Spacer(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .background(color = MaterialTheme.colorScheme.surface)
             )
             ExampleList(
                 wordToReview.examples,

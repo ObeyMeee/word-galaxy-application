@@ -1,5 +1,6 @@
 package ua.com.andromeda.wordgalaxy.ui.screens.common.flashcard
 
+import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -51,6 +52,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -107,7 +109,6 @@ fun Flashcard(
                 val exitTransition =
                     scaleOut(
                         animationSpec = tween(animationDurationMillis),
-                        targetScale = .2f
                     ) + slideOut(
                         animationSpec = tween(animationDurationMillis),
                         targetOffset = { fullSize ->
@@ -199,6 +200,7 @@ private fun FlashcardHeader(
     modifier: Modifier = Modifier,
     dropdownItemStates: List<DropdownItemState> = listOf()
 ) {
+    val context = LocalContext.current
     var expanded by remember { mutableStateOf(false) }
 
     Row(
@@ -226,19 +228,27 @@ private fun FlashcardHeader(
         AnimatedVisibility(
             visible = expanded,
             enter = expandVertically(expandFrom = Alignment.Top) { 20 },
-            exit = shrinkVertically(animationSpec = tween()) { fullHeight ->
-                fullHeight / 2
-            }
+            exit = shrinkVertically(animationSpec = tween())
         ) {
             Box {
                 DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                    dropdownItemStates.forEach {
+                    dropdownItemStates.forEach { itemState ->
                         DropdownMenuItem(
-                            text = { Text(text = stringResource(it.labelRes)) },
-                            onClick = it.onClick,
+                            text = { Text(text = stringResource(itemState.labelRes)) },
+                            onClick = {
+                                itemState.onClick()
+                                expanded = false
+                                if (itemState.showToast) {
+                                    Toast.makeText(
+                                        context,
+                                        itemState.toastMessageRes,
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            },
                             leadingIcon = {
                                 Icon(
-                                    painter = it.icon,
+                                    painter = itemState.icon,
                                     contentDescription = null
                                 )
                             }
