@@ -3,7 +3,6 @@ package ua.com.andromeda.wordgalaxy.data.dao
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
-import androidx.room.MapColumn
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
@@ -17,7 +16,6 @@ import ua.com.andromeda.wordgalaxy.data.model.Word
 import ua.com.andromeda.wordgalaxy.data.model.WordAndCategoryCrossRef
 import ua.com.andromeda.wordgalaxy.data.model.WordStatus
 import ua.com.andromeda.wordgalaxy.data.model.WordWithCategories
-import java.time.LocalDate
 
 @Dao
 interface WordDao {
@@ -84,23 +82,14 @@ interface WordDao {
     )
     fun countWordsWhereStatusEquals(status: WordStatus): Flow<Int>
 
-
     @Query(
         """
-        SELECT 
-            CASE 
-                WHEN (status = 'Memorized' AND amount_repetition = 0) THEN 'InProgress'
-                ELSE status
-            END as status,
-            COUNT(*) as count
+        SELECT *
         FROM Word
-        WHERE (status != 'Memorized' AND strftime('%Y-%m-%d', status_changed_at) = strftime('%Y-%m-%d', :date))
-           OR ((status = 'Memorized' AND amount_repetition > 0) AND strftime('%Y-%m-%d', repeated_at) = strftime('%Y-%m-%d', :date))
-        GROUP BY status;
+        WHERE status NOT IN (:statuses)
         """
     )
-    fun countWordsByStatusAt(date: LocalDate):
-            Map<@MapColumn(columnName = "status") WordStatus, @MapColumn(columnName = "count") Int>
+    fun findAllWhereStatusNotIn(statuses: List<WordStatus>): List<Word>
 
     @Query(
         """

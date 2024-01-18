@@ -1,7 +1,6 @@
 package ua.com.andromeda.wordgalaxy.ui.screens.start.home.graphics
 
 import android.content.Context
-import android.util.Log
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
@@ -137,7 +136,6 @@ private fun buildBarEntries(
     timestamps: List<LocalDateTime>,
     listOfWordsCountOfStatus: List<Map<WordStatus, Int>>
 ): List<BarEntry> {
-    Log.d("buildBarEntries", listOfWordsCountOfStatus.toString())
     return timestamps
         .indices
         .map { i -> BarEntry(i.toFloat(), getFloatArrayValues(listOfWordsCountOfStatus[i])) }

@@ -32,7 +32,11 @@ class HomeViewModel(
             val learnedWordsToday = wordRepository.countLearnedWordsToday().first()
             val amountWordsToReview = wordRepository.countWordsToReview().first()
             val listOfWordsCountByStatus = wordRepository.countWordsByStatusLast(7, ChronoUnit.DAYS)
-
+            listOfWordsCountByStatus.forEach {
+                it.forEach {(key, value) ->
+                    println("$key ==> $value")
+                }
+            }
             _uiState.update {
                 HomeUiState.Success(
                     learnedWordsToday = learnedWordsToday,

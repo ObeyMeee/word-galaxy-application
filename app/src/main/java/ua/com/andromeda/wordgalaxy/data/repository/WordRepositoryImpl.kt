@@ -8,11 +8,17 @@ import ua.com.andromeda.wordgalaxy.data.model.Example
 import ua.com.andromeda.wordgalaxy.data.model.Phonetic
 import ua.com.andromeda.wordgalaxy.data.model.Word
 import ua.com.andromeda.wordgalaxy.data.model.WordStatus
+import ua.com.andromeda.wordgalaxy.data.model.WordStatus.AlreadyKnown
+import ua.com.andromeda.wordgalaxy.data.model.WordStatus.InProgress
+import ua.com.andromeda.wordgalaxy.data.model.WordStatus.Mastered
+import ua.com.andromeda.wordgalaxy.data.model.WordStatus.Memorized
+import ua.com.andromeda.wordgalaxy.data.model.WordStatus.New
 import ua.com.andromeda.wordgalaxy.data.model.WordWithCategories
 import ua.com.andromeda.wordgalaxy.data.model.toWordWithCategories
 import ua.com.andromeda.wordgalaxy.utils.getLastNDates
 import java.time.temporal.TemporalUnit
 
+private const val TAG = "WordRepositoryImpl"
 
 class WordRepositoryImpl(
     private val wordDao: WordDao
@@ -41,9 +47,43 @@ class WordRepositoryImpl(
         unit: TemporalUnit
     ): List<Map<WordStatus, Int>> {
         val lastNDates = getLastNDates(value, unit)
-        return lastNDates.map { datetime ->
-            val countWordsByStatus = wordDao.countWordsByStatusAt(datetime.toLocalDate())
-            addMissingStatusesExceptNew(countWordsByStatus)
+        val words = wordDao.findAllWhereStatusNotIn(listOf(New, InProgress))
+
+        return lastNDates.map { dateTime ->
+            val localDate = dateTime.toLocalDate()
+            val countByWordStatus = linkedMapOf(
+                AlreadyKnown to 0,
+                InProgress to 0,
+                Memorized to 0,
+                Mastered to 0
+            )
+
+            words.forEach { word ->
+                val statusChangeAt = word.statusChangedAt!!.toLocalDate()
+
+                when (val status = word.status) {
+                    AlreadyKnown, Mastered -> {
+                        countByWordStatus.incrementCount(status) {
+                            statusChangeAt.isEqual(localDate)
+                        }
+                    }
+
+                    Memorized -> {
+                        countByWordStatus.incrementCount(InProgress) {
+                            statusChangeAt.isEqual(localDate)
+                        }
+                        countByWordStatus.incrementCount(Memorized) {
+                            val repeatedAt = word.repeatedAt?.toLocalDate()
+                            repeatedAt?.isEqual(localDate) == true && word.amountRepetition!! > 0
+                        }
+                    }
+
+                    New, InProgress -> {
+                        // No action for New and InProgress
+                    }
+                }
+            }
+            countByWordStatus
         }
     }
 
@@ -92,14 +132,11 @@ class WordRepositoryImpl(
 
 }
 
-private fun addMissingStatusesExceptNew(
-    wordsCountByStatus: Map<WordStatus, Int>,
-    defaultValue: Int = 0
-): Map<WordStatus, Int> {
-    return WordStatus
-        .entries
-        .filter { it != WordStatus.New }
-        .associateWith { status ->
-            wordsCountByStatus.getOrDefault(status, defaultValue)
-        }
+private fun LinkedHashMap<WordStatus, Int>.incrementCount(
+    status: WordStatus,
+    predicate: () -> Boolean
+) {
+    if (predicate()) {
+        this[status] = getOrDefault(status, 0) + 1
+    }
 }
