@@ -1,7 +1,7 @@
 package ua.com.andromeda.wordgalaxy.ui.screens.start.home
 
 import ua.com.andromeda.wordgalaxy.data.model.WordStatus
-import ua.com.andromeda.wordgalaxy.ui.DEFAULT_TIME_PERIOD
+import ua.com.andromeda.wordgalaxy.ui.DEFAULT_TIME_PERIOD_OPTION
 
 sealed interface HomeUiState {
     data object Default : HomeUiState
@@ -11,7 +11,7 @@ sealed interface HomeUiState {
         val learnedWordsToday: Int = 0,
         val amountWordsToLearnPerDay: Int = 0,
         val amountWordsToReview: Int = 0,
-        val timePeriod: Int = DEFAULT_TIME_PERIOD,
+        val timePeriod: TimePeriodChartOptions = DEFAULT_TIME_PERIOD_OPTION,
         val listOfWordsCountOfStatus: List<Map<WordStatus, Int>> = listOf()
     ) : HomeUiState
 }

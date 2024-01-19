@@ -23,16 +23,22 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -44,8 +50,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import ua.com.andromeda.wordgalaxy.R
@@ -56,7 +64,6 @@ import ua.com.andromeda.wordgalaxy.ui.screens.start.home.graphics.ResultBarChart
 import ua.com.andromeda.wordgalaxy.ui.theme.WordGalaxyTheme
 import java.time.DayOfWeek
 import java.time.LocalDateTime
-
 
 private const val TAG = "HomeScreen"
 
@@ -85,17 +92,23 @@ fun HomeScreen(
         }
 
         is HomeUiState.Success -> {
+            val viewModel: HomeViewModel = viewModel(factory = HomeViewModel.factory)
             val spacer = @Composable {
                 Spacer(modifier = Modifier.height(dimensionResource(R.dimen.padding_medium)))
             }
             val scrollState = rememberScrollState()
+
             Column(modifier = modifier.verticalScroll(scrollState)) {
                 RepetitionSection(homeUiState, navController)
                 spacer()
                 Spacer(modifier = Modifier.height(dimensionResource(R.dimen.padding_medium)))
                 StatsSection(homeUiState, modifier = Modifier.fillMaxWidth())
                 spacer()
-                ChartSection(homeUiState, modifier = Modifier.fillMaxWidth())
+                ChartSection(
+                    homeUiState,
+                    updateTimePeriod = viewModel::updateTimePeriod,
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
         }
     }
@@ -190,10 +203,6 @@ fun StatsSection(
             DaysOfWeekRow(modifier = fillMaxWidthModifier)
             ActiveDayOfWeekArrow(modifier = fillMaxWidthModifier)
             StreakRow(modifier = fillMaxWidthModifier)
-            ShareRow(modifier = Modifier
-                .padding(dimensionResource(R.dimen.padding_medium))
-                .fillMaxWidth()
-                .clickable { })
         }
     }
 }
@@ -311,34 +320,98 @@ private fun StreakCard(
 }
 
 @Composable
-private fun ShareRow(modifier: Modifier = Modifier) {
-    Row(modifier = modifier) {
-        Icon(imageVector = Icons.Default.Share, contentDescription = null)
-        Spacer(modifier = Modifier.width(dimensionResource(R.dimen.padding_medium)))
-        Text(text = stringResource(R.string.share))
-    }
-}
-
-@Composable
-fun ChartSection(homeUiState: HomeUiState.Success, modifier: Modifier = Modifier) {
+fun ChartSection(
+    homeUiState: HomeUiState.Success,
+    modifier: Modifier = Modifier,
+    updateTimePeriod: (TimePeriodChartOptions) -> Unit = {}
+) {
     val configuration = LocalConfiguration.current
     val quarterScreenHeight = configuration.screenHeightDp / 4
+    var showDialog by remember { mutableStateOf(false) }
+
     Text(
         text = stringResource(R.string.chart),
         style = MaterialTheme.typography.labelMedium
     )
     Spacer(modifier = Modifier.height(dimensionResource(R.dimen.padding_small)))
     Card(modifier = modifier) {
-        Column(modifier = Modifier.padding(dimensionResource(R.dimen.padding_medium))) {
+        Row(modifier = Modifier.padding(dimensionResource(R.dimen.padding_medium))) {
+            Text(text = stringResource(id = R.string.time_period))
             Text(
-                text = "Time period 7 days",
+                text = homeUiState.timePeriod.label,
+                textDecoration = TextDecoration.Underline,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .padding(start = dimensionResource(R.dimen.padding_smaller))
+                    .clickable { showDialog = true }
             )
+            TimePeriodDialog(
+                show = showDialog,
+                currentOption = homeUiState.timePeriod
+            ) {
+                updateTimePeriod(it)
+                showDialog = false
+            }
         }
         ResultBarChart(
             homeUiState = homeUiState,
             modifier = Modifier
                 .height(quarterScreenHeight.dp)
                 .fillMaxSize()
+        )
+    }
+}
+
+@Composable
+fun TimePeriodDialog(
+    show: Boolean,
+    currentOption: TimePeriodChartOptions,
+    modifier: Modifier = Modifier,
+    onOptionSelected: (TimePeriodChartOptions) -> Unit = {}
+) {
+    if (show) {
+        val options = TimePeriodChartOptions.entries
+        AlertDialog(
+            onDismissRequest = { /*TODO*/ },
+            confirmButton = {},
+            modifier = modifier,
+            title = {
+                Text(
+                    text = stringResource(R.string.select_time_period),
+                    style = MaterialTheme.typography.titleLarge
+                )
+            },
+            dismissButton = {
+                Button(onClick = { /*TODO*/ }) {
+                    Text(text = stringResource(R.string.cancel))
+                }
+            },
+            text = {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(dimensionResource(R.dimen.padding_medium)),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Column {
+                        options.forEach { option ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                RadioButton(
+                                    selected = currentOption == option,
+                                    onClick = {
+                                        onOptionSelected(option)
+                                    }
+                                )
+                                Text(text = option.label)
+                            }
+                        }
+
+                    }
+                }
+            }
         )
     }
 }

@@ -9,7 +9,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import ua.com.andromeda.wordgalaxy.WordGalaxyApplication
@@ -17,6 +17,8 @@ import ua.com.andromeda.wordgalaxy.data.repository.WordRepository
 import ua.com.andromeda.wordgalaxy.data.repository.WordRepositoryImpl
 import ua.com.andromeda.wordgalaxy.data.repository.preferences.UserPreferencesRepository
 import java.time.temporal.ChronoUnit
+
+private const val TAG = "HomeViewModel"
 
 class HomeViewModel(
     private val wordRepository: WordRepository,
@@ -27,26 +29,38 @@ class HomeViewModel(
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            val amountWordsToLearnPerDay =
-                userPreferencesRepository.amountWordsToLearnPerDay.first()
-            val learnedWordsToday = wordRepository.countLearnedWordsToday().first()
-            val amountWordsToReview = wordRepository.countWordsToReview().first()
-            val listOfWordsCountByStatus = wordRepository.countWordsByStatusLast(7, ChronoUnit.DAYS)
-            listOfWordsCountByStatus.forEach {
-                it.forEach {(key, value) ->
-                    println("$key ==> $value")
-                }
-            }
-            _uiState.update {
+            val combinedFlow = combine(
+                userPreferencesRepository.amountWordsToLearnPerDay,
+                wordRepository.countLearnedWordsToday(),
+                wordRepository.countWordsToReview(),
+                userPreferencesRepository.timePeriodChartOptions
+            ) { amountWordsToLearnPerDay, learnedWordsToday, amountWordsToReview, timePeriodDays ->
+                val timePeriod = TimePeriodChartOptions
+                    .entries
+                    .find { timePeriodDays == it.days } ?: TimePeriodChartOptions.WEEK
+                val listOfWordsCountByStatus = wordRepository.countWordsByStatusLast(
+                    timePeriodDays,
+                    ChronoUnit.DAYS
+                )
                 HomeUiState.Success(
                     learnedWordsToday = learnedWordsToday,
                     amountWordsToLearnPerDay = amountWordsToLearnPerDay,
                     amountWordsToReview = amountWordsToReview,
+                    timePeriod = timePeriod,
                     listOfWordsCountOfStatus = listOfWordsCountByStatus
                 )
             }
+            combinedFlow.collect { newUiState ->
+                _uiState.update { newUiState }
+            }
         }
     }
+
+    fun updateTimePeriod(timePeriodChartOptions: TimePeriodChartOptions) =
+        viewModelScope.launch(Dispatchers.IO) {
+            userPreferencesRepository.saveTimePeriod(timePeriodChartOptions)
+        }
+
 
     companion object {
         val factory: ViewModelProvider.Factory = viewModelFactory {

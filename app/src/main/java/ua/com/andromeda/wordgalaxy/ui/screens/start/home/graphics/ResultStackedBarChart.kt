@@ -39,7 +39,7 @@ fun ResultBarChart(homeUiState: HomeUiState.Success, modifier: Modifier = Modifi
     val context = LocalContext.current
     val labelColorArgb = MaterialTheme.colorScheme.secondary.toArgb()
 
-    val lastTimePeriodDays = getLastNDates(homeUiState.timePeriod, ChronoUnit.DAYS)
+    val lastTimePeriodDays = getLastNDates(homeUiState.timePeriod.days, ChronoUnit.DAYS)
     val lastTimePeriodDaysFormatted = formatXAxisLabels(lastTimePeriodDays)
     val listOfWordsCountOfStatus = homeUiState.listOfWordsCountOfStatus
     val entries = buildBarEntries(lastTimePeriodDays, listOfWordsCountOfStatus)

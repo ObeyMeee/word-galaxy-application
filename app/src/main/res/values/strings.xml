@@ -51,6 +51,9 @@
     <string name="progress_has_been_reset_successfully">Progress has been reset successfully</string>
     <string name="word_has_been_copied_to_your_category">Word has been copied to your category</string>
     <string name="word_has_been_successfully_removed">Word has been successfully removed</string>
+    <string name="time_period">Time period</string>
+    <string name="select_time_period">Select time period</string>
+    <string name="cancel">Cancel</string>
 
     <plurals name="days">
         <item quantity="one">day</item>
