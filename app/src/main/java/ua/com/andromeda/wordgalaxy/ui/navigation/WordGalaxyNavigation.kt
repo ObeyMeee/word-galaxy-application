@@ -53,7 +53,11 @@ fun WordGalaxyNavHost(modifier: Modifier = Modifier) {
     Scaffold(
         topBar = {
             StartContent(currentRoute) {
-                StartTopAppBar()
+                StartTopAppBar(
+                    modifier = Modifier.padding(
+                        dimensionResource(R.dimen.padding_small)
+                    )
+                )
             }
         },
         bottomBar = {
