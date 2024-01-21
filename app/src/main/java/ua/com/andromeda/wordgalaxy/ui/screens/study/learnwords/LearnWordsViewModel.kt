@@ -46,12 +46,19 @@ class LearnWordsViewModel(
                 val learnedWordsToday = wordRepository.countLearnedWordsToday().first()
                 val amountWordsInProgress =
                     wordRepository.countWordsWhereStatusEquals(WordStatus.InProgress).first()
+                var amountWordsToReview = 0
+                launch {
+                    wordRepository.countWordsToReview().collect { value ->
+                        amountWordsToReview = value
+                    }
+                }
                 val randomWord = getRandomWord(amountWordsInProgress, amountWordsToLearnPerDay)
 
                 _uiState.update {
                     LearnWordsUiState.Success(
                         embeddedWord = randomWord,
                         learnedWordsToday = learnedWordsToday,
+                        amountWordsToReview = amountWordsToReview,
                         amountWordsLearnPerDay = amountWordsToLearnPerDay
                     )
                 }

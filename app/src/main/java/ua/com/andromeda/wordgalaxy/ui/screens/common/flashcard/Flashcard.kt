@@ -4,6 +4,7 @@ import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.scaleIn
@@ -45,10 +46,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
@@ -59,15 +62,21 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import ua.com.andromeda.wordgalaxy.R
 import ua.com.andromeda.wordgalaxy.data.DefaultStorage
 import ua.com.andromeda.wordgalaxy.data.model.Category
 import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
 import ua.com.andromeda.wordgalaxy.data.model.WordStatus
+import ua.com.andromeda.wordgalaxy.ui.FLASHCARD_OFFSET_X_COEFFICIENT
+import ua.com.andromeda.wordgalaxy.ui.FLASHCARD_ROTATE_COEFFICIENT
+import ua.com.andromeda.wordgalaxy.ui.FLASHCARD_SCALE_COEFFICIENT
+import ua.com.andromeda.wordgalaxy.ui.FLASHCARD_SLIDE_OUT_Y_COEFFICIENT
+import ua.com.andromeda.wordgalaxy.ui.RETURN_CARD_ANIMATION_DURATION_MILLIS
 import ua.com.andromeda.wordgalaxy.ui.SWIPE_CARD_BOUND
 import ua.com.andromeda.wordgalaxy.ui.screens.common.DropdownItemState
 import ua.com.andromeda.wordgalaxy.ui.screens.common.flashcard.FlashcardScope.WordWithTranscriptionOrTranslation
-import kotlin.math.roundToInt
+import kotlin.math.abs
 
 private const val TAG = "Flashcard"
 
@@ -80,16 +89,22 @@ fun Flashcard(
     modifier: Modifier = Modifier,
     menuItems: List<DropdownItemState> = listOf()
 ) {
+    val coroutineScope = rememberCoroutineScope()
+
     val word = embeddedWord.word
     val amountRepetition = word.amountRepetition ?: 0
     val numberReview = amountRepetition + 1
 
-    var cardOffset by remember {
-        mutableStateOf(IntOffset.Zero)
+    var leftActionClicked by remember { mutableStateOf(false) }
+    val cardXOffset = remember { Animatable(0f) }
+    val cardYOffset = remember { Animatable(0f) }
+    val onLeftClick = {
+        leftActionClicked = true
+        flashcardState.onLeftClick()
     }
-
-    var leftActionClicked by remember {
-        mutableStateOf(false)
+    val onRightClick = {
+        leftActionClicked = false
+        flashcardState.onRightClick()
     }
 
     Column(modifier = modifier) {
@@ -114,34 +129,53 @@ fun Flashcard(
                         targetOffset = { fullSize ->
                             val width = fullSize.width
                             val xOffset = if (leftActionClicked) -width else width
-                            IntOffset(xOffset, fullSize.height)
+                            IntOffset(xOffset, fullSize.height / FLASHCARD_SLIDE_OUT_Y_COEFFICIENT)
                         })
                 enterTransition togetherWith exitTransition
             }
         ) {
+            var lastDragX = 0f
             Card(
                 modifier = Modifier
                     .fillMaxSize()
-                    .offset { cardOffset }
                     .pointerInput(Unit) {
                         detectDragGestures(onDragEnd = {
-                            cardOffset = IntOffset.Zero
+                            when {
+                                // Swipe right
+                                lastDragX > SWIPE_CARD_BOUND && cardXOffset.value > SWIPE_CARD_BOUND ->
+                                    onRightClick()
+
+                                // Swipe left
+                                lastDragX < -SWIPE_CARD_BOUND && cardXOffset.value < -SWIPE_CARD_BOUND ->
+                                    onLeftClick()
+
+                            }
+                            coroutineScope.launch {
+                                cardXOffset.animateTo(
+                                    targetValue = 0f,
+                                    animationSpec = tween(RETURN_CARD_ANIMATION_DURATION_MILLIS)
+                                )
+                                cardYOffset.animateTo(
+                                    targetValue = 0f,
+                                    animationSpec = tween(RETURN_CARD_ANIMATION_DURATION_MILLIS)
+                                )
+                            }
                         }) { change, dragAmount ->
                             change.consume()
-                            val dragX = dragAmount.x
-                            val offsetChange = IntOffset(dragX.roundToInt(), 0)
-                            cardOffset += offsetChange
-                            when {
-                                dragX > SWIPE_CARD_BOUND -> flashcardState.onRightClick() // Swipe right
-                                dragX < -SWIPE_CARD_BOUND -> flashcardState.onLeftClick() // Swipe left
+                            lastDragX = dragAmount.x
+                            coroutineScope.launch {
+                                cardXOffset.snapTo(cardXOffset.value + lastDragX * FLASHCARD_OFFSET_X_COEFFICIENT)
                             }
                         }
                     }
-                    .rotate(cardOffset.x * .01f),
+                    .offset { IntOffset(cardXOffset.value.toInt(), cardYOffset.value.toInt()) }
+                    .scale(1 - (abs(cardXOffset.value * FLASHCARD_SCALE_COEFFICIENT) / SWIPE_CARD_BOUND))
+                    .rotate(cardXOffset.value * FLASHCARD_ROTATE_COEFFICIENT),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.secondaryContainer
                 )
-            ) {
+            )
+            {
                 FlashcardHeader(
                     squareColor = flashcardState.iconColor,
                     label = stringResource(flashcardState.headerLabelRes, numberReview),
@@ -161,17 +195,11 @@ fun Flashcard(
                 )
                 content()
                 FlashcardActionRow(
-                    onLeftClick = {
-                        leftActionClicked = true
-                        flashcardState.onLeftClick()
-                    },
-                    onRightClick = {
-                        leftActionClicked = false
-                        flashcardState.onRightClick()
-                    },
+                    onLeftClick = onLeftClick,
+                    onRightClick = onRightClick,
                     actionLabelResLeft = flashcardState.actionLabelResLeft,
                     actionLabelResRight = flashcardState.actionLabelResRight,
-                    cardOffset = cardOffset,
+                    cardOffset = cardXOffset.value,
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -266,7 +294,7 @@ private fun FlashcardActionRow(
     onRightClick: () -> Unit,
     @StringRes actionLabelResLeft: Int,
     @StringRes actionLabelResRight: Int,
-    cardOffset: IntOffset,
+    cardOffset: Float,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -277,13 +305,13 @@ private fun FlashcardActionRow(
             onClick = onLeftClick,
             icon = Icons.Filled.KeyboardArrowLeft,
             labelRes = actionLabelResLeft,
-            active = cardOffset.x < 0,
+            active = cardOffset < 0,
             isTextBeforeIcon = true
         )
         ActionButton(
             onClick = onRightClick,
             icon = Icons.Filled.KeyboardArrowRight,
-            active = cardOffset.x > 0,
+            active = cardOffset > 0,
             labelRes = actionLabelResRight
         )
     }
@@ -404,7 +432,7 @@ fun FlashcardActionRowPreview() {
                 onRightClick = flashcardState.onRightClick,
                 actionLabelResLeft = flashcardState.actionLabelResLeft,
                 actionLabelResRight = flashcardState.actionLabelResRight,
-                cardOffset = IntOffset.Zero,
+                cardOffset = 0f,
                 modifier = Modifier.fillMaxWidth()
             )
         }

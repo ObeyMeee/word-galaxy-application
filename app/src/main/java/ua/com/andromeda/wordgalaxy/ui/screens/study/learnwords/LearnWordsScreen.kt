@@ -34,6 +34,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -53,12 +54,15 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import ua.com.andromeda.wordgalaxy.R
+import ua.com.andromeda.wordgalaxy.data.DefaultStorage
+import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
 import ua.com.andromeda.wordgalaxy.data.model.WordStatus
 import ua.com.andromeda.wordgalaxy.ui.navigation.Destination
 import ua.com.andromeda.wordgalaxy.ui.screens.common.CardMode
@@ -303,16 +307,12 @@ private fun ScreenHeader(
 }
 
 @Composable
-@OptIn(ExperimentalMaterial3Api::class)
 private fun ColumnScope.CardModeContent(
     uiState: LearnWordsUiState.Success,
-    viewModel: LearnWordsViewModel,
+    viewModel: LearnWordsViewModel = viewModel(factory = LearnWordsViewModel.factory),
 ) {
-    val wordToReview = uiState.embeddedWord
-    val word = wordToReview.word
-    val phonetics = wordToReview.phonetics
-    val isWordNew = word.status == WordStatus.New
-    val focusRequester = remember { FocusRequester() }
+    val wordToLearn = uiState.embeddedWord
+    val isWordNew = wordToLearn.word.status == WordStatus.New
 
     // TODO:
 //    AnimatedContent(
@@ -323,87 +323,168 @@ private fun ColumnScope.CardModeContent(
 //                    (fadeOut() + slideOutVertically { it })
 //        }
 //    ) { cardMode ->
-    when (uiState.cardMode) {
-        CardMode.ShowAnswer -> {
-            Spacer(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(1.dp)
-                    .background(color = MaterialTheme.colorScheme.surface)
-            )
-            WordWithTranscriptionOrTranslation(
-                word = word,
-                phonetics = phonetics,
-                predicate = { !isWordNew }
-            )
-            Spacer(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(1.dp)
-                    .background(color = MaterialTheme.colorScheme.surface)
-            )
-            ExampleList(
-                wordToReview.examples,
-                modifier = Modifier.weight(1f)
-            )
-        }
+        when (uiState.cardMode) {
+            CardMode.ShowAnswer -> {
+                ShowAnswerCardMode(wordToLearn)
+            }
 
-        CardMode.TypeAnswer -> {
-            Column(
-                modifier = Modifier.padding(dimensionResource(R.dimen.padding_larger))
-            ) {
-                TextField(
-                    value = uiState.userGuess,
-                    onValueChange = viewModel::updateUserGuess,
-                    modifier = Modifier.focusRequester(focusRequester),
-                    placeholder = { Text(text = stringResource(R.string.type_here)) },
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                    keyboardActions = KeyboardActions { viewModel.checkAnswer() },
-                    singleLine = true,
-                    colors = TextFieldDefaults.textFieldColors(containerColor = Color.Transparent)
-                )
-
-                // autofocus the text field
-                LaunchedEffect(Unit) {
-                    focusRequester.requestFocus()
-                }
-
-                RowWithWordControls(
-                    revealOneLetter = viewModel::revealOneLetter,
-                    checkAnswer = viewModel::checkAnswer,
+            CardMode.TypeAnswer -> {
+                val checkAnswer = viewModel::checkAnswer
+                TypeAnswerCardMode(
+                    textFieldValue = uiState.userGuess,
                     amountAttempts = uiState.amountAttempts,
-                    modifier = Modifier.padding(top = dimensionResource(R.dimen.padding_small))
+                    onValueChanged = viewModel::updateUserGuess,
+                    keyboardAction = checkAnswer,
+                    revealOneLetter = viewModel::revealOneLetter,
+                    checkAnswer = checkAnswer,
+                    modifier = Modifier.padding(dimensionResource(R.dimen.padding_larger))
                 )
             }
-        }
 
-        CardMode.Default -> {
-            val iconsToCardModes = mutableListOf(
-                Icons.Default.RemoveRedEye to CardMode.ShowAnswer
-            )
-            if (!isWordNew) {
-                iconsToCardModes.add(0, Icons.Default.Keyboard to CardMode.TypeAnswer)
+            CardMode.Default -> {
+                DefaultCardMode(
+                    isWordNew = isWordNew,
+                    updateCardMode = viewModel::updateCardMode,
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
-            Spacer(modifier = Modifier.weight(1f))
-            CardModeSelectorRow(
-                iconsToCardModes = iconsToCardModes,
-                updateCardMode = viewModel::updateCardMode,
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(modifier = Modifier.weight(1f))
         }
     }
-}
 //}
+
+@Composable
+private fun ColumnScope.ShowAnswerCardMode(embeddedWord: EmbeddedWord) {
+    val (word, _, phonetics, examples) = embeddedWord
+    Divider()
+    WordWithTranscriptionOrTranslation(
+        word = word,
+        phonetics = phonetics,
+        predicate = { word.status != WordStatus.New }
+    )
+    Divider()
+    ExampleList(
+        examples = examples,
+        modifier = Modifier.weight(1f)
+    )
+}
+
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+private fun TypeAnswerCardMode(
+    textFieldValue: TextFieldValue,
+    amountAttempts: Int,
+    onValueChanged: (TextFieldValue) -> Unit,
+    keyboardAction: () -> Unit,
+    revealOneLetter: () -> Unit,
+    checkAnswer: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val focusRequester = remember { FocusRequester() }
+
+    Column(modifier = modifier) {
+        TextField(
+            value = textFieldValue,
+            onValueChange = onValueChanged,
+            modifier = Modifier.focusRequester(focusRequester),
+            placeholder = { Text(text = stringResource(R.string.type_here)) },
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+            keyboardActions = KeyboardActions { keyboardAction() },
+            singleLine = true,
+            colors = TextFieldDefaults.textFieldColors(containerColor = Color.Transparent)
+        )
+
+        // autofocus the text field
+        LaunchedEffect(Unit) {
+            focusRequester.requestFocus()
+        }
+
+        RowWithWordControls(
+            revealOneLetter = revealOneLetter,
+            checkAnswer = checkAnswer,
+            amountAttempts = amountAttempts,
+            modifier = Modifier.padding(top = dimensionResource(R.dimen.padding_small))
+        )
+    }
+}
+
+@Composable
+private fun ColumnScope.DefaultCardMode(
+    isWordNew: Boolean,
+    updateCardMode: (CardMode) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val iconsToCardModes = mutableListOf(
+        Icons.Default.RemoveRedEye to CardMode.ShowAnswer
+    )
+    if (!isWordNew) {
+        iconsToCardModes.add(0, Icons.Default.Keyboard to CardMode.TypeAnswer)
+    }
+    Spacer(modifier = Modifier.weight(1f))
+    CardModeSelectorRow(
+        iconsToCardModes = iconsToCardModes,
+        updateCardMode = updateCardMode,
+        modifier = modifier
+    )
+    Spacer(modifier = Modifier.weight(1f))
+}
+
+@Composable
+private fun Divider(modifier: Modifier = Modifier) {
+    Spacer(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(1.dp)
+            .background(color = MaterialTheme.colorScheme.surface)
+    )
+}
 
 @Preview(showBackground = true)
 @Composable
-fun BrowseCardsScreenPreview() {
+fun CardModeContentPreview() {
     WordGalaxyTheme {
-        LearnWordsScreen(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(dimensionResource(R.dimen.padding_medium))
-        )
+        Surface {
+            Column {
+                CardModeContent(
+                    uiState = LearnWordsUiState.Success(
+                        embeddedWord = DefaultStorage.embeddedWord
+                    )
+                )
+            }
+        }
+    }
+}
+
+@Preview
+@Composable
+fun TypeAnswerCardModePreview() {
+    WordGalaxyTheme {
+        Surface {
+            Column {
+                TypeAnswerCardMode(
+                    textFieldValue = TextFieldValue(),
+                    amountAttempts = 3,
+                    onValueChanged = { _ -> },
+                    keyboardAction = {},
+                    revealOneLetter = {},
+                    checkAnswer = {}
+                )
+            }
+        }
+    }
+}
+
+@Preview
+@Composable
+fun DefaultCardModePreview() {
+    WordGalaxyTheme {
+        Surface {
+            Column {
+                DefaultCardMode(
+                    isWordNew = false,
+                    updateCardMode = { _ -> },
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+        }
     }
 }

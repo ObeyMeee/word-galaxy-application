@@ -396,13 +396,17 @@ fun TimePeriodDialog(
                     Column {
                         options.forEach { option ->
                             Row(
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        onOptionSelected(option)
+                                    },
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 RadioButton(
                                     selected = currentOption == option,
                                     onClick = {
-                                        onOptionSelected(option)
+                                        // No action
                                     }
                                 )
                                 Text(text = option.label)
