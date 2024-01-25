@@ -21,9 +21,9 @@ import ua.com.andromeda.wordgalaxy.data.model.WordStatus
 import ua.com.andromeda.wordgalaxy.data.model.memorize
 import ua.com.andromeda.wordgalaxy.data.model.reset
 import ua.com.andromeda.wordgalaxy.data.model.toWordWithCategories
-import ua.com.andromeda.wordgalaxy.data.repository.WordRepository
-import ua.com.andromeda.wordgalaxy.data.repository.WordRepositoryImpl
 import ua.com.andromeda.wordgalaxy.data.repository.preferences.UserPreferencesRepository
+import ua.com.andromeda.wordgalaxy.data.repository.word.WordRepository
+import ua.com.andromeda.wordgalaxy.data.repository.word.WordRepositoryImpl
 import ua.com.andromeda.wordgalaxy.ui.screens.common.CardMode
 import java.time.LocalDateTime
 

@@ -13,9 +13,9 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import ua.com.andromeda.wordgalaxy.WordGalaxyApplication
-import ua.com.andromeda.wordgalaxy.data.repository.WordRepository
-import ua.com.andromeda.wordgalaxy.data.repository.WordRepositoryImpl
 import ua.com.andromeda.wordgalaxy.data.repository.preferences.UserPreferencesRepository
+import ua.com.andromeda.wordgalaxy.data.repository.word.WordRepository
+import ua.com.andromeda.wordgalaxy.data.repository.word.WordRepositoryImpl
 import java.time.temporal.ChronoUnit
 
 private const val TAG = "HomeViewModel"
@@ -24,7 +24,7 @@ class HomeViewModel(
     private val wordRepository: WordRepository,
     private val userPreferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
-    private val _uiState: MutableStateFlow<HomeUiState> = MutableStateFlow(HomeUiState.Default)
+    private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Default)
     val uiState: StateFlow<HomeUiState> = _uiState
 
     init {

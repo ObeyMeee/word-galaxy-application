@@ -9,8 +9,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import ua.com.andromeda.wordgalaxy.R
 import ua.com.andromeda.wordgalaxy.WordGalaxyApplication
-import ua.com.andromeda.wordgalaxy.data.repository.WordRepository
-import ua.com.andromeda.wordgalaxy.data.repository.WordRepositoryImpl
+import ua.com.andromeda.wordgalaxy.data.repository.word.WordRepository
+import ua.com.andromeda.wordgalaxy.data.repository.word.WordRepositoryImpl
 import ua.com.andromeda.wordgalaxy.utils.notification.ReviewWordsNotificationService
 
 private const val TAG = "CheckReviewWordsWorker"

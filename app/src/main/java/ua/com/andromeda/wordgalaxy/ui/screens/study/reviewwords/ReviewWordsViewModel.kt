@@ -13,8 +13,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import ua.com.andromeda.wordgalaxy.WordGalaxyApplication
 import ua.com.andromeda.wordgalaxy.data.model.repeat
-import ua.com.andromeda.wordgalaxy.data.repository.WordRepository
-import ua.com.andromeda.wordgalaxy.data.repository.WordRepositoryImpl
+import ua.com.andromeda.wordgalaxy.data.repository.word.WordRepository
+import ua.com.andromeda.wordgalaxy.data.repository.word.WordRepositoryImpl
 import ua.com.andromeda.wordgalaxy.ui.screens.common.CardMode
 
 class ReviewWordsViewModel(

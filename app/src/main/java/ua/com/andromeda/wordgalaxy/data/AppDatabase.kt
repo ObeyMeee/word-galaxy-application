@@ -5,6 +5,7 @@ import androidx.room.Database
 import androidx.room.Room.databaseBuilder
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import ua.com.andromeda.wordgalaxy.data.dao.CategoryDao
 import ua.com.andromeda.wordgalaxy.data.dao.WordDao
 import ua.com.andromeda.wordgalaxy.data.model.Category
 import ua.com.andromeda.wordgalaxy.data.model.Example
@@ -27,6 +28,7 @@ import ua.com.andromeda.wordgalaxy.utils.Converters
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun wordDao(): WordDao
+    abstract fun categoryDao(): CategoryDao
 
     companion object {
         @Volatile
@@ -40,6 +42,7 @@ abstract class AppDatabase : RoomDatabase() {
                     "word-galaxy.db"
                 )
                     .fallbackToDestructiveMigration()
+                    .createFromAsset("database/word-galaxy.db")
                     .build()
                     .also { INSTANCE = it }
             }

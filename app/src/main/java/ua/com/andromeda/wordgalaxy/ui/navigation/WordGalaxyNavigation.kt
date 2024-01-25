@@ -74,7 +74,7 @@ fun WordGalaxyNavHost(modifier: Modifier = Modifier) {
                 }
             }
         },
-        floatingActionButtonPosition = FabPosition.End,
+        floatingActionButtonPosition = FabPosition.Center,
     ) { innerPadding ->
         val modifierWithSmallPadding = modifier.padding(dimensionResource(R.dimen.padding_small))
         NavHost(
@@ -95,10 +95,7 @@ fun WordGalaxyNavHost(modifier: Modifier = Modifier) {
                 }
 
                 composable(Destination.Start.VocabularyScreen()) {
-                    VocabularyScreen(
-                        modifier = modifierWithSmallPadding,
-                        navController = navController
-                    )
+                    VocabularyScreen(navController = navController)
                 }
 
                 composable(Destination.Start.Settings()) {
