@@ -6,7 +6,13 @@ sealed class Destination(val route: String) {
 
     data object Start : Destination("start") {
         data object HomeScreen : Destination("home")
-        data object VocabularyScreen : Destination("vocabulary")
+
+        data object VocabularyScreen : Destination("vocabulary") {
+            data object CategoriesScreen : Destination("categories")
+            data object NewWordScreen : Destination("new_word")
+            data object NewCategoryScreen : Destination("new_category")
+        }
+
         data object Settings : Destination("settings")
     }
 

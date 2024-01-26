@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -44,13 +45,15 @@ import androidx.navigation.compose.rememberNavController
 import ua.com.andromeda.wordgalaxy.R
 import ua.com.andromeda.wordgalaxy.data.model.Category
 import ua.com.andromeda.wordgalaxy.data.model.VocabularyCategory
+import ua.com.andromeda.wordgalaxy.ui.navigation.Destination
 import ua.com.andromeda.wordgalaxy.ui.screens.common.CenteredLoadingSpinner
 import ua.com.andromeda.wordgalaxy.ui.screens.common.Message
 import ua.com.andromeda.wordgalaxy.ui.theme.WordGalaxyTheme
 
 @Composable
 fun VocabularyScreen(
-    navController: NavController = rememberNavController()
+    listState: LazyListState,
+    navController: NavController = rememberNavController(),
 ) {
     val viewModel: VocabularyViewModel = viewModel(factory = VocabularyViewModel.factory)
     val vocabularyUiState by viewModel.uiState.collectAsState()
@@ -76,7 +79,11 @@ fun VocabularyScreen(
             val vocabularyCategories = uiState.vocabularyCategories
             CategoryList(
                 items = vocabularyCategories,
-                fetchSubCategories = viewModel::fetchSubCategories
+                listState = listState,
+                fetchSubCategories = viewModel::fetchSubCategories,
+                navigateToAddCategory = {
+                    navController.navigate(Destination.Start.VocabularyScreen.NewCategoryScreen())
+                }
             )
         }
     }
@@ -86,10 +93,15 @@ fun VocabularyScreen(
 @Composable
 fun CategoryList(
     items: List<VocabularyCategory>,
+    listState: LazyListState,
     modifier: Modifier = Modifier,
-    fetchSubCategories: (Int) -> Unit = {}
+    fetchSubCategories: (Int) -> Unit = {},
+    navigateToAddCategory: () -> Unit = {}
 ) {
-    LazyColumn(modifier = modifier) {
+    LazyColumn(
+        modifier = modifier,
+        state = listState
+    ) {
         item {
             ListItem(
                 headlineText = {
@@ -106,7 +118,8 @@ fun CategoryList(
                             )
                             .size(dimensionResource(R.dimen.icon_size_largest))
                     )
-                }
+                },
+                modifier = Modifier.clickable(onClick = navigateToAddCategory)
             )
         }
         items(items, key = { it.category.id }) {

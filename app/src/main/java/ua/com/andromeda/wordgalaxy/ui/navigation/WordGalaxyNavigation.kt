@@ -1,8 +1,12 @@
 package ua.com.andromeda.wordgalaxy.ui.navigation
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.Info
@@ -15,6 +19,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -50,6 +55,17 @@ fun WordGalaxyNavHost(modifier: Modifier = Modifier) {
     val homeViewModel: HomeViewModel = viewModel(factory = HomeViewModel.factory)
     val homeUiState by homeViewModel.uiState.collectAsState()
 
+    val vocabularyScreenRoute = Destination.Start.VocabularyScreen()
+    val newWordScreenRoute = Destination.Start.VocabularyScreen.NewWordScreen()
+    val vocabularyCategoriesScreenRoute = Destination.Start.VocabularyScreen.CategoriesScreen()
+
+    val categoriesState = rememberLazyListState()
+    val fabVisible by remember {
+        derivedStateOf {
+            categoriesState.firstVisibleItemIndex == 0
+        }
+    }
+
     Scaffold(
         topBar = {
             StartContent(currentRoute) {
@@ -66,15 +82,23 @@ fun WordGalaxyNavHost(modifier: Modifier = Modifier) {
             }
         },
         floatingActionButton = {
-            if (Destination.Start.VocabularyScreen() == currentRoute) {
-                ExtendedFloatingActionButton(onClick = { /*TODO*/ }) {
-                    Icon(imageVector = Icons.Default.Add, contentDescription = null)
-                    Spacer(modifier = Modifier.width(dimensionResource(R.dimen.padding_small)))
-                    Text(text = stringResource(R.string.word))
+            if (vocabularyCategoriesScreenRoute == currentRoute) {
+                AnimatedVisibility(
+                    visible = fabVisible,
+                    enter = slideInVertically { it * 2 },
+                    exit = slideOutVertically { it * 2 },
+                ) {
+                    ExtendedFloatingActionButton(onClick = {
+                        navController.navigate(newWordScreenRoute)
+                    }) {
+                        Icon(imageVector = Icons.Default.Add, contentDescription = null)
+                        Spacer(modifier = Modifier.width(dimensionResource(R.dimen.padding_small)))
+                        Text(text = stringResource(R.string.word))
+                    }
                 }
             }
         },
-        floatingActionButtonPosition = FabPosition.Center,
+        floatingActionButtonPosition = FabPosition.End,
     ) { innerPadding ->
         val modifierWithSmallPadding = modifier.padding(dimensionResource(R.dimen.padding_small))
         NavHost(
@@ -94,8 +118,32 @@ fun WordGalaxyNavHost(modifier: Modifier = Modifier) {
                     )
                 }
 
-                composable(Destination.Start.VocabularyScreen()) {
-                    VocabularyScreen(navController = navController)
+                navigation(
+                    startDestination = vocabularyCategoriesScreenRoute,
+                    route = vocabularyScreenRoute
+                ) {
+                    composable(vocabularyCategoriesScreenRoute) {
+                        VocabularyScreen(
+                            listState = categoriesState,
+                            navController = navController
+                        )
+                    }
+                    composable(newWordScreenRoute) {
+                        Message(
+                            message = "New word screen",
+                            backgroundColor = MaterialTheme.colorScheme.primary
+                        ) {
+                            Icon(imageVector = Icons.Outlined.Info, contentDescription = null)
+                        }
+                    }
+                    composable(Destination.Start.VocabularyScreen.NewCategoryScreen()) {
+                        Message(
+                            message = "New category screen",
+                            backgroundColor = MaterialTheme.colorScheme.primary
+                        ) {
+                            Icon(imageVector = Icons.Outlined.Info, contentDescription = null)
+                        }
+                    }
                 }
 
                 composable(Destination.Start.Settings()) {
