@@ -41,7 +41,7 @@ fun StartBottomAppBar(
                 navController = navController
             )
             BottomNavigationBarItem(
-                destination = Destination.Start.VocabularyScreen(),
+                destination = Destination.Start.VocabularyScreen.CategoriesScreen(),
                 currentRoute = currentRoute,
                 icon = rememberVectorPainter(Icons.Default.Book),
                 label = R.string.vocabulary,

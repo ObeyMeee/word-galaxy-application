@@ -1,5 +1,6 @@
 package ua.com.andromeda.wordgalaxy.ui.navigation
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
@@ -185,9 +186,10 @@ private fun StartContent(
 ) {
     val startDestinations = listOf(
         Destination.Start.HomeScreen(),
-        Destination.Start.VocabularyScreen(),
+        Destination.Start.VocabularyScreen.CategoriesScreen(),
         Destination.Start.Settings()
     )
+    Log.d("WordGalaxy", "currentRoute = $currentRoute\nstartDestinations= ${startDestinations.joinToString()}")
     if (currentRoute in startDestinations) {
         content()
     }
