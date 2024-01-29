@@ -54,6 +54,12 @@
     <string name="time_period">Time period</string>
     <string name="select_time_period">Select time period</string>
     <string name="cancel">Cancel</string>
+    <string name="transcription_optional">Transcription (optional)</string>
+    <string name="translation">Translation</string>
+    <string name="add_example">Add example</string>
+    <string name="add">Add</string>
+    <string name="example">Example</string>
+    <string name="text">Text</string>
 
     <plurals name="days">
         <item quantity="one">day</item>

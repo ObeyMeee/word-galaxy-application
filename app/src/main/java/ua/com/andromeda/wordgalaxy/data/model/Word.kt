@@ -13,10 +13,10 @@ data class Word(
     val id: Long = 0,
     val value: String,
     val translation: String,
-    val status: WordStatus,
+    val status: WordStatus = WordStatus.New,
 
     @ColumnInfo("amount_repetition")
-    val amountRepetition: Int?,
+    val amountRepetition: Int? = null,
 
     @ColumnInfo("status_changed_at")
     val statusChangedAt: LocalDateTime? = null,

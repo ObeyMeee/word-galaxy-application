@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.RewriteQueriesToDropUnusedColumns
 import kotlinx.coroutines.flow.Flow
+import ua.com.andromeda.wordgalaxy.data.model.Category
 import ua.com.andromeda.wordgalaxy.data.model.VocabularyCategory
 
 @Dao
@@ -26,4 +27,12 @@ interface CategoryDao {
         """
     )
     fun findCategoriesWithWordCountAndCompletedWordsCount(parentCategoryId: Int?): Flow<List<VocabularyCategory>>
+
+    @Query(
+        """
+        SELECT * FROM categories
+        WHERE parent_category_id IS NOT NULL
+        """
+    )
+    fun findCategoriesWhereParentIsNotNull(): Flow<List<Category>>
 }

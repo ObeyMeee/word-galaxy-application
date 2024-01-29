@@ -1,6 +1,5 @@
-package ua.com.andromeda.wordgalaxy.ui.screens.start.vocabulary
+package ua.com.andromeda.wordgalaxy.ui.screens.start.vocabulary.categories
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
@@ -48,11 +47,10 @@ class VocabularyViewModel(
                 categoryRepository
                     .findVocabularyCategories(null)
                     .collect { categories ->
-                        Log.d(TAG, categories.toString())
-                    _uiState.update {
-                        VocabularyUiState.Success(categories)
+                        _uiState.update {
+                            VocabularyUiState.Success(categories)
+                        }
                     }
-                }
             }
         }
     }

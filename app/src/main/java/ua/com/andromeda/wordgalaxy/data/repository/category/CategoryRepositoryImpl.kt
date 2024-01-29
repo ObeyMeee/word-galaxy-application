@@ -7,4 +7,7 @@ class CategoryRepositoryImpl(
 ) : CategoryRepository {
     override fun findVocabularyCategories(parentCategoryId: Int?) =
         categoryDao.findCategoriesWithWordCountAndCompletedWordsCount(parentCategoryId)
+
+    override fun findChildCategories() =
+        categoryDao.findCategoriesWhereParentIsNotNull()
 }

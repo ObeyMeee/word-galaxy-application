@@ -1,12 +1,11 @@
 package ua.com.andromeda.wordgalaxy.ui.navigation
 
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -26,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.IntOffset
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavBackStackEntry
@@ -39,7 +39,8 @@ import ua.com.andromeda.wordgalaxy.R
 import ua.com.andromeda.wordgalaxy.ui.screens.common.Message
 import ua.com.andromeda.wordgalaxy.ui.screens.start.home.HomeScreen
 import ua.com.andromeda.wordgalaxy.ui.screens.start.home.HomeViewModel
-import ua.com.andromeda.wordgalaxy.ui.screens.start.vocabulary.VocabularyScreen
+import ua.com.andromeda.wordgalaxy.ui.screens.start.vocabulary.categories.VocabularyScreen
+import ua.com.andromeda.wordgalaxy.ui.screens.start.vocabulary.newword.NewWordScreen
 import ua.com.andromeda.wordgalaxy.ui.screens.study.learnwords.LearnWordsScreen
 import ua.com.andromeda.wordgalaxy.ui.screens.study.reviewwords.ReviewWordsScreen
 
@@ -84,18 +85,36 @@ fun WordGalaxyNavHost(modifier: Modifier = Modifier) {
         },
         floatingActionButton = {
             if (vocabularyCategoriesScreenRoute == currentRoute) {
+                val offsetSpringSpec = spring<IntOffset>(
+                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessMediumLow,
+                )
+                val offsetY: (Int) -> Int = { it * 4 }
                 AnimatedVisibility(
                     visible = fabVisible,
-                    enter = slideInVertically { it * 2 },
-                    exit = slideOutVertically { it * 2 },
+                    enter = slideInVertically(
+                        animationSpec = offsetSpringSpec,
+                        initialOffsetY = offsetY
+                    ),
+                    exit = slideOutVertically(
+                        animationSpec = offsetSpringSpec,
+                        targetOffsetY = offsetY
+                    ),
                 ) {
-                    ExtendedFloatingActionButton(onClick = {
-                        navController.navigate(newWordScreenRoute)
-                    }) {
-                        Icon(imageVector = Icons.Default.Add, contentDescription = null)
-                        Spacer(modifier = Modifier.width(dimensionResource(R.dimen.padding_small)))
-                        Text(text = stringResource(R.string.word))
-                    }
+                    ExtendedFloatingActionButton(
+                        text = {
+                            Text(text = stringResource(R.string.word))
+                        },
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = null
+                            )
+                        },
+                        onClick = {
+                            navController.navigate(newWordScreenRoute)
+                        }
+                    )
                 }
             }
         },
@@ -130,12 +149,12 @@ fun WordGalaxyNavHost(modifier: Modifier = Modifier) {
                         )
                     }
                     composable(newWordScreenRoute) {
-                        Message(
-                            message = "New word screen",
-                            backgroundColor = MaterialTheme.colorScheme.primary
-                        ) {
-                            Icon(imageVector = Icons.Outlined.Info, contentDescription = null)
-                        }
+                        NewWordScreen(
+                            navigateUp = {
+                                navController.navigateUp()
+                            },
+                            modifier = modifierWithSmallPadding
+                        )
                     }
                     composable(Destination.Start.VocabularyScreen.NewCategoryScreen()) {
                         Message(
@@ -189,7 +208,6 @@ private fun StartContent(
         Destination.Start.VocabularyScreen.CategoriesScreen(),
         Destination.Start.Settings()
     )
-    Log.d("WordGalaxy", "currentRoute = $currentRoute\nstartDestinations= ${startDestinations.joinToString()}")
     if (currentRoute in startDestinations) {
         content()
     }

@@ -15,7 +15,7 @@ import ua.com.andromeda.wordgalaxy.data.model.WordAndCategoryCrossRef
 import ua.com.andromeda.wordgalaxy.utils.Converters
 
 @Database(
-    version = 1,
+    version = 2,
     exportSchema = false,
     entities = [
         Word::class,

@@ -1,4 +1,4 @@
-package ua.com.andromeda.wordgalaxy.ui.screens.start.vocabulary
+package ua.com.andromeda.wordgalaxy.ui.screens.start.vocabulary.categories
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring

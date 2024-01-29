@@ -9,6 +9,15 @@
     <dimen name="padding_larger">32dp</dimen>
     <dimen name="padding_largest">40dp</dimen>
 
+    <dimen name="offset_smallest">2dp</dimen>
+    <dimen name="offset_smaller">4dp</dimen>
+    <dimen name="offset_small">8dp</dimen>
+    <dimen name="offset_mediumish">12dp</dimen>
+    <dimen name="offset_medium">16dp</dimen>
+    <dimen name="offset_large">24dp</dimen>
+    <dimen name="offset_larger">32dp</dimen>
+    <dimen name="offset_largest">40dp</dimen>
+
     <dimen name="round_small">8dp</dimen>
     <dimen name="round_medium">16dp</dimen>
     <dimen name="round_large">24dp</dimen>

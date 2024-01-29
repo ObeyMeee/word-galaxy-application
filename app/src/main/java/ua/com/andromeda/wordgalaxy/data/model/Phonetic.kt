@@ -30,5 +30,5 @@ data class Phonetic(
     val audio: AudioUrl,
 
     @ColumnInfo(name = "word_id")
-    val wordId: Long
+    val wordId: Long = 0
 )
