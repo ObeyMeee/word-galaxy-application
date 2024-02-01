@@ -49,6 +49,8 @@ import ua.com.andromeda.wordgalaxy.ui.navigation.Destination
 import ua.com.andromeda.wordgalaxy.ui.screens.common.CenteredLoadingSpinner
 import ua.com.andromeda.wordgalaxy.ui.screens.common.Message
 import ua.com.andromeda.wordgalaxy.ui.theme.WordGalaxyTheme
+import ua.com.andromeda.wordgalaxy.utils.RESOURCE_NOT_FOUND
+import ua.com.andromeda.wordgalaxy.utils.getCategoryIconIdentifier
 
 @Composable
 fun VocabularyScreen(
@@ -154,8 +156,7 @@ fun CategoryItem(
     val category = vocabularyCategory.category
 
     val categoryName = category.name
-    val categoryIconRes =
-        "${categoryName.filter { it != '-' }.lowercase().replace(' ', '_')}_category_icon"
+    val context = LocalContext.current
 
     ListItem(
         headlineText = {
@@ -180,13 +181,8 @@ fun CategoryItem(
                     contentDescription = stringResource(R.string.expand),
                     modifier = Modifier.rotate(rotationAngle)
                 )
-                val context = LocalContext.current
-                val iconRes = context.resources.getIdentifier(
-                    categoryIconRes,
-                    "drawable",
-                    context.packageName
-                )
-                if (iconRes != 0) {
+                val iconRes = context.getCategoryIconIdentifier(categoryName)
+                if (iconRes != RESOURCE_NOT_FOUND) {
                     Icon(
                         painter = painterResource(iconRes),
                         contentDescription = null,

@@ -89,7 +89,7 @@ interface WordDao {
         WHERE status NOT IN (:statuses)
         """
     )
-    fun findAllWhereStatusNotIn(statuses: List<WordStatus>): List<Word>
+    fun findAllWhereStatusNotIn(statuses: List<WordStatus>): Flow<List<Word>>
 
     @Query(
         """
@@ -106,7 +106,9 @@ interface WordDao {
 
     @Query(
         """
-            SELECT id FROM categories WHERE name = :name
+            SELECT id
+            FROM categories
+            WHERE name = :name
         """
     )
     fun findCategoryIdByName(name: String): Long?
@@ -136,7 +138,6 @@ interface WordDao {
 
     @Delete
     suspend fun removeExamples(examples: List<Example>)
-
 
     @Update
     suspend fun updateWord(word: Word)
@@ -207,4 +208,13 @@ interface WordDao {
             }
         }
     }
+
+    @Query(
+        """
+        SELECT *
+        FROM Word
+        WHERE value = :value
+        """
+    )
+    fun findWordByValue(value: String): Flow<List<EmbeddedWord>>
 }

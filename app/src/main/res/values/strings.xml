@@ -60,6 +60,7 @@
     <string name="add">Add</string>
     <string name="example">Example</string>
     <string name="text">Text</string>
+    <string name="this_word_already_exists">This word already exists</string>
 
     <plurals name="days">
         <item quantity="one">day</item>

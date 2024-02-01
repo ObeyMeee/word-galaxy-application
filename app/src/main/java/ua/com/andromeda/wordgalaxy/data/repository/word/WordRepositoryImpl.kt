@@ -1,7 +1,10 @@
 package ua.com.andromeda.wordgalaxy.data.repository.word
 
 import androidx.room.Transaction
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.runBlocking
 import ua.com.andromeda.wordgalaxy.data.dao.WordDao
 import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
 import ua.com.andromeda.wordgalaxy.data.model.Example
@@ -10,7 +13,9 @@ import ua.com.andromeda.wordgalaxy.data.model.Word
 import ua.com.andromeda.wordgalaxy.data.model.WordStatus
 import ua.com.andromeda.wordgalaxy.data.model.WordWithCategories
 import ua.com.andromeda.wordgalaxy.data.model.toWordWithCategories
+import ua.com.andromeda.wordgalaxy.ui.screens.start.vocabulary.newword.ExistingWord
 import ua.com.andromeda.wordgalaxy.utils.getLastNDates
+import java.time.LocalDate
 import java.time.temporal.TemporalUnit
 
 private const val TAG = "WordRepositoryImpl"
@@ -24,6 +29,18 @@ class WordRepositoryImpl(
 
     override fun findWordToReview() =
         wordDao.findRandomWordToReview().map { it.firstOrNull() }
+
+    override fun findWordByValue(value: String): Flow<List<ExistingWord>> =
+        wordDao.findWordByValue(value)
+            .map {
+                it.map { embeddedWord ->
+                    ExistingWord(
+                        translation = embeddedWord.word.translation,
+                        categories = embeddedWord.categories
+                    )
+                }
+            }
+
 
     override fun countLearnedWordsToday() =
         wordDao.countMemorizedWordsToday()
@@ -42,8 +59,11 @@ class WordRepositoryImpl(
         unit: TemporalUnit
     ): List<Map<WordStatus, Int>> {
         val lastNDates = getLastNDates(value, unit)
-        val words = wordDao.findAllWhereStatusNotIn(listOf(WordStatus.New, WordStatus.InProgress))
-
+        var words: List<Word>
+        runBlocking {
+            words = wordDao.findAllWhereStatusNotIn(listOf(WordStatus.New, WordStatus.InProgress))
+                .first()
+        }
         return lastNDates.map { dateTime ->
             val localDate = dateTime.toLocalDate()
             val countByWordStatus = linkedMapOf(
@@ -80,6 +100,37 @@ class WordRepositoryImpl(
             }
             countByWordStatus
         }
+    }
+
+    override fun countCurrentStreak(): Flow<Int> {
+        return wordDao.findAllWhereStatusNotIn(listOf(WordStatus.New))
+            .map { words ->
+                val learningDates = words.getDistinctLocalDates()
+
+                generateSequence(LocalDate.now()) {
+                    it.minusDays(1)
+                }.takeWhile { it in learningDates }
+                    .count()
+            }
+    }
+
+    override fun countBestStreak(): Flow<Int> {
+        return wordDao.findAllWhereStatusNotIn(listOf(WordStatus.New))
+            .map { wordsWithoutNew ->
+                val learningDates = wordsWithoutNew.getDistinctLocalDates()
+
+                var currentDate = learningDates.firstOrNull() ?: return@map 0
+                var currentStreak = 0
+                var longestStreak = 0
+                learningDates.forEach {
+                    currentStreak = if (currentDate == it) currentStreak + 1 else 1
+                    currentDate = it.plusDays(1)
+                    if (currentStreak > longestStreak) {
+                        longestStreak = currentStreak
+                    }
+                }
+                longestStreak
+            }
     }
 
     override suspend fun update(word: Word) =
@@ -135,3 +186,10 @@ private fun LinkedHashMap<WordStatus, Int>.incrementCount(
         this[status] = getOrDefault(status, 0) + 1
     }
 }
+
+private fun List<Word>.getDistinctLocalDates(): List<LocalDate> =
+    this
+        .flatMap { listOf(it.statusChangedAt?.toLocalDate(), it.repeatedAt?.toLocalDate()) }
+        .filterNotNull()
+        .distinct()
+        .sorted()

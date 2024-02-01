@@ -33,8 +33,11 @@ class HomeViewModel(
                 userPreferencesRepository.amountWordsToLearnPerDay,
                 wordRepository.countLearnedWordsToday(),
                 wordRepository.countWordsToReview(),
-                userPreferencesRepository.timePeriodChartOptions
-            ) { amountWordsToLearnPerDay, learnedWordsToday, amountWordsToReview, timePeriodDays ->
+                userPreferencesRepository.timePeriodChartOptions,
+                wordRepository.countCurrentStreak(),
+                wordRepository.countBestStreak()
+            ) { results ->
+                val (amountWordsToLearnPerDay, learnedWordsToday, amountWordsToReview, timePeriodDays, currentStreak) = results
                 val timePeriod = TimePeriodChartOptions
                     .entries
                     .find { timePeriodDays == it.days } ?: TimePeriodChartOptions.WEEK
@@ -47,7 +50,9 @@ class HomeViewModel(
                     amountWordsToLearnPerDay = amountWordsToLearnPerDay,
                     amountWordsToReview = amountWordsToReview,
                     timePeriod = timePeriod,
-                    listOfWordsCountOfStatus = listOfWordsCountByStatus
+                    listOfWordsCountOfStatus = listOfWordsCountByStatus,
+                    currentStreak = currentStreak,
+                    bestStreak = results.last()
                 )
             }
             combinedFlow.collect { newUiState ->

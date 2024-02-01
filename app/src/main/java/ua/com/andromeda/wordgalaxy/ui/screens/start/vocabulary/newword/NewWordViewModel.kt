@@ -45,6 +45,12 @@ class NewWordViewModel(
         updateUiState {
             it.copy(word = value)
         }
+        viewModelScope.launch(Dispatchers.IO) {
+            val existingWords = wordRepository.findWordByValue(value).first()
+            updateUiState {
+                it.copy(existingWords = existingWords)
+            }
+        }
     }
 
     fun updateTranscription(value: String) {
@@ -117,18 +123,23 @@ class NewWordViewModel(
         val state = uiState.value
         if (state !is NewWordUiState.Success) return@launch
 
-        val embeddedWord = EmbeddedWord(
+        val embeddedWord = buildEmbeddedWord(state)
+        wordRepository.insert(embeddedWord)
+    }
+
+    private fun buildEmbeddedWord(state: NewWordUiState.Success): EmbeddedWord {
+        val formattedTranscription = formatTranscription(state.transcription)
+        return EmbeddedWord(
             word = Word(
                 value = state.word,
                 translation = state.translation
             ),
-            categories = listOf(),
+            categories = listOf(state.selectedCategory),
             phonetics = listOf(
-                Phonetic(text = state.transcription, audio = "")
+                Phonetic(text = formattedTranscription, audio = "")
             ),
             examples = state.examples
         )
-        wordRepository.insert(embeddedWord)
     }
 
     fun updateCategory(value: Category) {
@@ -158,6 +169,21 @@ class NewWordViewModel(
                     categoryRepository = CategoryRepositoryImpl(categoryDao)
                 )
             }
+        }
+    }
+}
+
+private fun formatTranscription(transcription: String): String {
+    if (transcription.isBlank()) return ""
+
+    val formattedTranscription = transcription.trim().lowercase()
+    return buildString {
+        if (formattedTranscription.first() != '/') {
+            append("/")
+        }
+        append(formattedTranscription)
+        if (formattedTranscription.last() != '/') {
+            append("/")
         }
     }
 }

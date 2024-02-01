@@ -14,6 +14,7 @@ sealed interface NewWordUiState {
         val translation: String = "",
         val categoriesExpanded: Boolean = false,
         val selectedCategory: Category = MY_WORDS_CATEGORY,
-        val examples: List<Example> = emptyList()
+        val examples: List<Example> = emptyList(),
+        val existingWords: List<ExistingWord> = emptyList()
     ) : NewWordUiState
 }

@@ -12,6 +12,8 @@ sealed interface HomeUiState {
         val amountWordsToLearnPerDay: Int = 0,
         val amountWordsToReview: Int = 0,
         val timePeriod: TimePeriodChartOptions = DEFAULT_TIME_PERIOD_OPTION,
-        val listOfWordsCountOfStatus: List<Map<WordStatus, Int>> = listOf()
+        val listOfWordsCountOfStatus: List<Map<WordStatus, Int>> = listOf(),
+        val currentStreak: Int = 0,
+        val bestStreak: Int = 0
     ) : HomeUiState
 }

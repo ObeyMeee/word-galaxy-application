@@ -5,22 +5,20 @@ import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
 import ua.com.andromeda.wordgalaxy.data.model.Word
 import ua.com.andromeda.wordgalaxy.data.model.WordStatus
 import ua.com.andromeda.wordgalaxy.data.model.WordWithCategories
+import ua.com.andromeda.wordgalaxy.ui.screens.start.vocabulary.newword.ExistingWord
 import java.time.temporal.TemporalUnit
 
 interface WordRepository {
     fun findOneRandomWordWhereStatusEquals(status: WordStatus): Flow<EmbeddedWord>
-
     fun findWordToReview(): Flow<EmbeddedWord?>
-
+    fun findWordByValue(value: String): Flow<List<ExistingWord>>
     fun countLearnedWordsToday(): Flow<Int>
-
     fun countWordsWhereStatusEquals(status: WordStatus): Flow<Int>
-
     fun countWordsToReview(): Flow<Int>
-
     fun countReviewedWordsToday(): Flow<Int>
-
     fun countWordsByStatusLast(value: Int, unit: TemporalUnit): List<Map<WordStatus, Int>>
+    fun countCurrentStreak(): Flow<Int>
+    fun countBestStreak(): Flow<Int>
 
     suspend fun update(word: Word)
 

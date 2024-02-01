@@ -189,7 +189,7 @@ private fun LearningTab(
 
 @Composable
 fun StatsSection(
-    homeUiState: HomeUiState.Success,
+    state: HomeUiState.Success,
     modifier: Modifier = Modifier
 ) {
     Text(
@@ -202,7 +202,7 @@ fun StatsSection(
         Column(modifier = Modifier.padding(dimensionResource(R.dimen.padding_medium))) {
             DaysOfWeekRow(modifier = fillMaxWidthModifier)
             ActiveDayOfWeekArrow(modifier = fillMaxWidthModifier)
-            StreakRow(modifier = fillMaxWidthModifier)
+            StreakRow(state = state, modifier = fillMaxWidthModifier)
         }
     }
 }
@@ -272,7 +272,10 @@ private fun ActiveDayOfWeekArrow(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun StreakRow(modifier: Modifier = Modifier) {
+private fun StreakRow(
+    state: HomeUiState.Success,
+    modifier: Modifier = Modifier
+) {
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.SpaceBetween
@@ -280,12 +283,12 @@ private fun StreakRow(modifier: Modifier = Modifier) {
         StreakCard(
             labelResId = R.string.current_streak,
             valueResId = R.plurals.days,
-            count = 2
+            count = state.currentStreak
         )
         StreakCard(
             labelResId = R.string.best_streak,
             valueResId = R.plurals.days_in_a_row,
-            count = 13
+            count = state.bestStreak
         )
     }
 }
@@ -412,7 +415,6 @@ fun TimePeriodDialog(
                                 Text(text = option.label)
                             }
                         }
-
                     }
                 }
             }

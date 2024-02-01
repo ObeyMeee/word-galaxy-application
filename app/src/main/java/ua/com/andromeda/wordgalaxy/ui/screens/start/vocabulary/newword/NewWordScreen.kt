@@ -1,5 +1,13 @@
 package ua.com.andromeda.wordgalaxy.ui.screens.start.vocabulary.newword
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,6 +17,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -42,7 +51,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -51,6 +63,8 @@ import ua.com.andromeda.wordgalaxy.R
 import ua.com.andromeda.wordgalaxy.data.model.Example
 import ua.com.andromeda.wordgalaxy.ui.screens.common.CenteredLoadingSpinner
 import ua.com.andromeda.wordgalaxy.ui.theme.WordGalaxyTheme
+import ua.com.andromeda.wordgalaxy.utils.RESOURCE_NOT_FOUND
+import ua.com.andromeda.wordgalaxy.utils.getCategoryIconIdentifier
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -170,6 +184,7 @@ fun NewWordMain(modifier: Modifier = Modifier) {
                 label = {
                     Text(text = "${stringResource(R.string.word)}*")
                 },
+                singleLine = true,
                 modifier = Modifier
                     .fillMaxWidth()
                     .focusRequester(focusRequester)
@@ -181,6 +196,7 @@ fun NewWordMain(modifier: Modifier = Modifier) {
                 label = {
                     Text(text = "${stringResource(R.string.translation)}*")
                 },
+                singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
             VerticalSpacer()
@@ -190,11 +206,24 @@ fun NewWordMain(modifier: Modifier = Modifier) {
                 label = {
                     Text(text = stringResource(R.string.transcription_optional))
                 },
+                leadingIcon = {
+                  Text(text = "/")
+                },
+                trailingIcon = {
+                    Text(text = "/")
+                },
+                singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
             if (examples.isNotEmpty()) {
                 VerticalSpacer()
             }
+            ExistingWordsList(
+                items = (uiState as NewWordUiState.Success).existingWords,
+                modifier = Modifier.padding(
+                    dimensionResource(R.dimen.padding_small)
+                )
+            )
             ExampleList(
                 examples = examples,
                 updateText = viewModel::updateText,
@@ -226,6 +255,60 @@ fun NewWordMain(modifier: Modifier = Modifier) {
     }
 }
 
+@Composable
+fun ExistingWordsList(
+    items: List<ExistingWord>,
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+
+    AnimatedContent(
+        targetState = items,
+        label = "ExistingWordsAnimation"
+    ) { words ->
+        Column(modifier) {
+            if (words.isNotEmpty()) {
+                Text(
+                    text = stringResource(R.string.this_word_already_exists),
+                    style = MaterialTheme.typography.labelMedium
+                )
+            }
+            words.forEach { existingWord ->
+                Row(
+                    modifier = Modifier
+                        .padding(vertical = dimensionResource(R.dimen.padding_small))
+                        .border(
+                            border = BorderStroke(
+                                width = 1.dp,
+                                color = MaterialTheme.colorScheme.primary
+                            ),
+                            shape = MaterialTheme.shapes.medium
+                        ),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = existingWord.translation,
+                        modifier = Modifier.padding(dimensionResource(R.dimen.padding_small))
+                    )
+                    existingWord.categories.forEach { category ->
+                        val iconRes = context.getCategoryIconIdentifier(category)
+                        if (iconRes != RESOURCE_NOT_FOUND) {
+                            Icon(
+                                painter = painterResource(iconRes),
+                                contentDescription = null,
+                                tint = Color.Unspecified,
+                                modifier = Modifier
+                                    .size(dimensionResource(R.dimen.icon_size_largest))
+                                    .padding(dimensionResource(R.dimen.padding_small))
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExampleList(
@@ -240,55 +323,59 @@ fun ExampleList(
         verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_mediumish))
     ) {
         itemsIndexed(examples) { i, example ->
-            Card {
-                Column(
-                    modifier = Modifier
-                        .padding(dimensionResource(R.dimen.padding_mediumish))
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .offset(y = -dimensionResource(R.dimen.offset_small)),
-                        verticalAlignment = Alignment.CenterVertically
+            AnimatedContent(
+                targetState = example,
+                transitionSpec = {
+                    fadeIn() + slideInVertically() togetherWith fadeOut() + slideOutVertically()
+                },
+                label = ""
+            ) { targetExample ->
+                Card {
+                    Column(
+                        modifier = Modifier.padding(dimensionResource(R.dimen.padding_mediumish)),
                     ) {
-
-                        Text(
-                            text = "${stringResource(R.string.example)} ${i + 1}",
-                            modifier = Modifier.weight(1f),
-                            color = MaterialTheme.colorScheme.primary,
-                            style = MaterialTheme.typography.titleMedium,
-                        )
-                        IconButton(
-                            onClick = { deleteExample(i) },
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .offset(y = -dimensionResource(R.dimen.offset_small)),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = "Delete",
-                                tint = MaterialTheme.colorScheme.primary
+                            Text(
+                                text = "${stringResource(R.string.example)} ${i + 1}",
+                                modifier = Modifier.weight(1f),
+                                color = MaterialTheme.colorScheme.primary,
+                                style = MaterialTheme.typography.titleMedium,
                             )
+                            IconButton(
+                                onClick = { deleteExample(i) },
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = "Delete",
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
                         }
+                        TextField(
+                            value = targetExample.text,
+                            onValueChange = { updateText(i, it) },
+                            label = {
+                                Text(text = stringResource(R.string.text))
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        VerticalSpacer()
+                        TextField(
+                            value = targetExample.translation,
+                            onValueChange = { updateTranslation(i, it) },
+                            label = {
+                                Text(text = stringResource(R.string.translation))
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        )
                     }
-                    TextField(
-                        value = example.text,
-                        onValueChange = { updateText(i, it) },
-                        label = {
-                            Text(text = stringResource(R.string.text))
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    VerticalSpacer()
-                    TextField(
-                        value = example.translation,
-                        onValueChange = { updateTranslation(i, it) },
-                        label = {
-                            Text(text = stringResource(R.string.translation))
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    )
                 }
-
             }
-
         }
     }
 }
