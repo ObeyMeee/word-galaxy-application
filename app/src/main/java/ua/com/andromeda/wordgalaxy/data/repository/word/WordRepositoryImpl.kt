@@ -102,24 +102,35 @@ class WordRepositoryImpl(
         }
     }
 
-    override fun countCurrentStreak(): Flow<Int> {
+    private fun calculateStreak(
+        getLocalDates: List<Word>.() -> List<LocalDate>,
+        transform: (List<LocalDate>) -> Int
+    ): Flow<Int> {
         return wordDao.findAllWhereStatusNotIn(listOf(WordStatus.New))
-            .map { words ->
-                val learningDates = words.getDistinctLocalDates()
-
-                generateSequence(LocalDate.now()) {
-                    it.minusDays(1)
-                }.takeWhile { it in learningDates }
-                    .count()
+            .map { wordsWithoutNew ->
+                val learningDates = wordsWithoutNew.getLocalDates()
+                transform(learningDates)
             }
     }
 
-    override fun countBestStreak(): Flow<Int> {
-        return wordDao.findAllWhereStatusNotIn(listOf(WordStatus.New))
-            .map { wordsWithoutNew ->
-                val learningDates = wordsWithoutNew.getDistinctLocalDates()
+    override fun countCurrentStreak(): Flow<Int> {
+        return calculateStreak(
+            getLocalDates = List<Word>::getDistinctLocalDates,
+            transform = { learningDates ->
+                generateSequence(LocalDate.now()) { it.minusDays(1) }
+                    .takeWhile { it in learningDates }
+                    .count()
+            }
+        )
+    }
 
-                var currentDate = learningDates.firstOrNull() ?: return@map 0
+    override fun countBestStreak(): Flow<Int> {
+        return calculateStreak(
+            getLocalDates = {
+                getDistinctLocalDates().sorted()
+            },
+            transform = { learningDates ->
+                var currentDate = learningDates.firstOrNull() ?: return@calculateStreak 0
                 var currentStreak = 0
                 var longestStreak = 0
                 learningDates.forEach {
@@ -131,6 +142,7 @@ class WordRepositoryImpl(
                 }
                 longestStreak
             }
+        )
     }
 
     override suspend fun update(word: Word) =
@@ -188,8 +200,7 @@ private fun LinkedHashMap<WordStatus, Int>.incrementCount(
 }
 
 private fun List<Word>.getDistinctLocalDates(): List<LocalDate> =
-    this
-        .flatMap { listOf(it.statusChangedAt?.toLocalDate(), it.repeatedAt?.toLocalDate()) }
+    this.flatMap { listOf(it.statusChangedAt?.toLocalDate(), it.repeatedAt?.toLocalDate()) }
         .filterNotNull()
         .distinct()
-        .sorted()
+
