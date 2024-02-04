@@ -9,6 +9,4 @@ const val LEGEND_MAX_SIZE_PERCENT = .5f
 const val Y_AXIS_MINIMUM = 0f
 const val Y_AXIS_GRANULARITY = 5f
 
-const val X_AXIS_LABEL_COUNT = 7
-
 const val ANIMATE_XY_MILLIS = 600

@@ -18,6 +18,23 @@ import ua.com.andromeda.wordgalaxy.data.repository.category.CategoryRepositoryIm
 class VocabularyViewModel(
     private val categoryRepository: CategoryRepository
 ) : ViewModel() {
+    private var _uiState = MutableStateFlow<VocabularyUiState>(VocabularyUiState.Default)
+    val uiState: StateFlow<VocabularyUiState> = _uiState
+
+    init {
+        viewModelScope.launch(Dispatchers.IO) {
+            launch(Dispatchers.IO) {
+                categoryRepository
+                    .findVocabularyCategories(null)
+                    .collect { categories ->
+                        _uiState.update {
+                            VocabularyUiState.Success(categories)
+                        }
+                    }
+            }
+        }
+    }
+
     fun fetchSubCategories(parentCategoryId: Int) =
         viewModelScope.launch(Dispatchers.IO) {
             categoryRepository
@@ -37,26 +54,8 @@ class VocabularyViewModel(
                 }
         }
 
-
-    private var _uiState = MutableStateFlow<VocabularyUiState>(VocabularyUiState.Default)
-    val uiState: StateFlow<VocabularyUiState> = _uiState
-
-    init {
-        viewModelScope.launch(Dispatchers.IO) {
-            launch(Dispatchers.IO) {
-                categoryRepository
-                    .findVocabularyCategories(null)
-                    .collect { categories ->
-                        _uiState.update {
-                            VocabularyUiState.Success(categories)
-                        }
-                    }
-            }
-        }
-    }
-
     companion object {
-        const val TAG = "VocabularyViewModel"
+        private const val TAG = "VocabularyViewModel"
         val factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val application = this[APPLICATION_KEY] as WordGalaxyApplication

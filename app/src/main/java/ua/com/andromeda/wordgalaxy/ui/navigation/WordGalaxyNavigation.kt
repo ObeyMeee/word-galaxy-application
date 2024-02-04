@@ -18,7 +18,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -38,7 +37,6 @@ import androidx.navigation.compose.rememberNavController
 import ua.com.andromeda.wordgalaxy.R
 import ua.com.andromeda.wordgalaxy.ui.screens.common.Message
 import ua.com.andromeda.wordgalaxy.ui.screens.start.home.HomeScreen
-import ua.com.andromeda.wordgalaxy.ui.screens.start.home.HomeViewModel
 import ua.com.andromeda.wordgalaxy.ui.screens.start.vocabulary.categories.VocabularyScreen
 import ua.com.andromeda.wordgalaxy.ui.screens.start.vocabulary.newword.NewWordScreen
 import ua.com.andromeda.wordgalaxy.ui.screens.study.learnwords.LearnWordsScreen
@@ -53,9 +51,6 @@ fun WordGalaxyNavHost(modifier: Modifier = Modifier) {
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-
-    val homeViewModel: HomeViewModel = viewModel(factory = HomeViewModel.factory)
-    val homeUiState by homeViewModel.uiState.collectAsState()
 
     val vocabularyScreenRoute = Destination.Start.VocabularyScreen()
     val newWordScreenRoute = Destination.Start.VocabularyScreen.NewWordScreen()
@@ -132,7 +127,6 @@ fun WordGalaxyNavHost(modifier: Modifier = Modifier) {
             ) {
                 composable(startScreenRoute) {
                     HomeScreen(
-                        homeUiState = homeUiState,
                         modifier = modifierWithSmallPadding,
                         navController = navController
                     )

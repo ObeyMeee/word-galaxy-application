@@ -14,6 +14,7 @@ sealed interface HomeUiState {
         val timePeriod: TimePeriodChartOptions = DEFAULT_TIME_PERIOD_OPTION,
         val listOfWordsCountOfStatus: List<Map<WordStatus, Int>> = listOf(),
         val currentStreak: Int = 0,
-        val bestStreak: Int = 0
+        val bestStreak: Int = 0,
+        val showTimePeriodDialog: Boolean = false
     ) : HomeUiState
 }

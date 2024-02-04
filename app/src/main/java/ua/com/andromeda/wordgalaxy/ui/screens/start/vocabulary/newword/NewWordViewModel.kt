@@ -158,7 +158,7 @@ class NewWordViewModel(
     }
 
     companion object {
-        const val TAG = "NewWordViewModel"
+        private const val TAG = "NewWordViewModel"
         val factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val application = this[APPLICATION_KEY] as WordGalaxyApplication

@@ -1,5 +1,6 @@
 package ua.com.andromeda.wordgalaxy.ui.screens.start.home
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
@@ -17,8 +18,6 @@ import ua.com.andromeda.wordgalaxy.data.repository.preferences.UserPreferencesRe
 import ua.com.andromeda.wordgalaxy.data.repository.word.WordRepository
 import ua.com.andromeda.wordgalaxy.data.repository.word.WordRepositoryImpl
 import java.time.temporal.ChronoUnit
-
-private const val TAG = "HomeViewModel"
 
 class HomeViewModel(
     private val wordRepository: WordRepository,
@@ -64,10 +63,45 @@ class HomeViewModel(
     fun updateTimePeriod(timePeriodChartOptions: TimePeriodChartOptions) =
         viewModelScope.launch(Dispatchers.IO) {
             userPreferencesRepository.saveTimePeriod(timePeriodChartOptions)
+            updateShowTimePeriodDialog(false)
+            Log.d(TAG, "chart ==> \n ${((_uiState.value) as HomeUiState.Success).listOfWordsCountOfStatus.joinToString(separator = System.lineSeparator())}")
+            val listOfWordsCountByStatus = wordRepository.countWordsByStatusLast(
+                timePeriodChartOptions.days,
+                ChronoUnit.DAYS
+            )
+            updateState {
+                it.copy(
+                    listOfWordsCountOfStatus = listOfWordsCountByStatus
+                )
+            }
+            Log.d(TAG, "chart ==> \n ${((_uiState.value) as HomeUiState.Success).listOfWordsCountOfStatus.joinToString(separator = System.lineSeparator())}")
         }
+
+    private fun updateState(
+        errorMessage: String = "Something went wrong",
+        action: (HomeUiState.Success) -> HomeUiState.Success
+    ) {
+        _uiState.update { state ->
+            if (state is HomeUiState.Success) {
+                action(state)
+            } else {
+                errorUiState(errorMessage)
+            }
+        }
+    }
+
+    fun updateShowTimePeriodDialog(value: Boolean) {
+        updateState {
+            it.copy(showTimePeriodDialog = value)
+        }
+    }
+
+    private fun errorUiState(message: String = "Unexpected error occurred") =
+        HomeUiState.Error(message)
 
 
     companion object {
+        private const val TAG = "HomeViewModel"
         val factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val application = this[APPLICATION_KEY] as WordGalaxyApplication

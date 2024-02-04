@@ -35,10 +35,8 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -69,18 +67,19 @@ private const val TAG = "HomeScreen"
 
 @Composable
 fun HomeScreen(
-    homeUiState: HomeUiState,
     modifier: Modifier = Modifier,
     navController: NavController = rememberNavController(),
 ) {
-    when (homeUiState) {
+    val viewModel: HomeViewModel = viewModel(factory = HomeViewModel.factory)
+    val homeUiState by viewModel.uiState.collectAsState()
+    when (val state = homeUiState) {
         is HomeUiState.Default -> {
             CenteredLoadingSpinner()
         }
 
         is HomeUiState.Error -> {
             Message(
-                message = homeUiState.message,
+                message = state.message,
                 backgroundColor = MaterialTheme.colorScheme.errorContainer
             ) {
                 Icon(
@@ -92,21 +91,21 @@ fun HomeScreen(
         }
 
         is HomeUiState.Success -> {
-            val viewModel: HomeViewModel = viewModel(factory = HomeViewModel.factory)
             val spacer = @Composable {
                 Spacer(modifier = Modifier.height(dimensionResource(R.dimen.padding_medium)))
             }
             val scrollState = rememberScrollState()
 
             Column(modifier = modifier.verticalScroll(scrollState)) {
-                RepetitionSection(homeUiState, navController)
+                RepetitionSection(state, navController)
                 spacer()
                 Spacer(modifier = Modifier.height(dimensionResource(R.dimen.padding_medium)))
-                StatsSection(homeUiState, modifier = Modifier.fillMaxWidth())
+                StatsSection(state, modifier = Modifier.fillMaxWidth())
                 spacer()
                 ChartSection(
-                    homeUiState,
+                    state = state,
                     updateTimePeriod = viewModel::updateTimePeriod,
+                    showDialog = viewModel::updateShowTimePeriodDialog,
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -116,7 +115,7 @@ fun HomeScreen(
 
 @Composable
 private fun RepetitionSection(
-    homeUiState: HomeUiState.Success,
+    state: HomeUiState.Success,
     navController: NavController = rememberNavController()
 ) {
     Text(
@@ -131,8 +130,8 @@ private fun RepetitionSection(
             labelRes = R.string.learned_today,
             iconColor = Color.Yellow,
             labelParams = arrayOf(
-                homeUiState.learnedWordsToday,
-                homeUiState.amountWordsToLearnPerDay
+                state.learnedWordsToday,
+                state.amountWordsToLearnPerDay
             ),
         ) {
             navController.navigate(Destination.Study.LearnWordsScreen())
@@ -142,7 +141,7 @@ private fun RepetitionSection(
             textRes = R.string.review_words,
             labelRes = R.string.words_to_review,
             iconColor = Color.Green,
-            labelParams = arrayOf(homeUiState.amountWordsToReview),
+            labelParams = arrayOf(state.amountWordsToReview),
         ) {
             navController.navigate(Destination.Study.ReviewWordsScreen())
         }
@@ -324,13 +323,13 @@ private fun StreakCard(
 
 @Composable
 fun ChartSection(
-    homeUiState: HomeUiState.Success,
+    state: HomeUiState.Success,
     modifier: Modifier = Modifier,
+    showDialog: (Boolean) -> Unit = {},
     updateTimePeriod: (TimePeriodChartOptions) -> Unit = {}
 ) {
     val configuration = LocalConfiguration.current
-    val quarterScreenHeight = configuration.screenHeightDp / 4
-    var showDialog by remember { mutableStateOf(false) }
+    val chartHeight = configuration.screenHeightDp / 2
 
     Text(
         text = stringResource(R.string.chart),
@@ -341,25 +340,27 @@ fun ChartSection(
         Row(modifier = Modifier.padding(dimensionResource(R.dimen.padding_medium))) {
             Text(text = stringResource(id = R.string.time_period))
             Text(
-                text = homeUiState.timePeriod.label,
+                text = state.timePeriod.label,
                 textDecoration = TextDecoration.Underline,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
                     .padding(start = dimensionResource(R.dimen.padding_smaller))
-                    .clickable { showDialog = true }
+                    .clickable {
+                        showDialog(true)
+                    }
             )
             TimePeriodDialog(
-                show = showDialog,
-                currentOption = homeUiState.timePeriod
-            ) {
-                updateTimePeriod(it)
-                showDialog = false
-            }
+                currentOption = state.timePeriod,
+                visible = state.showTimePeriodDialog,
+                showDialog = showDialog,
+                onOptionSelected = updateTimePeriod
+            )
         }
         ResultBarChart(
-            homeUiState = homeUiState,
+            data = state.listOfWordsCountOfStatus,
+            days = state.timePeriod.days,
             modifier = Modifier
-                .height(quarterScreenHeight.dp)
+                .height(chartHeight.dp)
                 .fillMaxSize()
         )
     }
@@ -367,15 +368,16 @@ fun ChartSection(
 
 @Composable
 fun TimePeriodDialog(
-    show: Boolean,
     currentOption: TimePeriodChartOptions,
+    visible: Boolean,
     modifier: Modifier = Modifier,
+    showDialog: (Boolean) -> Unit = {},
     onOptionSelected: (TimePeriodChartOptions) -> Unit = {}
 ) {
-    if (show) {
-        val options = TimePeriodChartOptions.entries
+    val options = TimePeriodChartOptions.entries
+    if (visible) {
         AlertDialog(
-            onDismissRequest = { /*TODO*/ },
+            onDismissRequest = { showDialog(false) },
             confirmButton = {},
             modifier = modifier,
             title = {
@@ -385,7 +387,7 @@ fun TimePeriodDialog(
                 )
             },
             dismissButton = {
-                Button(onClick = { /*TODO*/ }) {
+                Button(onClick = { showDialog(false) }) {
                     Text(text = stringResource(R.string.cancel))
                 }
             },
@@ -409,7 +411,7 @@ fun TimePeriodDialog(
                                 RadioButton(
                                     selected = currentOption == option,
                                     onClick = {
-                                        // No action
+                                        onOptionSelected(option)
                                     }
                                 )
                                 Text(text = option.label)
@@ -428,7 +430,6 @@ fun HomeScreenPreview() {
     WordGalaxyTheme {
         Surface {
             HomeScreen(
-                homeUiState = HomeUiState.Success(),
                 modifier = Modifier.padding(dimensionResource(R.dimen.padding_small))
             )
         }
