@@ -38,6 +38,7 @@ import ua.com.andromeda.wordgalaxy.R
 import ua.com.andromeda.wordgalaxy.ui.screens.common.Message
 import ua.com.andromeda.wordgalaxy.ui.screens.start.home.HomeScreen
 import ua.com.andromeda.wordgalaxy.ui.screens.start.vocabulary.categories.VocabularyScreen
+import ua.com.andromeda.wordgalaxy.ui.screens.start.vocabulary.newcategory.NewCategoryScreen
 import ua.com.andromeda.wordgalaxy.ui.screens.start.vocabulary.newword.NewWordScreen
 import ua.com.andromeda.wordgalaxy.ui.screens.study.learnwords.LearnWordsScreen
 import ua.com.andromeda.wordgalaxy.ui.screens.study.reviewwords.ReviewWordsScreen
@@ -151,12 +152,12 @@ fun WordGalaxyNavHost(modifier: Modifier = Modifier) {
                         )
                     }
                     composable(Destination.Start.VocabularyScreen.NewCategoryScreen()) {
-                        Message(
-                            message = "New category screen",
-                            backgroundColor = MaterialTheme.colorScheme.primary
-                        ) {
-                            Icon(imageVector = Icons.Outlined.Info, contentDescription = null)
-                        }
+                        NewCategoryScreen(
+                            navigateUp = {
+                                navController.navigateUp()
+                            },
+                            modifier = modifierWithSmallPadding
+                        )
                     }
                 }
 

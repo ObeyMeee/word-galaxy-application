@@ -33,7 +33,7 @@ class NewWordViewModel(
     init {
         viewModelScope.launch(Dispatchers.IO) {
             _uiState.update {
-                val categories = categoryRepository.findChildCategories().first()
+                val categories = categoryRepository.findAllChildCategories().first()
                 NewWordUiState.Success(
                     categories = categories
                 )

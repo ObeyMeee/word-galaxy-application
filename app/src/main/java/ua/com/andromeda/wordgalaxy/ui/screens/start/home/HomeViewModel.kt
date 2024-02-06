@@ -1,6 +1,5 @@
 package ua.com.andromeda.wordgalaxy.ui.screens.start.home
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
@@ -64,7 +63,6 @@ class HomeViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             userPreferencesRepository.saveTimePeriod(timePeriodChartOptions)
             updateShowTimePeriodDialog(false)
-            Log.d(TAG, "chart ==> \n ${((_uiState.value) as HomeUiState.Success).listOfWordsCountOfStatus.joinToString(separator = System.lineSeparator())}")
             val listOfWordsCountByStatus = wordRepository.countWordsByStatusLast(
                 timePeriodChartOptions.days,
                 ChronoUnit.DAYS
@@ -74,7 +72,6 @@ class HomeViewModel(
                     listOfWordsCountOfStatus = listOfWordsCountByStatus
                 )
             }
-            Log.d(TAG, "chart ==> \n ${((_uiState.value) as HomeUiState.Success).listOfWordsCountOfStatus.joinToString(separator = System.lineSeparator())}")
         }
 
     private fun updateState(

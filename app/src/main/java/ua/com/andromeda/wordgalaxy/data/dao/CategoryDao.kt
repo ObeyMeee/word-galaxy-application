@@ -30,9 +30,19 @@ interface CategoryDao {
 
     @Query(
         """
-        SELECT * FROM categories
+        SELECT * 
+        FROM categories
         WHERE parent_category_id IS NOT NULL
         """
     )
     fun findCategoriesWhereParentIsNotNull(): Flow<List<Category>>
+
+    @Query(
+        """
+        SELECT *
+        FROM categories
+        WHERE parent_category_id IS :parentCategoryId
+        """
+    )
+    fun findCategoriesByParentCategoryId(parentCategoryId: Int?): Flow<List<Category>>
 }

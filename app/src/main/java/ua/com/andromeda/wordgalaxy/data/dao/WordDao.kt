@@ -209,6 +209,7 @@ interface WordDao {
         }
     }
 
+    @Transaction
     @Query(
         """
         SELECT *

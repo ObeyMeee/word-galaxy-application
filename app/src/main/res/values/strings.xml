@@ -61,6 +61,8 @@
     <string name="example">Example</string>
     <string name="text">Text</string>
     <string name="this_word_already_exists">This word already exists</string>
+    <string name="new_category">New Category</string>
+    <string name="title">Title</string>
 
     <plurals name="days">
         <item quantity="one">day</item>
