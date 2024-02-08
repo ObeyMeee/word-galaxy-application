@@ -66,7 +66,6 @@ import ua.com.andromeda.wordgalaxy.ui.theme.WordGalaxyTheme
 import ua.com.andromeda.wordgalaxy.utils.RESOURCE_NOT_FOUND
 import ua.com.andromeda.wordgalaxy.utils.getCategoryIconIdentifier
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NewWordScreen(
     navigateUp: () -> Unit,
@@ -166,7 +165,6 @@ private fun NewWordTopAppBar(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NewWordMain(modifier: Modifier = Modifier) {
     val viewModel: NewWordViewModel = viewModel(factory = NewWordViewModel.factory)
@@ -309,7 +307,6 @@ fun ExistingWordsList(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExampleList(
     examples: List<Example>,

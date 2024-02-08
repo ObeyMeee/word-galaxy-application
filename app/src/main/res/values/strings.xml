@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">WordGalaxy</string>
+    <string name="app_name">Word Galaxy</string>
     <string name="learn_new_words">Learn new words</string>
     <string name="learned_today">Learned today: %d of %d</string>
     <string name="review_words">Review words</string>
@@ -63,6 +63,11 @@
     <string name="this_word_already_exists">This word already exists</string>
     <string name="new_category">New Category</string>
     <string name="title">Title</string>
+    <string name="search_for_words">Search for words</string>
+    <string name="play_pronunciation">Play pronunciation</string>
+    <string name="no_words_found">No words found</string>
+    <string name="word_actions">Word actions</string>
+    <string name="jump_to_this_word">Jump to this word</string>
 
     <plurals name="days">
         <item quantity="one">day</item>

@@ -5,6 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.RewriteQueriesToDropUnusedColumns
 import androidx.room.Transaction
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
@@ -14,6 +15,7 @@ import ua.com.andromeda.wordgalaxy.data.model.Example
 import ua.com.andromeda.wordgalaxy.data.model.Phonetic
 import ua.com.andromeda.wordgalaxy.data.model.Word
 import ua.com.andromeda.wordgalaxy.data.model.WordAndCategoryCrossRef
+import ua.com.andromeda.wordgalaxy.data.model.WordAndPhonetics
 import ua.com.andromeda.wordgalaxy.data.model.WordStatus
 import ua.com.andromeda.wordgalaxy.data.model.WordWithCategories
 
@@ -112,6 +114,18 @@ interface WordDao {
         """
     )
     fun findCategoryIdByName(name: String): Long?
+
+    @Transaction
+    @RewriteQueriesToDropUnusedColumns
+    @Query(
+        """
+            SELECT *
+            FROM words_categories
+            INNER JOIN word ON words_categories.word_id = word.id
+            WHERE words_categories.category_id = :categoryId
+        """
+    )
+    fun findWordsByCategoryId(categoryId: Long): Flow<List<WordAndPhonetics>>
 
     @Query(
         """
@@ -218,4 +232,15 @@ interface WordDao {
         """
     )
     fun findWordByValue(value: String): Flow<List<EmbeddedWord>>
+
+    @Transaction
+    @Query(
+        """
+        SELECT * 
+        FROM Word
+        WHERE lower(value) LIKE '%' || lower(:searchValue) || '%' 
+        OR lower(translation) LIKE '%' || lower(:searchValue) || '%'
+        """
+    )
+    fun findLikeValueOrTranslationIgnoreCase(searchValue: String): Flow<List<EmbeddedWord>>
 }

@@ -10,12 +10,13 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -38,12 +39,12 @@ import ua.com.andromeda.wordgalaxy.R
 import ua.com.andromeda.wordgalaxy.ui.screens.common.Message
 import ua.com.andromeda.wordgalaxy.ui.screens.start.home.HomeScreen
 import ua.com.andromeda.wordgalaxy.ui.screens.start.vocabulary.categories.VocabularyScreen
+import ua.com.andromeda.wordgalaxy.ui.screens.start.vocabulary.categorydetails.CategoryDetailsScreen
 import ua.com.andromeda.wordgalaxy.ui.screens.start.vocabulary.newcategory.NewCategoryScreen
 import ua.com.andromeda.wordgalaxy.ui.screens.start.vocabulary.newword.NewWordScreen
 import ua.com.andromeda.wordgalaxy.ui.screens.study.learnwords.LearnWordsScreen
 import ua.com.andromeda.wordgalaxy.ui.screens.study.reviewwords.ReviewWordsScreen
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WordGalaxyNavHost(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
@@ -64,6 +65,10 @@ fun WordGalaxyNavHost(modifier: Modifier = Modifier) {
         }
     }
 
+    val snackbarHostState = remember {
+        SnackbarHostState()
+    }
+
     Scaffold(
         topBar = {
             StartContent(currentRoute) {
@@ -78,6 +83,9 @@ fun WordGalaxyNavHost(modifier: Modifier = Modifier) {
             StartContent(currentRoute) {
                 StartBottomAppBar(navController = navController)
             }
+        },
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
         },
         floatingActionButton = {
             if (vocabularyCategoriesScreenRoute == currentRoute) {
@@ -140,7 +148,8 @@ fun WordGalaxyNavHost(modifier: Modifier = Modifier) {
                     composable(vocabularyCategoriesScreenRoute) {
                         VocabularyScreen(
                             listState = categoriesState,
-                            navController = navController
+                            navController = navController,
+                            snackbarHostState = snackbarHostState,
                         )
                     }
                     composable(newWordScreenRoute) {
@@ -153,6 +162,15 @@ fun WordGalaxyNavHost(modifier: Modifier = Modifier) {
                     }
                     composable(Destination.Start.VocabularyScreen.NewCategoryScreen()) {
                         NewCategoryScreen(
+                            navigateUp = {
+                                navController.navigateUp()
+                            },
+                            modifier = modifierWithSmallPadding
+                        )
+                    }
+                    composable(Destination.Start.VocabularyScreen.CategoryDetailsScreen()) {
+                        val categoryId = it.arguments?.getLong("id") ?: -1
+                        CategoryDetailsScreen(
                             navigateUp = {
                                 navController.navigateUp()
                             },

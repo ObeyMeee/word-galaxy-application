@@ -11,6 +11,8 @@ sealed class Destination(val route: String) {
             data object CategoriesScreen : Destination("categories")
             data object NewWordScreen : Destination("new_word")
             data object NewCategoryScreen : Destination("new_category")
+            data object CategoryDetailsScreen : Destination("categories/{id}")
+
         }
 
         data object Settings : Destination("settings")

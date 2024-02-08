@@ -1,27 +1,45 @@
 package ua.com.andromeda.wordgalaxy.ui.screens.start.vocabulary.categories
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.ManageSearch
+import androidx.compose.material.icons.filled.PlayCircleFilled
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SearchBar
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,6 +47,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,8 +61,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.launch
 import ua.com.andromeda.wordgalaxy.R
+import ua.com.andromeda.wordgalaxy.data.DefaultStorage.embeddedWord
 import ua.com.andromeda.wordgalaxy.data.model.Category
+import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
 import ua.com.andromeda.wordgalaxy.data.model.VocabularyCategory
 import ua.com.andromeda.wordgalaxy.ui.navigation.Destination
 import ua.com.andromeda.wordgalaxy.ui.screens.common.CenteredLoadingSpinner
@@ -51,14 +73,17 @@ import ua.com.andromeda.wordgalaxy.ui.screens.common.Message
 import ua.com.andromeda.wordgalaxy.ui.theme.WordGalaxyTheme
 import ua.com.andromeda.wordgalaxy.utils.RESOURCE_NOT_FOUND
 import ua.com.andromeda.wordgalaxy.utils.getCategoryIconIdentifier
+import ua.com.andromeda.wordgalaxy.utils.playPronunciation
 
 @Composable
 fun VocabularyScreen(
     listState: LazyListState,
     navController: NavController = rememberNavController(),
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
 ) {
     val viewModel: VocabularyViewModel = viewModel(factory = VocabularyViewModel.factory)
     val vocabularyUiState by viewModel.uiState.collectAsState()
+
     when (val uiState = vocabularyUiState) {
         is VocabularyUiState.Default -> {
             CenteredLoadingSpinner()
@@ -78,20 +103,204 @@ fun VocabularyScreen(
         }
 
         is VocabularyUiState.Success -> {
-            val vocabularyCategories = uiState.vocabularyCategories
+            val coroutineScope = rememberCoroutineScope()
+            AnimatedVisibility(visible = uiState.isWordActionDialogOpen) {
+                AlertDialog(
+                    onDismissRequest = viewModel::selectSuggestedWord,
+                    confirmButton = {},
+                    title = {
+                        Text(text = stringResource(R.string.word_actions))
+                    },
+                    text = {
+                        Column {
+                            Button(
+                                onClick = { /*TODO*/ },
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.ManageSearch,
+                                        contentDescription = null
+                                    )
+                                    Spacer(modifier = Modifier.width(dimensionResource(R.dimen.padding_small)))
+                                    Text(text = stringResource(R.string.jump_to_this_word))
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(dimensionResource(R.dimen.padding_mediumish)))
+                            Button(onClick = {
+                                viewModel.copyWordToMyCategory()
+                                coroutineScope.launch {
+                                    snackbarHostState.showSnackbar(
+                                        message = "You have successfully copied '${embeddedWord.word.value}' word to your category",
+                                        withDismissAction = true,
+                                        duration = SnackbarDuration.Long
+                                    )
+                                }
+                            }) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.ContentCopy,
+                                        contentDescription = null
+                                    )
+                                    Spacer(modifier = Modifier.width(dimensionResource(R.dimen.padding_small)))
+                                    Text(text = stringResource(R.string.copy_to_my_category))
+                                }
+                            }
+                        }
+                    }
+                )
+            }
+            VocabularySearchBar(
+                state = uiState,
+                viewModel = viewModel,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = dimensionResource(R.dimen.padding_small))
+            )
             CategoryList(
-                items = vocabularyCategories,
+                items = uiState.vocabularyCategories,
                 listState = listState,
                 fetchSubCategories = viewModel::fetchSubCategories,
                 navigateToAddCategory = {
                     navController.navigate(Destination.Start.VocabularyScreen.NewCategoryScreen())
-                }
+                },
+                modifier = Modifier.padding(top = dimensionResource(R.dimen.padding_huge))
             )
         }
     }
 }
 
+@Composable
 @OptIn(ExperimentalMaterial3Api::class)
+private fun VocabularySearchBar(
+    state: VocabularyUiState.Success,
+    viewModel: VocabularyViewModel,
+    modifier: Modifier = Modifier,
+) {
+    val query = state.searchQuery
+    val notEmptyQuery = query.isNotEmpty()
+    SearchBar(
+        query = query,
+        onQueryChange = viewModel::updateSearchQuery,
+        active = state.activeSearch,
+        onSearch = {},
+        onActiveChange = viewModel::updateActive,
+        modifier = modifier,
+        placeholder = {
+            Text(text = stringResource(R.string.search_for_words))
+        },
+        leadingIcon = {
+            AnimatedContent(
+                targetState = state.activeSearch,
+                label = "SearchIconAnimation"
+            ) { active ->
+                if (active) {
+                    IconButton(onClick = viewModel::updateActive) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = null
+                        )
+                    }
+                } else {
+                    Icon(imageVector = Icons.Default.Search, contentDescription = null)
+                }
+            }
+        },
+        trailingIcon = {
+            AnimatedVisibility(visible = state.activeSearch) {
+                IconButton(
+                    onClick = viewModel::clearSearch,
+                    enabled = notEmptyQuery
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Clear search query"
+                    )
+                }
+            }
+        }
+    ) {
+        SearchBarContent(
+            items = state.suggestedWords,
+            query = state.searchQuery,
+            selectSuggestion = { selectedWord, open ->
+                viewModel.selectSuggestedWord(selectedWord, open)
+            },
+        )
+    }
+}
+
+@Composable
+private fun SearchBarContent(
+    items: List<EmbeddedWord>,
+    query: String,
+    selectSuggestion: (EmbeddedWord?, Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    if (items.isEmpty() && query.isNotEmpty()) {
+        Message(
+            message = stringResource(R.string.no_words_found),
+            backgroundColor = MaterialTheme.colorScheme.primaryContainer,
+            icon = {
+                Icon(imageVector = Icons.Default.Info, contentDescription = null)
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = dimensionResource(R.dimen.padding_medium))
+        )
+    } else {
+        SuggestedWordList(
+            suggestions = items,
+            selectSuggestion = selectSuggestion,
+            modifier = modifier
+        )
+    }
+}
+
+@Composable
+private fun SuggestedWordList(
+    suggestions: List<EmbeddedWord>,
+    selectSuggestion: (EmbeddedWord?, Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+    LazyColumn(modifier) {
+        items(suggestions) { embeddedWord ->
+            val (word, categories, phonetics) = embeddedWord
+            ListItem(
+                headlineContent = { Text(text = "${word.value} - ${word.translation}") },
+                supportingContent = { Text(text = categories.joinToString { it.name }) },
+                trailingContent = {
+                    IconButton(
+                        onClick = {
+                            val audioUrls = phonetics.map { it.audio }
+                            context.playPronunciation(audioUrls)
+                        }) {
+                        Icon(
+                            imageVector = Icons.Default.PlayCircleFilled,
+                            contentDescription = stringResource(R.string.play_pronunciation),
+                            modifier = Modifier.size(dimensionResource(R.dimen.icon_size_large)),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                },
+                modifier = Modifier
+                    .clickable {
+                        selectSuggestion(embeddedWord, true)
+                    }
+                    .fillMaxWidth()
+            )
+        }
+    }
+}
+
 @Composable
 fun CategoryList(
     items: List<VocabularyCategory>,
@@ -106,7 +315,7 @@ fun CategoryList(
     ) {
         item {
             ListItem(
-                headlineText = {
+                headlineContent = {
                     Text(text = stringResource(R.string.add_category))
                 },
                 leadingContent = {
@@ -135,7 +344,6 @@ fun CategoryList(
 
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryItem(
     vocabularyCategory: VocabularyCategory,
@@ -159,7 +367,7 @@ fun CategoryItem(
     val context = LocalContext.current
 
     ListItem(
-        headlineText = {
+        headlineContent = {
             Text(text = categoryName)
         },
         modifier = modifier.clickable {
@@ -194,7 +402,7 @@ fun CategoryItem(
                 }
             }
         },
-        supportingText = {
+        supportingContent = {
             Text(text = "${vocabularyCategory.totalWords} words")
         },
         trailingContent = {
@@ -213,7 +421,6 @@ fun CategoryItem(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NestedCategories(
     items: List<VocabularyCategory>,
@@ -222,7 +429,7 @@ fun NestedCategories(
     Column(modifier) {
         items.forEach {
             ListItem(
-                headlineText = {
+                headlineContent = {
                     Text(text = it.category.name)
                 },
                 modifier = Modifier.fillMaxWidth(),
@@ -246,7 +453,7 @@ fun NestedCategories(
                         )
                     }
                 },
-                supportingText = {
+                supportingContent = {
                     Text(text = "${it.totalWords} words")
                 },
                 trailingContent = {
