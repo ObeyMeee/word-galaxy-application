@@ -5,8 +5,10 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
+import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
+import androidx.navigation.navArgument
 import ua.com.andromeda.wordgalaxy.ui.navigation.Destination
 import ua.com.andromeda.wordgalaxy.ui.screens.start.vocabulary.categories.VocabularyScreen
 import ua.com.andromeda.wordgalaxy.ui.screens.start.vocabulary.categorydetails.CategoryDetailsScreen
@@ -20,6 +22,7 @@ fun NavGraphBuilder.vocabularyGraph(
     modifier: Modifier = Modifier
 ) {
     val categoriesScreenRoute = Destination.Start.VocabularyScreen.CategoriesScreen()
+    val categoryDetailsScreen = Destination.Start.VocabularyScreen.CategoryDetailsScreen
     navigation(
         startDestination = categoriesScreenRoute,
         route = Destination.Start.VocabularyScreen()
@@ -27,7 +30,9 @@ fun NavGraphBuilder.vocabularyGraph(
         composable(categoriesScreenRoute) {
             VocabularyScreen(
                 listState = categoriesState,
-                navController = navController,
+                navigateTo = {
+                    navController.navigate(it)
+                },
                 snackbarHostState = snackbarHostState,
             )
         }
@@ -47,7 +52,12 @@ fun NavGraphBuilder.vocabularyGraph(
                 modifier = modifier
             )
         }
-        composable(Destination.Start.VocabularyScreen.CategoryDetailsScreen()) {
+        composable(
+            route = categoryDetailsScreen.fullRoute,
+            arguments = listOf(navArgument(categoryDetailsScreen.ID_KEY) {
+                type = NavType.LongType
+            })
+        ) {
             CategoryDetailsScreen(
                 navigateUp = {
                     navController.navigateUp()

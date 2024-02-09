@@ -59,8 +59,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
 import ua.com.andromeda.wordgalaxy.R
 import ua.com.andromeda.wordgalaxy.data.DefaultStorage.embeddedWord
@@ -68,6 +66,7 @@ import ua.com.andromeda.wordgalaxy.data.model.Category
 import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
 import ua.com.andromeda.wordgalaxy.data.model.VocabularyCategory
 import ua.com.andromeda.wordgalaxy.ui.navigation.Destination
+import ua.com.andromeda.wordgalaxy.ui.navigation.Destination.Start.VocabularyScreen.CategoryDetailsScreen
 import ua.com.andromeda.wordgalaxy.ui.screens.common.CenteredLoadingSpinner
 import ua.com.andromeda.wordgalaxy.ui.screens.common.Message
 import ua.com.andromeda.wordgalaxy.ui.theme.WordGalaxyTheme
@@ -78,7 +77,7 @@ import ua.com.andromeda.wordgalaxy.utils.playPronunciation
 @Composable
 fun VocabularyScreen(
     listState: LazyListState,
-    navController: NavController = rememberNavController(),
+    navigateTo: (String) -> Unit,
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
 ) {
     val viewModel: VocabularyViewModel = hiltViewModel()
@@ -168,9 +167,7 @@ fun VocabularyScreen(
                 items = uiState.vocabularyCategories,
                 listState = listState,
                 fetchSubCategories = viewModel::fetchSubCategories,
-                navigateToAddCategory = {
-                    navController.navigate(Destination.Start.VocabularyScreen.NewCategoryScreen())
-                },
+                navigateTo = navigateTo,
                 modifier = Modifier.padding(top = dimensionResource(R.dimen.padding_huge))
             )
         }
@@ -307,7 +304,7 @@ fun CategoryList(
     listState: LazyListState,
     modifier: Modifier = Modifier,
     fetchSubCategories: (Int) -> Unit = {},
-    navigateToAddCategory: () -> Unit = {}
+    navigateTo: (String) -> Unit,
 ) {
     LazyColumn(
         modifier = modifier,
@@ -330,13 +327,16 @@ fun CategoryList(
                             .size(dimensionResource(R.dimen.icon_size_largest))
                     )
                 },
-                modifier = Modifier.clickable(onClick = navigateToAddCategory)
+                modifier = Modifier.clickable(onClick = {
+                    navigateTo(Destination.Start.VocabularyScreen.NewCategoryScreen())
+                })
             )
         }
         items(items, key = { it.category.id }) {
             CategoryItem(
                 vocabularyCategory = it,
                 fetchSubCategories = fetchSubCategories,
+                navigateTo = navigateTo,
                 modifier = Modifier.fillMaxWidth()
             )
         }
@@ -348,6 +348,7 @@ fun CategoryList(
 fun CategoryItem(
     vocabularyCategory: VocabularyCategory,
     modifier: Modifier = Modifier,
+    navigateTo: (String) -> Unit = {},
     fetchSubCategories: (Int) -> Unit = {}
 ) {
     var expanded by remember {
@@ -414,7 +415,7 @@ fun CategoryItem(
     ) {
         NestedCategories(
             items = vocabularyCategory.subcategories,
-            {_ ->},
+            navigateTo = navigateTo,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = dimensionResource(R.dimen.padding_medium))
@@ -425,8 +426,8 @@ fun CategoryItem(
 @Composable
 fun NestedCategories(
     items: List<VocabularyCategory>,
-    navigateToCategoryDetails: (Long) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    navigateTo: (String) -> Unit,
 ) {
     Column(modifier) {
         items.forEach {
@@ -437,7 +438,7 @@ fun NestedCategories(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable {
-                        navigateToCategoryDetails(it.category.id)
+                        navigateTo(CategoryDetailsScreen(it.category.id))
                     },
                 leadingContent = {
                     Row(

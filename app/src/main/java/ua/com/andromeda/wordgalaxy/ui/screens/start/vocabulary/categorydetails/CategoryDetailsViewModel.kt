@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import ua.com.andromeda.wordgalaxy.data.repository.word.WordRepository
+import ua.com.andromeda.wordgalaxy.ui.navigation.Destination.Start.VocabularyScreen.CategoryDetailsScreen.ID_KEY
 import javax.inject.Inject
 
 private const val TAG = "CategoryDetailsViewModel"
@@ -24,8 +25,8 @@ class CategoryDetailsViewModel @Inject constructor(
     val uiState: StateFlow<CategoryDetailsUiState> = _uiState
 
     init {
-        val categoryId = savedStateHandle.get<Long>("categoryId")
-            ?: throw IllegalStateException("categoryId not found")
+        val categoryId = savedStateHandle.get<Long>(ID_KEY)
+            ?: throw IllegalStateException("category id not found")
         viewModelScope.launch(Dispatchers.IO) {
             launch {
                 wordRepository.findWordsByCategoryId(categoryId).collect { words ->
