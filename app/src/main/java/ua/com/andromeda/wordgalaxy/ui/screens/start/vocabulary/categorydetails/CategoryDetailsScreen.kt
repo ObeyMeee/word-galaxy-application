@@ -24,7 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import ua.com.andromeda.wordgalaxy.R
 import ua.com.andromeda.wordgalaxy.data.model.WordAndPhonetics
 import ua.com.andromeda.wordgalaxy.ui.screens.common.CenteredLoadingSpinner
@@ -36,7 +36,7 @@ fun CategoryDetailsScreen(
     navigateUp: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val viewModel: CategoryDetailsViewModel = viewModel(factory = CategoryDetailsViewModel.factory)
+    val viewModel: CategoryDetailsViewModel = hiltViewModel()
     val state by viewModel.uiState.collectAsState()
 
     Scaffold(
@@ -78,7 +78,7 @@ fun CategoryDetailsTopAppBar(
 @Composable
 fun CategoryDetailsMain(
     modifier: Modifier = Modifier,
-    viewModel: CategoryDetailsViewModel = viewModel(),
+    viewModel: CategoryDetailsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
 

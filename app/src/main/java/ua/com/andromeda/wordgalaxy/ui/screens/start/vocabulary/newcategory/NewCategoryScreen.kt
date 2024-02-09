@@ -33,7 +33,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import ua.com.andromeda.wordgalaxy.R
 import ua.com.andromeda.wordgalaxy.ui.screens.common.CenteredLoadingSpinner
 import ua.com.andromeda.wordgalaxy.ui.screens.common.Message
@@ -88,7 +88,7 @@ fun NewCategoryMain(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    val viewModel: NewCategoryViewModel = viewModel(factory = NewCategoryViewModel.factory)
+    val viewModel: NewCategoryViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsState()
 
     when (val state = uiState) {

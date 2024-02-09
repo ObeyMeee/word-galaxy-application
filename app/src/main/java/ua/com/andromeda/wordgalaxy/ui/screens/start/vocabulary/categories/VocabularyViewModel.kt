@@ -1,26 +1,24 @@
 package ua.com.andromeda.wordgalaxy.ui.screens.start.vocabulary.categories
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import ua.com.andromeda.wordgalaxy.WordGalaxyApplication
 import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
 import ua.com.andromeda.wordgalaxy.data.model.MY_WORDS_CATEGORY
 import ua.com.andromeda.wordgalaxy.data.model.toWordWithCategories
 import ua.com.andromeda.wordgalaxy.data.repository.category.CategoryRepository
-import ua.com.andromeda.wordgalaxy.data.repository.category.CategoryRepositoryImpl
 import ua.com.andromeda.wordgalaxy.data.repository.word.WordRepository
-import ua.com.andromeda.wordgalaxy.data.repository.word.WordRepositoryImpl
+import javax.inject.Inject
 
-class VocabularyViewModel(
+private const val TAG = "VocabularyViewModel"
+
+@HiltViewModel
+class VocabularyViewModel @Inject constructor(
     private val wordRepository: WordRepository,
     private val categoryRepository: CategoryRepository
 ) : ViewModel() {
@@ -124,21 +122,6 @@ class VocabularyViewModel(
                 )
             }
             selectSuggestedWord()
-        }
-    }
-
-    companion object {
-        private const val TAG = "VocabularyViewModel"
-        val factory: ViewModelProvider.Factory = viewModelFactory {
-            initializer {
-                val application = this[APPLICATION_KEY] as WordGalaxyApplication
-                val wordDao = application.appDatabase.wordDao()
-                val categoryDao = application.appDatabase.categoryDao()
-                VocabularyViewModel(
-                    wordRepository = WordRepositoryImpl(wordDao),
-                    categoryRepository = CategoryRepositoryImpl(categoryDao)
-                )
-            }
         }
     }
 }

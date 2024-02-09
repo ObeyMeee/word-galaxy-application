@@ -46,7 +46,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import ua.com.andromeda.wordgalaxy.R
@@ -152,7 +152,7 @@ private fun TopAppNavigationBar(
 
 @Composable
 fun ReviewWordsMain(modifier: Modifier = Modifier) {
-    val viewModel: ReviewWordsViewModel = viewModel(factory = ReviewWordsViewModel.factory)
+    val viewModel: ReviewWordsViewModel = hiltViewModel()
     val reviewWordsUiState by viewModel.uiState.collectAsState()
 
     when (val uiState = reviewWordsUiState) {

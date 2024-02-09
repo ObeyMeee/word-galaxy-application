@@ -11,10 +11,11 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import ua.com.andromeda.wordgalaxy.ui.screens.start.home.TimePeriodChartOptions
 import java.io.IOException
+import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class UserPreferencesRepository(
+class UserPreferencesRepository @Inject constructor(
     private val dataStore: DataStore<Preferences>
 ) {
     val amountWordsToLearnPerDay: Flow<Int> = dataStore.data.catch {

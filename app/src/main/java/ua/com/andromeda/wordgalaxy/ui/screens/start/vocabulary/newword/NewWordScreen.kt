@@ -58,7 +58,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import ua.com.andromeda.wordgalaxy.R
 import ua.com.andromeda.wordgalaxy.data.model.Example
 import ua.com.andromeda.wordgalaxy.ui.screens.common.CenteredLoadingSpinner
@@ -71,7 +71,7 @@ fun NewWordScreen(
     navigateUp: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val viewModel: NewWordViewModel = viewModel(factory = NewWordViewModel.factory)
+    val viewModel: NewWordViewModel = hiltViewModel()
     Scaffold(
         topBar = {
             NewWordTopAppBar(onClickNavIcon = navigateUp)
@@ -103,7 +103,7 @@ private fun NewWordTopAppBar(
     modifier: Modifier = Modifier,
     onClickNavIcon: () -> Unit = {}
 ) {
-    val viewModel: NewWordViewModel = viewModel(factory = NewWordViewModel.factory)
+    val viewModel: NewWordViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsState()
 
     when (val state = uiState) {
@@ -167,7 +167,7 @@ private fun NewWordTopAppBar(
 
 @Composable
 fun NewWordMain(modifier: Modifier = Modifier) {
-    val viewModel: NewWordViewModel = viewModel(factory = NewWordViewModel.factory)
+    val viewModel: NewWordViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsState()
 
     if (uiState is NewWordUiState.Success) {

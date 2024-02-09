@@ -58,7 +58,7 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
@@ -81,7 +81,7 @@ fun VocabularyScreen(
     navController: NavController = rememberNavController(),
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
 ) {
-    val viewModel: VocabularyViewModel = viewModel(factory = VocabularyViewModel.factory)
+    val viewModel: VocabularyViewModel = hiltViewModel()
     val vocabularyUiState by viewModel.uiState.collectAsState()
 
     when (val uiState = vocabularyUiState) {
@@ -181,8 +181,8 @@ fun VocabularyScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 private fun VocabularySearchBar(
     state: VocabularyUiState.Success,
-    viewModel: VocabularyViewModel,
     modifier: Modifier = Modifier,
+    viewModel: VocabularyViewModel = hiltViewModel(),
 ) {
     val query = state.searchQuery
     val notEmptyQuery = query.isNotEmpty()
@@ -414,6 +414,7 @@ fun CategoryItem(
     ) {
         NestedCategories(
             items = vocabularyCategory.subcategories,
+            {_ ->},
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = dimensionResource(R.dimen.padding_medium))
@@ -424,6 +425,7 @@ fun CategoryItem(
 @Composable
 fun NestedCategories(
     items: List<VocabularyCategory>,
+    navigateToCategoryDetails: (Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(modifier) {
@@ -432,7 +434,11 @@ fun NestedCategories(
                 headlineContent = {
                     Text(text = it.category.name)
                 },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        navigateToCategoryDetails(it.category.id)
+                    },
                 leadingContent = {
                     Row(
                         modifier = Modifier

@@ -1,23 +1,22 @@
 package ua.com.andromeda.wordgalaxy.ui.screens.study.reviewwords
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import ua.com.andromeda.wordgalaxy.WordGalaxyApplication
 import ua.com.andromeda.wordgalaxy.data.model.repeat
 import ua.com.andromeda.wordgalaxy.data.repository.word.WordRepository
-import ua.com.andromeda.wordgalaxy.data.repository.word.WordRepositoryImpl
 import ua.com.andromeda.wordgalaxy.ui.screens.common.CardMode
+import javax.inject.Inject
 
-class ReviewWordsViewModel(
+private const val TAG = "ReviewWordsViewModel"
+
+@HiltViewModel
+class ReviewWordsViewModel @Inject constructor(
     private val wordRepository: WordRepository
 ) : ViewModel() {
     private var _uiState: MutableStateFlow<ReviewWordsUiState> =
@@ -132,18 +131,5 @@ class ReviewWordsViewModel(
             else
                 it.copy(amountAttempts = amountAttemptsLeft)
         })
-    }
-
-    companion object {
-        private const val TAG = "ReviewWordsViewModel"
-
-        val factory: ViewModelProvider.Factory = viewModelFactory {
-            initializer {
-                val application = this[APPLICATION_KEY] as WordGalaxyApplication
-                val wordDao = application.appDatabase.wordDao()
-                val wordRepository = WordRepositoryImpl(wordDao)
-                ReviewWordsViewModel(wordRepository)
-            }
-        }
     }
 }

@@ -1,29 +1,27 @@
 package ua.com.andromeda.wordgalaxy.ui.screens.start.vocabulary.newword
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import ua.com.andromeda.wordgalaxy.WordGalaxyApplication
 import ua.com.andromeda.wordgalaxy.data.model.Category
 import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
 import ua.com.andromeda.wordgalaxy.data.model.Example
 import ua.com.andromeda.wordgalaxy.data.model.Phonetic
 import ua.com.andromeda.wordgalaxy.data.model.Word
 import ua.com.andromeda.wordgalaxy.data.repository.category.CategoryRepository
-import ua.com.andromeda.wordgalaxy.data.repository.category.CategoryRepositoryImpl
 import ua.com.andromeda.wordgalaxy.data.repository.word.WordRepository
-import ua.com.andromeda.wordgalaxy.data.repository.word.WordRepositoryImpl
+import javax.inject.Inject
 
-class NewWordViewModel(
+private const val TAG = "NewWordViewModel"
+
+@HiltViewModel
+class NewWordViewModel @Inject constructor(
     private val wordRepository: WordRepository,
     private val categoryRepository: CategoryRepository
 ) : ViewModel() {
@@ -154,21 +152,6 @@ class NewWordViewModel(
     fun updateCategoriesExpanded(value: Boolean = false) {
         updateUiState {
             it.copy(categoriesExpanded = value)
-        }
-    }
-
-    companion object {
-        private const val TAG = "NewWordViewModel"
-        val factory: ViewModelProvider.Factory = viewModelFactory {
-            initializer {
-                val application = this[APPLICATION_KEY] as WordGalaxyApplication
-                val wordDao = application.appDatabase.wordDao()
-                val categoryDao = application.appDatabase.categoryDao()
-                NewWordViewModel(
-                    wordRepository = WordRepositoryImpl(wordDao),
-                    categoryRepository = CategoryRepositoryImpl(categoryDao)
-                )
-            }
         }
     }
 }

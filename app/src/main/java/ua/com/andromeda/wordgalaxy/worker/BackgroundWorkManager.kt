@@ -1,18 +1,17 @@
 package ua.com.andromeda.wordgalaxy.worker
 
-import android.content.Context
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import java.time.Duration
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class BackgroundWorkManager(context: Context) {
-    private val workManager = WorkManager.getInstance(context)
-
-    @RequiresApi(Build.VERSION_CODES.O)
+@Singleton
+class BackgroundWorkManager @Inject constructor(
+    private val workManager: WorkManager
+) {
     fun setupBackgroundWork() {
         val constraints = Constraints.Builder()
             .setRequiresBatteryNotLow(true)

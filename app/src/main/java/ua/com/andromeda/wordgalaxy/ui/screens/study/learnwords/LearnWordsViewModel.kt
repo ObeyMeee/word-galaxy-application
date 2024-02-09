@@ -3,18 +3,14 @@ package ua.com.andromeda.wordgalaxy.ui.screens.study.learnwords
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import ua.com.andromeda.wordgalaxy.WordGalaxyApplication
 import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
 import ua.com.andromeda.wordgalaxy.data.model.MY_WORDS_CATEGORY
 import ua.com.andromeda.wordgalaxy.data.model.WordStatus
@@ -23,11 +19,12 @@ import ua.com.andromeda.wordgalaxy.data.model.reset
 import ua.com.andromeda.wordgalaxy.data.model.toWordWithCategories
 import ua.com.andromeda.wordgalaxy.data.repository.preferences.UserPreferencesRepository
 import ua.com.andromeda.wordgalaxy.data.repository.word.WordRepository
-import ua.com.andromeda.wordgalaxy.data.repository.word.WordRepositoryImpl
 import ua.com.andromeda.wordgalaxy.ui.screens.common.CardMode
 import java.time.LocalDateTime
+import javax.inject.Inject
 
-class LearnWordsViewModel(
+@HiltViewModel
+class LearnWordsViewModel @Inject constructor(
     private val wordRepository: WordRepository,
     private val userPreferencesRepository: UserPreferencesRepository,
 ) : ViewModel() {
@@ -241,17 +238,5 @@ class LearnWordsViewModel(
             }
         }
         moveToNextWord()
-    }
-
-    companion object {
-        val factory: ViewModelProvider.Factory = viewModelFactory {
-            initializer {
-                val application = (this[APPLICATION_KEY] as WordGalaxyApplication)
-                val wordRepository = WordRepositoryImpl(
-                    application.appDatabase.wordDao()
-                )
-                LearnWordsViewModel(wordRepository, application.userPreferencesRepository)
-            }
-        }
     }
 }

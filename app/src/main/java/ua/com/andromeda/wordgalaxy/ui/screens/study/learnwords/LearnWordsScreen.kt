@@ -57,7 +57,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import ua.com.andromeda.wordgalaxy.R
@@ -82,7 +82,7 @@ fun LearnWordsScreen(
     modifier: Modifier = Modifier,
     navController: NavController = rememberNavController()
 ) {
-    val viewModel: LearnWordsViewModel = viewModel(factory = LearnWordsViewModel.factory)
+    val viewModel: LearnWordsViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsState()
     val amountWordsToReview = getAmountWordsToReview(uiState)
 
@@ -189,7 +189,7 @@ private fun TopAppNavigationBar(
 
 @Composable
 fun LearnWordsMain(modifier: Modifier = Modifier) {
-    val viewModel: LearnWordsViewModel = viewModel(factory = LearnWordsViewModel.factory)
+    val viewModel: LearnWordsViewModel = hiltViewModel()
     val learnWordsUiState by viewModel.uiState.collectAsState()
     val menuItems = listOf(
         DropdownItemState(
@@ -308,7 +308,7 @@ private fun ScreenHeader(
 @Composable
 private fun ColumnScope.CardModeContent(
     uiState: LearnWordsUiState.Success,
-    viewModel: LearnWordsViewModel = viewModel(factory = LearnWordsViewModel.factory),
+    viewModel: LearnWordsViewModel = hiltViewModel(),
 ) {
     val wordToLearn = uiState.embeddedWord
     val isWordNew = wordToLearn.word.status == WordStatus.New
