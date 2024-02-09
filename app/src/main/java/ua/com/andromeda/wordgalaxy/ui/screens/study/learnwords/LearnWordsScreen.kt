@@ -77,7 +77,6 @@ import ua.com.andromeda.wordgalaxy.ui.screens.common.flashcard.FlashcardScope.Wo
 import ua.com.andromeda.wordgalaxy.ui.screens.common.flashcard.FlashcardState
 import ua.com.andromeda.wordgalaxy.ui.theme.WordGalaxyTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LearnWordsScreen(
     modifier: Modifier = Modifier,
@@ -369,7 +368,6 @@ private fun ColumnScope.ShowAnswerCardMode(embeddedWord: EmbeddedWord) {
 }
 
 @Composable
-@OptIn(ExperimentalMaterial3Api::class)
 private fun TypeAnswerCardMode(
     textFieldValue: TextFieldValue,
     amountAttempts: Int,
@@ -390,7 +388,11 @@ private fun TypeAnswerCardMode(
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
             keyboardActions = KeyboardActions { keyboardAction() },
             singleLine = true,
-            colors = TextFieldDefaults.textFieldColors(containerColor = Color.Transparent)
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = Color.Transparent,
+                unfocusedContainerColor = Color.Transparent,
+                disabledContainerColor = Color.Transparent,
+            )
         )
 
         // autofocus the text field

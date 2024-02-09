@@ -18,10 +18,13 @@ import ua.com.andromeda.wordgalaxy.ui.screens.start.vocabulary.newword.ExistingW
 import ua.com.andromeda.wordgalaxy.utils.getLastNDates
 import java.time.LocalDate
 import java.time.temporal.TemporalUnit
+import javax.inject.Inject
+import javax.inject.Singleton
 
 private const val TAG = "WordRepositoryImpl"
 
-class WordRepositoryImpl(
+@Singleton
+class WordRepositoryImpl @Inject constructor(
     private val wordDao: WordDao
 ) : WordRepository {
     override fun findOneRandomWordWhereStatusEquals(status: WordStatus) =

@@ -26,10 +26,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavBackStackEntry
-import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -169,7 +165,6 @@ fun WordGalaxyNavHost(modifier: Modifier = Modifier) {
                         )
                     }
                     composable(Destination.Start.VocabularyScreen.CategoryDetailsScreen()) {
-                        val categoryId = it.arguments?.getLong("id") ?: -1
                         CategoryDetailsScreen(
                             navigateUp = {
                                 navController.navigateUp()
@@ -224,13 +219,4 @@ private fun StartContent(
     if (currentRoute in startDestinations) {
         content()
     }
-}
-
-@Composable
-inline fun <reified T : ViewModel> NavBackStackEntry.sharedViewModel(navController: NavController): T {
-    val navGraphRoute = destination.parent?.route ?: return viewModel()
-    val parentEntry = remember(this) {
-        navController.getBackStackEntry(navGraphRoute)
-    }
-    return viewModel(parentEntry)
 }

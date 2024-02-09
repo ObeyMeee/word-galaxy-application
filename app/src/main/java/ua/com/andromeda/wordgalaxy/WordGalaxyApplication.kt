@@ -4,22 +4,20 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.preferencesDataStore
+import dagger.hilt.android.HiltAndroidApp
 import ua.com.andromeda.wordgalaxy.data.AppDatabase
-import ua.com.andromeda.wordgalaxy.data.repository.preferences.KEY_AMOUNT_WORDS_TO_LEARN_PER_DAY
 import ua.com.andromeda.wordgalaxy.data.repository.preferences.UserPreferencesRepository
 import ua.com.andromeda.wordgalaxy.utils.notification.ReviewWordsNotificationService
 import ua.com.andromeda.wordgalaxy.worker.BackgroundWorkManager
+import javax.inject.Inject
 
+@HiltAndroidApp
 class WordGalaxyApplication : Application() {
-    val appDatabase: AppDatabase by lazy { AppDatabase.getDatabase(this) }
-    lateinit var userPreferencesRepository: UserPreferencesRepository
+    @Inject lateinit var appDatabase: AppDatabase
+    @Inject lateinit var userPreferencesRepository: UserPreferencesRepository
 
     override fun onCreate() {
         super.onCreate()
-        userPreferencesRepository = UserPreferencesRepository(dataStore)
         createNotificationChannel()
         BackgroundWorkManager(applicationContext).setupBackgroundWork()
     }
@@ -36,7 +34,3 @@ class WordGalaxyApplication : Application() {
         notificationManager.createNotificationChannel(channel)
     }
 }
-
-private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(
-    name = KEY_AMOUNT_WORDS_TO_LEARN_PER_DAY
-)

@@ -66,7 +66,6 @@ import ua.com.andromeda.wordgalaxy.ui.theme.WordGalaxyTheme
 
 private const val TAG = "ReviewWordsScreen"
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReviewWordsScreen(
     modifier: Modifier = Modifier,
@@ -269,7 +268,6 @@ private fun ShowAnswerContent(wordToReview: EmbeddedWord) {
     ExampleList(wordToReview.examples)
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TextFieldWithControls(
     userGuess: String,
@@ -290,7 +288,11 @@ private fun TextFieldWithControls(
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
             keyboardActions = KeyboardActions { checkAnswer() },
             singleLine = true,
-            colors = TextFieldDefaults.textFieldColors(containerColor = Color.Transparent)
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = Color.Transparent,
+                unfocusedContainerColor = Color.Transparent,
+                disabledContainerColor = Color.Transparent,
+            )
         )
 
         // autofocus the text field

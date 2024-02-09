@@ -51,7 +51,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import ua.com.andromeda.wordgalaxy.R
@@ -70,7 +70,7 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
     navController: NavController = rememberNavController(),
 ) {
-    val viewModel: HomeViewModel = viewModel(factory = HomeViewModel.factory)
+    val viewModel: HomeViewModel = hiltViewModel()
     val homeUiState by viewModel.uiState.collectAsState()
     when (val state = homeUiState) {
         is HomeUiState.Default -> {
@@ -206,6 +206,7 @@ fun StatsSection(
     }
 }
 
+@OptIn(ExperimentalStdlibApi::class)
 @Composable
 private fun DaysOfWeekRow(modifier: Modifier = Modifier) {
     val dayOfWeeks = DayOfWeek.entries
@@ -248,6 +249,7 @@ private fun DayOfWeekItem(dayOfWeek: DayOfWeek) {
     }
 }
 
+@OptIn(ExperimentalStdlibApi::class)
 @Composable
 private fun ActiveDayOfWeekArrow(modifier: Modifier = Modifier) {
     val dayOfWeeks = DayOfWeek.entries

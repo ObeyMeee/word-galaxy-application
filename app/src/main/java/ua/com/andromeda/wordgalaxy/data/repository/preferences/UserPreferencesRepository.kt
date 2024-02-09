@@ -11,7 +11,9 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import ua.com.andromeda.wordgalaxy.ui.screens.start.home.TimePeriodChartOptions
 import java.io.IOException
+import javax.inject.Singleton
 
+@Singleton
 class UserPreferencesRepository(
     private val dataStore: DataStore<Preferences>
 ) {

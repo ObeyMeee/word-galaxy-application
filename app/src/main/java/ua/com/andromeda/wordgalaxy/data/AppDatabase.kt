@@ -1,8 +1,6 @@
 package ua.com.andromeda.wordgalaxy.data
 
-import android.content.Context
 import androidx.room.Database
-import androidx.room.Room.databaseBuilder
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import ua.com.andromeda.wordgalaxy.data.dao.CategoryDao
@@ -29,23 +27,4 @@ import ua.com.andromeda.wordgalaxy.utils.Converters
 abstract class AppDatabase : RoomDatabase() {
     abstract fun wordDao(): WordDao
     abstract fun categoryDao(): CategoryDao
-
-    companion object {
-        @Volatile
-        private var INSTANCE: AppDatabase? = null
-
-        fun getDatabase(context: Context): AppDatabase {
-            return INSTANCE ?: synchronized(this) {
-                databaseBuilder(
-                    context,
-                    AppDatabase::class.java,
-                    "word-galaxy.db"
-                )
-                    .fallbackToDestructiveMigration()
-                    .createFromAsset("database/word-galaxy.db")
-                    .build()
-                    .also { INSTANCE = it }
-            }
-        }
-    }
 }

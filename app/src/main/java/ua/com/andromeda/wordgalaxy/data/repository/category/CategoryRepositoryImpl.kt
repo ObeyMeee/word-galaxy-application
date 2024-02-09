@@ -1,7 +1,9 @@
 package ua.com.andromeda.wordgalaxy.data.repository.category
 
 import ua.com.andromeda.wordgalaxy.data.dao.CategoryDao
+import javax.inject.Singleton
 
+@Singleton
 class CategoryRepositoryImpl(
     private val categoryDao: CategoryDao
 ) : CategoryRepository {
