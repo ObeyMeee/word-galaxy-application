@@ -1,20 +1,23 @@
 package ua.com.andromeda.wordgalaxy.ui.screens.start.vocabulary.categorydetails
 
 import android.content.res.Configuration
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.PlayCircleFilled
-import androidx.compose.material.icons.filled.Square
+import androidx.compose.material.icons.rounded.Square
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -123,7 +126,10 @@ fun WordList(
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
-    LazyColumn(modifier) {
+    LazyColumn(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_smallest))
+    ) {
         items(items) { (word, phonetics) ->
             val status = word.status
             val amountRepetition = word.amountRepetition ?: 0
@@ -144,7 +150,7 @@ fun WordList(
                 },
                 leadingContent = {
                     Icon(
-                        imageVector = Icons.Filled.Square,
+                        imageVector = Icons.Rounded.Square,
                         contentDescription = label,
                         modifier = Modifier.padding(
                             end = dimensionResource(R.dimen.padding_small)
@@ -166,11 +172,16 @@ fun WordList(
                             Icon(
                                 imageVector = Icons.Default.PlayCircleFilled,
                                 contentDescription = stringResource(R.string.play_pronunciation),
-                                tint = MaterialTheme.colorScheme.primary
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(dimensionResource(R.dimen.icon_size_large))
                             )
                         }
                     }
-                }
+                },
+                colors = ListItemDefaults.colors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    headlineColor = MaterialTheme.colorScheme.onSecondaryContainer
+                )
             )
         }
     }
