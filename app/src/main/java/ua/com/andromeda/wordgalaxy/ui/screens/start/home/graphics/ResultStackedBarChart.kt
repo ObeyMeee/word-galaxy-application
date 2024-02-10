@@ -8,7 +8,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -86,13 +85,10 @@ private fun Context.createDataset(entries: List<BarEntry>): BarData {
             resources.getString(R.string.stack_label_reviewed_unique_words),
             resources.getString(R.string.stack_label_mastered),
         )
-        colors = listOf(
-            Color(0xFF777777),
-            Color(0xFFD342B0),
-            Color(0xFFFFC806),
-            Color(0xFF6FFF72)
-        ).map { it.toArgb() }
-
+        colors = WordStatus
+            .entries
+            .filter { it != WordStatus.New }
+            .map { it.iconColor.toArgb() }
     }
     return BarData(dataset)
 }

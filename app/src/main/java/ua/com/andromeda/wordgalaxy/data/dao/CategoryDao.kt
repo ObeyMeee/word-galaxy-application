@@ -45,4 +45,13 @@ interface CategoryDao {
         """
     )
     fun findCategoriesByParentCategoryId(parentCategoryId: Int?): Flow<List<Category>>
+
+    @Query(
+        """
+        SELECT *
+        FROM categories
+        WHERE id = :id
+        """
+    )
+    fun findByCategoryId(id: Long): Flow<Category?>
 }

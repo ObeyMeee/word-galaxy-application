@@ -177,8 +177,8 @@ fun Flashcard(
             )
             {
                 FlashcardHeader(
-                    squareColor = flashcardState.iconColor,
-                    label = stringResource(flashcardState.headerLabelRes, numberReview),
+                    squareColor = word.status.iconColor,
+                    label = stringResource(word.status.labelRes, numberReview),
                     dropdownItemStates = menuItems,
                     modifier = Modifier
                         .fillMaxWidth()

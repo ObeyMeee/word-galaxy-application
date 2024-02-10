@@ -16,4 +16,7 @@ class CategoryRepositoryImpl @Inject constructor(
 
     override fun findAllByParentCategoryId(parentCategoryId: Int?) =
         categoryDao.findCategoriesByParentCategoryId(parentCategoryId)
+
+    override fun findById(id: Long) =
+        categoryDao.findByCategoryId(id)
 }

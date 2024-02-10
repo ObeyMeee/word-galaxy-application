@@ -1,7 +1,9 @@
 package ua.com.andromeda.wordgalaxy.ui.screens.start.vocabulary.categorydetails
 
+import android.content.res.Configuration
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -15,20 +17,25 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import ua.com.andromeda.wordgalaxy.R
+import ua.com.andromeda.wordgalaxy.data.DefaultStorage
 import ua.com.andromeda.wordgalaxy.data.model.WordAndPhonetics
 import ua.com.andromeda.wordgalaxy.ui.screens.common.CenteredLoadingSpinner
 import ua.com.andromeda.wordgalaxy.ui.screens.common.Message
+import ua.com.andromeda.wordgalaxy.ui.theme.WordGalaxyTheme
 import ua.com.andromeda.wordgalaxy.utils.playPronunciation
 
 @Composable
@@ -46,10 +53,11 @@ fun CategoryDetailsScreen(
                 navigateUp = navigateUp
             )
         },
+        modifier = modifier
     ) { innerPadding ->
         CategoryDetailsMain(
             viewModel = viewModel,
-            modifier = modifier.padding(innerPadding)
+            modifier = Modifier.padding(innerPadding)
         )
     }
 }
@@ -116,40 +124,79 @@ fun WordList(
 ) {
     val context = LocalContext.current
     LazyColumn(modifier) {
-        items(items) {
+        items(items) { (word, phonetics) ->
+            val status = word.status
+            val amountRepetition = word.amountRepetition ?: 0
+            val numberReview = amountRepetition + 1
+            val label = stringResource(status.labelRes, numberReview)
             ListItem(
                 headlineContent = {
-                    Text(text = it.word.value)
+                    Text(
+                        text = word.value,
+                        style = MaterialTheme.typography.titleMedium
+                    )
                 },
                 overlineContent = {
-                    Text(text = it.word.status.name)
+                    Text(text = label)
                 },
                 supportingContent = {
-                    Text(text = it.word.translation)
+                    Text(text = word.translation)
                 },
                 leadingContent = {
                     Icon(
                         imageVector = Icons.Filled.Square,
-                        contentDescription = null,
+                        contentDescription = label,
                         modifier = Modifier.padding(
                             end = dimensionResource(R.dimen.padding_small)
                         ),
+                        tint = status.iconColor
                     )
                 },
                 trailingContent = {
-                    IconButton(
-                        onClick = {
-                            val audioUrls = it.phonetics.map { it.audio }
-                            context.playPronunciation(audioUrls)
-                        }) {
-                        Icon(
-                            imageVector = Icons.Default.PlayCircleFilled,
-                            contentDescription = stringResource(R.string.play_pronunciation),
-                            modifier = Modifier.size(dimensionResource(R.dimen.icon_size_large)),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
+                    Box(
+                        modifier = Modifier.fillMaxHeight(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        IconButton(
+                            onClick = {
+                                val audioUrls = phonetics.map { it.audio }
+                                context.playPronunciation(audioUrls)
+                            },
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.PlayCircleFilled,
+                                contentDescription = stringResource(R.string.play_pronunciation),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
                     }
                 }
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+fun WordListPreview() {
+    WordGalaxyTheme {
+        Surface {
+            WordList(
+                items = DefaultStorage.wordAndPhoneticsList,
+                modifier = Modifier.padding(dimensionResource(R.dimen.padding_small))
+            )
+        }
+    }
+}
+
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun WordListDarkThemePreview() {
+    WordGalaxyTheme {
+        Surface {
+            WordList(
+                items = DefaultStorage.wordAndPhoneticsList,
+                modifier = Modifier.padding(dimensionResource(R.dimen.padding_small))
             )
         }
     }
