@@ -10,7 +10,6 @@ import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
 import ua.com.andromeda.wordgalaxy.data.model.Example
 import ua.com.andromeda.wordgalaxy.data.model.Phonetic
 import ua.com.andromeda.wordgalaxy.data.model.Word
-import ua.com.andromeda.wordgalaxy.data.model.WordAndPhonetics
 import ua.com.andromeda.wordgalaxy.data.model.WordStatus
 import ua.com.andromeda.wordgalaxy.data.model.WordWithCategories
 import ua.com.andromeda.wordgalaxy.data.model.toWordWithCategories
@@ -48,7 +47,7 @@ class WordRepositoryImpl @Inject constructor(
     override fun findWordsByValueOrTranslation(searchQuery: String) =
         wordDao.findLikeValueOrTranslationIgnoreCase(searchQuery)
 
-    override fun findWordsByCategoryId(categoryId: Long): Flow<List<WordAndPhonetics>> =
+    override fun findWordsByCategoryId(categoryId: Long) =
         wordDao.findWordsByCategoryId(categoryId)
 
 

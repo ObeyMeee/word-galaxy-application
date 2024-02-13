@@ -17,10 +17,10 @@ import ua.com.andromeda.wordgalaxy.data.model.WordStatus
 import ua.com.andromeda.wordgalaxy.data.model.memorize
 import ua.com.andromeda.wordgalaxy.data.model.reset
 import ua.com.andromeda.wordgalaxy.data.model.toWordWithCategories
+import ua.com.andromeda.wordgalaxy.data.model.updateStatus
 import ua.com.andromeda.wordgalaxy.data.repository.preferences.UserPreferencesRepository
 import ua.com.andromeda.wordgalaxy.data.repository.word.WordRepository
 import ua.com.andromeda.wordgalaxy.ui.screens.common.CardMode
-import java.time.LocalDateTime
 import javax.inject.Inject
 
 @HiltViewModel
@@ -95,16 +95,12 @@ class LearnWordsViewModel @Inject constructor(
     private fun errorUiState(message: String) =
         LearnWordsUiState.Error(message)
 
-    private fun updateWordStatus(wordStatus: WordStatus) {
-        viewModelScope.launch(Dispatchers.IO) {
-            val uiStateValue = _uiState.value
-            if (uiStateValue is LearnWordsUiState.Success) {
-                val word = uiStateValue.embeddedWord.word
+    private fun updateWordStatus(status: WordStatus) {
+        (_uiState.value as? LearnWordsUiState.Success)?.let { state ->
+            viewModelScope.launch(Dispatchers.IO) {
+                val word = state.embeddedWord.word
                 wordRepository.update(
-                    word.copy(
-                        status = wordStatus,
-                        statusChangedAt = LocalDateTime.now()
-                    )
+                    word.updateStatus(status)
                 )
             }
         }
@@ -122,17 +118,6 @@ class LearnWordsViewModel @Inject constructor(
     fun alreadyKnowWord() {
         updateWordStatus(WordStatus.AlreadyKnown)
         moveToNextWord()
-    }
-
-    fun resetWord() {
-        viewModelScope.launch(Dispatchers.IO) {
-            val wordsUiState = _uiState.value
-            if (wordsUiState is LearnWordsUiState.Success) {
-                val currentWord = wordsUiState.embeddedWord.word
-                wordRepository.update(currentWord.reset())
-            }
-        }
-        fetchUiState()
     }
 
     fun updateCardMode(cardMode: CardMode) {
@@ -209,6 +194,17 @@ class LearnWordsViewModel @Inject constructor(
                 moveToNextWord()
             }
         }
+    }
+
+    fun resetWord() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val wordsUiState = _uiState.value
+            if (wordsUiState is LearnWordsUiState.Success) {
+                val currentWord = wordsUiState.embeddedWord.word
+                wordRepository.update(currentWord.reset())
+            }
+        }
+        fetchUiState()
     }
 
     fun copyWordToMyCategory() {

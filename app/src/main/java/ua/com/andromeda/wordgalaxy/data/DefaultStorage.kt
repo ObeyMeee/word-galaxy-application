@@ -5,7 +5,6 @@ import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
 import ua.com.andromeda.wordgalaxy.data.model.Example
 import ua.com.andromeda.wordgalaxy.data.model.Phonetic
 import ua.com.andromeda.wordgalaxy.data.model.Word
-import ua.com.andromeda.wordgalaxy.data.model.WordAndPhonetics
 import ua.com.andromeda.wordgalaxy.data.model.WordStatus
 
 object DefaultStorage {
@@ -27,33 +26,39 @@ object DefaultStorage {
         )
     )
 
-    val wordAndPhoneticsList = listOf(
-        WordAndPhonetics(
+    val embeddedWords = listOf(
+        EmbeddedWord(
             word = Word(
                 value = "table",
                 translation = "стіл",
                 status = WordStatus.New,
                 amountRepetition = 0
             ),
-            phonetics = listOf()
+            categories = listOf(),
+            phonetics = listOf(),
+            examples = listOf()
         ),
-        WordAndPhonetics(
+        EmbeddedWord(
             word = Word(
                 value = "ability",
                 translation = "зді́бність , спромо́жність(на́вички)",
                 status = WordStatus.Memorized,
                 amountRepetition = 0
             ),
-            phonetics = listOf()
+            categories = listOf(),
+            phonetics = listOf(),
+            examples = listOf()
         ),
-        WordAndPhonetics(
+        EmbeddedWord(
             word = Word(
                 value = "actual",
                 translation = "реа́льний, ді́йсний",
                 status = WordStatus.AlreadyKnown,
                 amountRepetition = 0
             ),
-            phonetics = listOf()
+            categories = listOf(),
+            phonetics = listOf(),
+            examples = listOf()
         )
     )
 }

@@ -11,7 +11,6 @@ sealed interface VocabularyUiState {
         val searchQuery: String = "",
         val activeSearch: Boolean = false,
         val suggestedWords: List<EmbeddedWord> = emptyList(),
-        val isWordActionDialogOpen: Boolean = false,
         val selectedWord: EmbeddedWord? = null
     ) : VocabularyUiState
 }

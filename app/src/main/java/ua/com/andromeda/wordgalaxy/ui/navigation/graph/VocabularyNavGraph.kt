@@ -3,6 +3,7 @@ package ua.com.andromeda.wordgalaxy.ui.navigation.graph
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
@@ -17,6 +18,7 @@ import ua.com.andromeda.wordgalaxy.ui.screens.start.vocabulary.newword.NewWordSc
 
 fun NavGraphBuilder.vocabularyGraph(
     navController: NavController,
+    backStackEntry: NavBackStackEntry?,
     snackbarHostState: SnackbarHostState,
     categoriesState: LazyListState,
     modifier: Modifier = Modifier
@@ -54,14 +56,24 @@ fun NavGraphBuilder.vocabularyGraph(
         }
         composable(
             route = categoryDetailsScreen.fullRoute,
-            arguments = listOf(navArgument(categoryDetailsScreen.ID_KEY) {
-                type = NavType.LongType
-            })
+            arguments = listOf(
+                navArgument(
+                    categoryDetailsScreen.ID_KEY
+                ) {
+                    type = NavType.LongType
+                },
+                navArgument(categoryDetailsScreen.WORD_KEY) {
+                    type = NavType.StringType
+                    nullable = true
+                }
+            )
         ) {
+            val word = backStackEntry?.arguments?.getString(categoryDetailsScreen.WORD_KEY)
             CategoryDetailsScreen(
                 navigateUp = {
                     navController.navigateUp()
                 },
+                firstShownWord = word,
                 modifier = modifier
             )
         }

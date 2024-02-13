@@ -60,6 +60,13 @@ fun Word.reset(): Word {
     )
 }
 
+fun Word.updateStatus(status: WordStatus): Word {
+    return copy(
+        status = status,
+        statusChangedAt = LocalDateTime.now()
+    )
+}
+
 fun calculateNextRepeatAt(amountRepetition: Int): LocalDateTime {
     val initialRepetitionTime = LocalDateTime.now()
     val hoursIntervalToRepeat =

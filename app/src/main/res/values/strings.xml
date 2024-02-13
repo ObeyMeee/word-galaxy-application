@@ -68,6 +68,9 @@
     <string name="no_words_found">No words found</string>
     <string name="word_actions">Word actions</string>
     <string name="jump_to_this_word">Jump to this word</string>
+    <string name="you_have_successfully_marked_word_as_already_known">You have successfully marked word as already known</string>
+    <string name="mark_word_as_already_known">"Mark word as Already known "</string>
+    <string name="word_status_has_been_changed">Word status has been changed</string>
 
     <plurals name="days">
         <item quantity="one">day</item>

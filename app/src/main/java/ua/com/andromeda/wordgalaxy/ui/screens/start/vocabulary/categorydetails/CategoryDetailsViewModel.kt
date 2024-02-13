@@ -10,6 +10,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
+import ua.com.andromeda.wordgalaxy.data.model.MY_WORDS_CATEGORY
+import ua.com.andromeda.wordgalaxy.data.model.WordStatus
+import ua.com.andromeda.wordgalaxy.data.model.reset
+import ua.com.andromeda.wordgalaxy.data.model.toWordWithCategories
+import ua.com.andromeda.wordgalaxy.data.model.updateStatus
 import ua.com.andromeda.wordgalaxy.data.repository.category.CategoryRepository
 import ua.com.andromeda.wordgalaxy.data.repository.word.WordRepository
 import ua.com.andromeda.wordgalaxy.ui.navigation.Destination.Start.VocabularyScreen.CategoryDetailsScreen.ID_KEY
@@ -36,11 +42,86 @@ class CategoryDetailsViewModel @Inject constructor(
                 categoryRepository.findById(categoryId)
             ) { words, category ->
                 CategoryDetailsUiState.Success(
-                    wordsAndPhonetics = words,
+                    embeddedWords = words,
                     title = category?.name ?: "Category"
                 )
             }.collect { state ->
                 _uiState.update { state }
+            }
+        }
+    }
+
+    fun selectWord(word: EmbeddedWord? = null) {
+        updateUiState {
+            it.copy(
+                selectedWord = word,
+            )
+        }
+    }
+
+    private fun updateUiState(action: (CategoryDetailsUiState.Success) -> CategoryDetailsUiState.Success) {
+        viewModelScope.launch {
+            _uiState.update {
+                if (it is CategoryDetailsUiState.Success) {
+                    action(it)
+                } else {
+                    CategoryDetailsUiState.Error()
+                }
+            }
+        }
+    }
+
+    fun resetWordProgress() {
+        (_uiState.value as? CategoryDetailsUiState.Success)?.let { state ->
+            viewModelScope.launch(Dispatchers.IO) {
+                state.selectedWord?.let { embeddedWord ->
+                    wordRepository.update(embeddedWord.word.reset())
+                }
+            }
+        }
+    }
+
+    fun copyWordToMyCategory() {
+        (_uiState.value as? CategoryDetailsUiState.Success)?.let { state ->
+            viewModelScope.launch(Dispatchers.IO) {
+                state.selectedWord?.let { embeddedWord ->
+                    val wordWithCategories = embeddedWord.toWordWithCategories()
+                    wordRepository.updateWordWithCategories(
+                        wordWithCategories.copy(
+                            categories = wordWithCategories.categories + MY_WORDS_CATEGORY
+                        )
+                    )
+                }
+            }
+        }
+    }
+
+    fun reportMistake() {
+        TODO("Not yet implemented")
+    }
+
+    fun editWord() {
+        TODO("Not yet implemented")
+    }
+
+    fun removeWord() {
+        (_uiState.value as? CategoryDetailsUiState.Success)?.let { state ->
+            state.selectedWord?.let {
+                viewModelScope.launch(Dispatchers.IO) {
+                    wordRepository.remove(it)
+                }
+            }
+        }
+    }
+
+    fun updateWordStatus(status: WordStatus) {
+        (_uiState.value as? CategoryDetailsUiState.Success)?.let { state ->
+            state.selectedWord?.let { embeddedWord ->
+                viewModelScope.launch(Dispatchers.IO) {
+                    wordRepository.update(
+                        embeddedWord.word.updateStatus(status)
+                    )
+                }
             }
         }
     }

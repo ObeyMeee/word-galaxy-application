@@ -1,6 +1,6 @@
 package ua.com.andromeda.wordgalaxy.ui.screens.start.vocabulary.categorydetails
 
-import ua.com.andromeda.wordgalaxy.data.model.WordAndPhonetics
+import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
 
 sealed class CategoryDetailsUiState(
     open val title: String = "Category"
@@ -11,8 +11,8 @@ sealed class CategoryDetailsUiState(
     ) : CategoryDetailsUiState()
 
     data class Success(
-        val wordsAndPhonetics: List<WordAndPhonetics> = emptyList(),
-        val isActionDialogOpen: Boolean = false,
-        override val title: String = "Category"
+        override val title: String = "Category",
+        val embeddedWords: List<EmbeddedWord> = emptyList(),
+        val selectedWord: EmbeddedWord? = null
     ) : CategoryDetailsUiState(title)
 }

@@ -15,7 +15,6 @@ import ua.com.andromeda.wordgalaxy.data.model.Example
 import ua.com.andromeda.wordgalaxy.data.model.Phonetic
 import ua.com.andromeda.wordgalaxy.data.model.Word
 import ua.com.andromeda.wordgalaxy.data.model.WordAndCategoryCrossRef
-import ua.com.andromeda.wordgalaxy.data.model.WordAndPhonetics
 import ua.com.andromeda.wordgalaxy.data.model.WordStatus
 import ua.com.andromeda.wordgalaxy.data.model.WordWithCategories
 
@@ -125,7 +124,7 @@ interface WordDao {
             WHERE words_categories.category_id = :categoryId
         """
     )
-    fun findWordsByCategoryId(categoryId: Long): Flow<List<WordAndPhonetics>>
+    fun findWordsByCategoryId(categoryId: Long): Flow<List<EmbeddedWord>>
 
     @Query(
         """

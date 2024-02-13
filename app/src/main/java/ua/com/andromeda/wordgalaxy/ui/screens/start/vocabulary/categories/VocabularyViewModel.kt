@@ -102,12 +102,9 @@ class VocabularyViewModel @Inject constructor(
         }
     }
 
-    fun selectSuggestedWord(embeddedWord: EmbeddedWord? = null, open: Boolean = false) {
+    fun selectSuggestedWord(embeddedWord: EmbeddedWord? = null) {
         updateState {
-            it.copy(
-                isWordActionDialogOpen = open,
-                selectedWord = embeddedWord
-            )
+            it.copy(selectedWord = embeddedWord)
         }
     }
 

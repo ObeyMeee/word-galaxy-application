@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -59,9 +58,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import ua.com.andromeda.wordgalaxy.R
-import ua.com.andromeda.wordgalaxy.data.DefaultStorage.embeddedWord
 import ua.com.andromeda.wordgalaxy.data.model.Category
 import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
 import ua.com.andromeda.wordgalaxy.data.model.VocabularyCategory
@@ -103,59 +102,22 @@ fun VocabularyScreen(
 
         is VocabularyUiState.Success -> {
             val coroutineScope = rememberCoroutineScope()
-            AnimatedVisibility(visible = uiState.isWordActionDialogOpen) {
-                AlertDialog(
-                    onDismissRequest = viewModel::selectSuggestedWord,
-                    confirmButton = {},
-                    title = {
-                        Text(text = stringResource(R.string.word_actions))
-                    },
-                    text = {
-                        Column {
-                            Button(
-                                onClick = { /*TODO*/ },
-                            ) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.Center
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.ManageSearch,
-                                        contentDescription = null
-                                    )
-                                    Spacer(modifier = Modifier.width(dimensionResource(R.dimen.padding_small)))
-                                    Text(text = stringResource(R.string.jump_to_this_word))
-                                }
-                            }
-                            Spacer(modifier = Modifier.height(dimensionResource(R.dimen.padding_mediumish)))
-                            Button(onClick = {
-                                viewModel.copyWordToMyCategory()
-                                coroutineScope.launch {
-                                    snackbarHostState.showSnackbar(
-                                        message = "You have successfully copied '${embeddedWord.word.value}' word to your category",
-                                        withDismissAction = true,
-                                        duration = SnackbarDuration.Long
-                                    )
-                                }
-                            }) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.Center
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.ContentCopy,
-                                        contentDescription = null
-                                    )
-                                    Spacer(modifier = Modifier.width(dimensionResource(R.dimen.padding_small)))
-                                    Text(text = stringResource(R.string.copy_to_my_category))
-                                }
-                            }
-                        }
-                    }
-                )
-            }
+            val selectedWord = uiState.selectedWord
+            WordActionsDialog(
+                selectedWord = selectedWord,
+                closeDialog = viewModel::selectSuggestedWord,
+                copyWordToMyCategory = viewModel::copyWordToMyCategory,
+                jumpToWord = {
+                    navigateTo(
+                        CategoryDetailsScreen(
+                            selectedWord!!.categories[0].id,
+                            selectedWord.word.value
+                        )
+                    )
+                },
+                coroutineScope = coroutineScope,
+                snackbarHostState = snackbarHostState
+            )
             VocabularySearchBar(
                 state = uiState,
                 viewModel = viewModel,
@@ -171,6 +133,71 @@ fun VocabularyScreen(
                 modifier = Modifier.padding(top = dimensionResource(R.dimen.padding_huge))
             )
         }
+    }
+}
+
+@Composable
+private fun WordActionsDialog(
+    selectedWord: EmbeddedWord?,
+    closeDialog: () -> Unit,
+    copyWordToMyCategory: () -> Unit,
+    jumpToWord: () -> Unit,
+    snackbarHostState: SnackbarHostState,
+    modifier: Modifier = Modifier,
+    coroutineScope: CoroutineScope = rememberCoroutineScope(),
+) {
+    AnimatedVisibility(
+        visible = selectedWord != null,
+        modifier = modifier
+    ) {
+        AlertDialog(
+            onDismissRequest = closeDialog,
+            confirmButton = {},
+            title = {
+                Text(text = stringResource(R.string.word_actions))
+            },
+            text = {
+                Column {
+                    Button(onClick = jumpToWord) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.ManageSearch,
+                                contentDescription = null
+                            )
+                            Spacer(modifier = Modifier.width(dimensionResource(R.dimen.padding_small)))
+                            Text(text = stringResource(R.string.jump_to_this_word))
+                        }
+                    }
+                    Button(onClick = {
+                        copyWordToMyCategory()
+                        coroutineScope.launch {
+                            snackbarHostState.showSnackbar(
+                                message = "You have successfully copied '${selectedWord!!.word.value}' word to your category",
+                                withDismissAction = true,
+                                duration = SnackbarDuration.Long
+                            )
+                        }
+                    }) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.ContentCopy,
+                                contentDescription = null
+                            )
+                            Spacer(modifier = Modifier.width(dimensionResource(R.dimen.padding_small)))
+                            Text(text = stringResource(R.string.copy_to_my_category))
+                        }
+                    }
+                }
+            }
+        )
     }
 }
 
@@ -227,9 +254,7 @@ private fun VocabularySearchBar(
         SearchBarContent(
             items = state.suggestedWords,
             query = state.searchQuery,
-            selectSuggestion = { selectedWord, open ->
-                viewModel.selectSuggestedWord(selectedWord, open)
-            },
+            selectSuggestion = viewModel::selectSuggestedWord,
         )
     }
 }
@@ -238,7 +263,7 @@ private fun VocabularySearchBar(
 private fun SearchBarContent(
     items: List<EmbeddedWord>,
     query: String,
-    selectSuggestion: (EmbeddedWord?, Boolean) -> Unit,
+    selectSuggestion: (EmbeddedWord?) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     if (items.isEmpty() && query.isNotEmpty()) {
@@ -264,7 +289,7 @@ private fun SearchBarContent(
 @Composable
 private fun SuggestedWordList(
     suggestions: List<EmbeddedWord>,
-    selectSuggestion: (EmbeddedWord?, Boolean) -> Unit,
+    selectSuggestion: (EmbeddedWord?) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -290,7 +315,7 @@ private fun SuggestedWordList(
                 },
                 modifier = Modifier
                     .clickable {
-                        selectSuggestion(embeddedWord, true)
+                        selectSuggestion(embeddedWord)
                     }
                     .fillMaxWidth()
             )

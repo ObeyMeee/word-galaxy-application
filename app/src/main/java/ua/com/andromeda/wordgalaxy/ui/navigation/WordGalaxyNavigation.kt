@@ -95,6 +95,7 @@ fun WordGalaxyNavHost(modifier: Modifier = Modifier) {
                 }
                 vocabularyGraph(
                     navController = navController,
+                    backStackEntry = navBackStackEntry,
                     snackbarHostState = snackbarHostState,
                     categoriesState = categoriesState,
                     modifier = modifierWithSmallPadding

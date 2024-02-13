@@ -1,5 +1,6 @@
 package ua.com.andromeda.wordgalaxy.ui.screens.start.home
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -49,6 +50,7 @@ class HomeViewModel @Inject constructor(
                 timePeriodDays,
                 ChronoUnit.DAYS
             )
+
             HomeUiState.Success(
                 learnedWordsToday = learnedWordsToday,
                 amountWordsToLearnPerDay = amountWordsToLearnPerDay,
@@ -61,6 +63,7 @@ class HomeViewModel @Inject constructor(
         }
 
         combinedFlow.catch { error ->
+            Log.e(TAG, error.toString())
             emit(HomeUiState.Error("Error occurred: ${error.message}"))
         }.collect { newUiState ->
             _uiState.update { newUiState }
