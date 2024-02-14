@@ -11,9 +11,11 @@ import ua.com.andromeda.wordgalaxy.R
 import ua.com.andromeda.wordgalaxy.data.repository.word.WordRepository
 import ua.com.andromeda.wordgalaxy.utils.notification.NotificationService
 import javax.inject.Inject
+import javax.inject.Singleton
 
 private const val TAG = "CheckReviewWordsWorker"
 
+@Singleton
 class CheckReviewWordsWorker(
     context: Context,
     params: WorkerParameters

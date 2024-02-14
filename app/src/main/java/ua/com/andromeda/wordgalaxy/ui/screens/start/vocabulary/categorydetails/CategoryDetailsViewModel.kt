@@ -19,6 +19,7 @@ import ua.com.andromeda.wordgalaxy.data.model.updateStatus
 import ua.com.andromeda.wordgalaxy.data.repository.category.CategoryRepository
 import ua.com.andromeda.wordgalaxy.data.repository.word.WordRepository
 import ua.com.andromeda.wordgalaxy.ui.navigation.Destination.Start.VocabularyScreen.CategoryDetailsScreen.ID_KEY
+import ua.com.andromeda.wordgalaxy.utils.Direction
 import javax.inject.Inject
 
 private const val TAG = "CategoryDetailsViewModel"
@@ -123,6 +124,66 @@ class CategoryDetailsViewModel @Inject constructor(
                     )
                 }
             }
+        }
+    }
+
+    fun expandTopAppBarMenu(expanded: Boolean = false) {
+        updateUiState {
+            it.copy(topAppBarMenuExpanded = expanded)
+        }
+    }
+
+    fun openOrderDialog(visible: Boolean = false) {
+        updateUiState {
+            it.copy(orderDialogVisible = visible)
+        }
+    }
+
+    fun selectSortOrder(value: WordSortOrder) {
+        updateUiState { state ->
+            state.copy(
+                selectedSortOrder = value,
+                orderDialogVisible = false,
+                topAppBarMenuExpanded = false,
+                embeddedWords = state.embeddedWords.sortedBy {
+                    val word = it.word
+                    if (value == WordSortOrder.BY_STATUS) {
+                        word.status.name
+                    } else {
+                        word.value
+                    }
+                }
+            )
+        }
+    }
+
+    fun openConfirmResetProgressDialog(value: Boolean = false) {
+        updateUiState {
+            it.copy(resetProgressDialogVisible = value)
+        }
+    }
+
+    fun resetCategoryProgress() {
+        (_uiState.value as? CategoryDetailsUiState.Success)?.let { state ->
+            viewModelScope.launch(Dispatchers.IO) {
+                val resetWords = state.embeddedWords.map { it.word.reset() }
+                wordRepository.update(*resetWords.toTypedArray())
+            }
+        }
+    }
+
+    fun updateSortDirection() {
+        updateUiState {
+            val newDirection =
+                if (it.direction == Direction.ASC)
+                    Direction.DESC
+                else
+                    Direction.ASC
+
+            it.copy(
+                direction = newDirection,
+                embeddedWords = it.embeddedWords.reversed()
+            )
         }
     }
 }

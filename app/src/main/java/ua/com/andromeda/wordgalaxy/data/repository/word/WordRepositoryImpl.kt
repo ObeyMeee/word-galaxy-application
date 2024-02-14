@@ -154,8 +154,8 @@ class WordRepositoryImpl @Inject constructor(
         )
     }
 
-    override suspend fun update(word: Word) =
-        wordDao.updateWord(word)
+    override suspend fun update(vararg words: Word) =
+        wordDao.updateWord(*words)
 
     @Transaction
     override suspend fun insert(embeddedWord: EmbeddedWord) {

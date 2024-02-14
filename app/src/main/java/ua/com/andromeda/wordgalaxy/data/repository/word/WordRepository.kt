@@ -21,7 +21,7 @@ interface WordRepository {
     fun countWordsByStatusLast(value: Int, unit: TemporalUnit): List<Map<WordStatus, Int>>
     fun countCurrentStreak(): Flow<Int>
     fun countBestStreak(): Flow<Int>
-    suspend fun update(word: Word)
+    suspend fun update(vararg words: Word)
 
     suspend fun insert(embeddedWord: EmbeddedWord)
 

@@ -122,6 +122,7 @@ interface WordDao {
             FROM words_categories
             INNER JOIN word ON words_categories.word_id = word.id
             WHERE words_categories.category_id = :categoryId
+            ORDER BY word.value
         """
     )
     fun findWordsByCategoryId(categoryId: Long): Flow<List<EmbeddedWord>>
@@ -153,7 +154,7 @@ interface WordDao {
     suspend fun removeExamples(examples: List<Example>)
 
     @Update
-    suspend fun updateWord(word: Word)
+    suspend fun updateWord(vararg words: Word)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertWord(word: Word): Long
