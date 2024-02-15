@@ -11,7 +11,8 @@ import java.time.temporal.TemporalUnit
 interface WordRepository {
     fun findOneRandomWordWhereStatusEquals(status: WordStatus): Flow<EmbeddedWord>
     fun findWordToReview(): Flow<EmbeddedWord?>
-    fun findWordByValue(value: String): Flow<List<ExistingWord>>
+    fun findWordById(id: Long): Flow<Word>
+    fun findWordsByValue(value: String): Flow<List<ExistingWord>>
     fun findWordsByValueOrTranslation(searchQuery: String): Flow<List<EmbeddedWord>>
     fun findWordsByCategoryId(categoryId: Long): Flow<List<EmbeddedWord>>
     fun countLearnedWordsToday(): Flow<Int>

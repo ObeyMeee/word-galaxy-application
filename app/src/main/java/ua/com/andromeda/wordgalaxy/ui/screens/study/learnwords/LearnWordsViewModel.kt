@@ -219,10 +219,6 @@ class LearnWordsViewModel @Inject constructor(
         }
     }
 
-    fun reportMistake() {
-        TODO("Not yet implemented")
-    }
-
     fun edit() {
         TODO("Not yet implemented")
     }

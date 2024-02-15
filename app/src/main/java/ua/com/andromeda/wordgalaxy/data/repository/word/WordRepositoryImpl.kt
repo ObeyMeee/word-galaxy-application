@@ -33,7 +33,10 @@ class WordRepositoryImpl @Inject constructor(
     override fun findWordToReview() =
         wordDao.findRandomWordToReview().map { it.firstOrNull() }
 
-    override fun findWordByValue(value: String): Flow<List<ExistingWord>> =
+    override fun findWordById(id: Long) =
+        wordDao.findWordById(id)
+
+    override fun findWordsByValue(value: String): Flow<List<ExistingWord>> =
         wordDao.findWordByValue(value)
             .map {
                 it.map { embeddedWord ->

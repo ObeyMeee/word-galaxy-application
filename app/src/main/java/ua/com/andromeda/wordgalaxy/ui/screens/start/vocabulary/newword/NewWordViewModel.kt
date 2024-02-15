@@ -44,7 +44,7 @@ class NewWordViewModel @Inject constructor(
             it.copy(word = value)
         }
         viewModelScope.launch(Dispatchers.IO) {
-            val existingWords = wordRepository.findWordByValue(value).first()
+            val existingWords = wordRepository.findWordsByValue(value).first()
             updateUiState {
                 it.copy(existingWords = existingWords)
             }

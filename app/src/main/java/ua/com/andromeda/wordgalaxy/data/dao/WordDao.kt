@@ -83,6 +83,9 @@ interface WordDao {
     )
     fun countWordsWhereStatusEquals(status: WordStatus): Flow<Int>
 
+    @Query("SELECT * FROM Word WHERE id = :id")
+    fun findWordById(id: Long): Flow<Word>
+
     @Query(
         """
         SELECT *

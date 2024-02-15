@@ -97,10 +97,6 @@ class CategoryDetailsViewModel @Inject constructor(
         }
     }
 
-    fun reportMistake() {
-        TODO("Not yet implemented")
-    }
-
     fun editWord() {
         TODO("Not yet implemented")
     }
