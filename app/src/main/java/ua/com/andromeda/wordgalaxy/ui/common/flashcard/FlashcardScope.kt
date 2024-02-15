@@ -1,4 +1,4 @@
-package ua.com.andromeda.wordgalaxy.ui.screens.common.flashcard
+package ua.com.andromeda.wordgalaxy.ui.common.flashcard
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
@@ -62,7 +62,7 @@ import ua.com.andromeda.wordgalaxy.R
 import ua.com.andromeda.wordgalaxy.data.model.Example
 import ua.com.andromeda.wordgalaxy.data.model.Phonetic
 import ua.com.andromeda.wordgalaxy.data.model.Word
-import ua.com.andromeda.wordgalaxy.ui.screens.common.CardMode
+import ua.com.andromeda.wordgalaxy.ui.common.CardMode
 import ua.com.andromeda.wordgalaxy.utils.playPronunciation
 
 object FlashcardScope {
@@ -213,7 +213,7 @@ object FlashcardScope {
             verticalAlignment = Alignment.CenterVertically
         ) {
             iconsToCardModes.forEach { (icon, cardMode) ->
-                this@FlashcardScope.CardModeIconButton(icon) {
+                CardModeIconButton(icon) {
                     updateCardMode(cardMode)
                 }
             }
@@ -254,9 +254,9 @@ object FlashcardScope {
         modifier: Modifier = Modifier
     ) {
         Row(modifier = modifier) {
-            this@FlashcardScope.RevealOneLetterOutlinedButton(onClick = revealOneLetter)
+            RevealOneLetterOutlinedButton(onClick = revealOneLetter)
             Spacer(Modifier.width(dimensionResource(R.dimen.padding_large)))
-            this@FlashcardScope.CheckAnswerButton(
+            CheckAnswerButton(
                 onclick = checkAnswer,
                 amountAttempts = amountAttempts,
                 modifier = Modifier.fillMaxWidth()

@@ -34,6 +34,12 @@ sealed class Destination(protected val route: String, vararg params: String) {
         data object LearnWordsScreen : NoArgumentsDestination("learn_words")
         data object ReviewWordsScreen : NoArgumentsDestination("review_words")
     }
+
+    data object ReportMistakeScreen : Destination("report_mistake/{wordId}") {
+        const val WORD_ID_KEY = "wordId"
+        operator fun invoke(wordId: Long): String =
+            route.appendParams(WORD_ID_KEY to wordId)
+    }
 }
 
 internal fun String.appendParams(vararg params: Pair<String, Any?>): String {

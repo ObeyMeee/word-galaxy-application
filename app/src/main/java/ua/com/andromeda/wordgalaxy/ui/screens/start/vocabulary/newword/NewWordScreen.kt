@@ -61,7 +61,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import ua.com.andromeda.wordgalaxy.R
 import ua.com.andromeda.wordgalaxy.data.model.Example
-import ua.com.andromeda.wordgalaxy.ui.screens.common.CenteredLoadingSpinner
+import ua.com.andromeda.wordgalaxy.ui.common.CenteredLoadingSpinner
 import ua.com.andromeda.wordgalaxy.ui.theme.WordGalaxyTheme
 import ua.com.andromeda.wordgalaxy.utils.RESOURCE_NOT_FOUND
 import ua.com.andromeda.wordgalaxy.utils.getCategoryIconIdentifier

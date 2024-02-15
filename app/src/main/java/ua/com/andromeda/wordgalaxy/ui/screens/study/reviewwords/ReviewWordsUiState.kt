@@ -2,7 +2,7 @@ package ua.com.andromeda.wordgalaxy.ui.screens.study.reviewwords
 
 import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
 import ua.com.andromeda.wordgalaxy.ui.DEFAULT_AMOUNT_USER_ATTEMPTS_TO_GUESS
-import ua.com.andromeda.wordgalaxy.ui.screens.common.CardMode
+import ua.com.andromeda.wordgalaxy.ui.common.CardMode
 
 
 sealed interface ReviewWordsUiState {

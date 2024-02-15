@@ -52,16 +52,16 @@ import androidx.navigation.compose.rememberNavController
 import ua.com.andromeda.wordgalaxy.R
 import ua.com.andromeda.wordgalaxy.data.DefaultStorage
 import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
+import ua.com.andromeda.wordgalaxy.ui.common.CardMode
+import ua.com.andromeda.wordgalaxy.ui.common.CenteredLoadingSpinner
+import ua.com.andromeda.wordgalaxy.ui.common.Message
+import ua.com.andromeda.wordgalaxy.ui.common.flashcard.Flashcard
+import ua.com.andromeda.wordgalaxy.ui.common.flashcard.FlashcardScope.CardModeSelectorRow
+import ua.com.andromeda.wordgalaxy.ui.common.flashcard.FlashcardScope.ExampleList
+import ua.com.andromeda.wordgalaxy.ui.common.flashcard.FlashcardScope.RowWithWordControls
+import ua.com.andromeda.wordgalaxy.ui.common.flashcard.FlashcardScope.WordWithTranscription
+import ua.com.andromeda.wordgalaxy.ui.common.flashcard.FlashcardState
 import ua.com.andromeda.wordgalaxy.ui.navigation.Destination
-import ua.com.andromeda.wordgalaxy.ui.screens.common.CardMode
-import ua.com.andromeda.wordgalaxy.ui.screens.common.CenteredLoadingSpinner
-import ua.com.andromeda.wordgalaxy.ui.screens.common.Message
-import ua.com.andromeda.wordgalaxy.ui.screens.common.flashcard.Flashcard
-import ua.com.andromeda.wordgalaxy.ui.screens.common.flashcard.FlashcardScope.CardModeSelectorRow
-import ua.com.andromeda.wordgalaxy.ui.screens.common.flashcard.FlashcardScope.ExampleList
-import ua.com.andromeda.wordgalaxy.ui.screens.common.flashcard.FlashcardScope.RowWithWordControls
-import ua.com.andromeda.wordgalaxy.ui.screens.common.flashcard.FlashcardScope.WordWithTranscription
-import ua.com.andromeda.wordgalaxy.ui.screens.common.flashcard.FlashcardState
 import ua.com.andromeda.wordgalaxy.ui.theme.WordGalaxyTheme
 
 private const val TAG = "ReviewWordsScreen"

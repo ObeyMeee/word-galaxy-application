@@ -74,6 +74,7 @@ fun NavGraphBuilder.vocabularyGraph(
                     navController.navigateUp()
                 },
                 firstShownWord = word,
+                navigateTo = navController::navigate,
                 modifier = modifier
             )
         }

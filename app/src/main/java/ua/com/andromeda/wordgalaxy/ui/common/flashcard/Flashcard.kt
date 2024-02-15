@@ -1,4 +1,4 @@
-package ua.com.andromeda.wordgalaxy.ui.screens.common.flashcard
+package ua.com.andromeda.wordgalaxy.ui.common.flashcard
 
 import android.widget.Toast
 import androidx.annotation.StringRes
@@ -74,8 +74,8 @@ import ua.com.andromeda.wordgalaxy.ui.FLASHCARD_SCALE_COEFFICIENT
 import ua.com.andromeda.wordgalaxy.ui.FLASHCARD_SLIDE_OUT_Y_COEFFICIENT
 import ua.com.andromeda.wordgalaxy.ui.RETURN_CARD_ANIMATION_DURATION_MILLIS
 import ua.com.andromeda.wordgalaxy.ui.SWIPE_CARD_BOUND
-import ua.com.andromeda.wordgalaxy.ui.screens.common.DropdownItemState
-import ua.com.andromeda.wordgalaxy.ui.screens.common.flashcard.FlashcardScope.WordWithTranscriptionOrTranslation
+import ua.com.andromeda.wordgalaxy.ui.common.DropdownItemState
+import ua.com.andromeda.wordgalaxy.ui.common.flashcard.FlashcardScope.WordWithTranscriptionOrTranslation
 import kotlin.math.abs
 
 private const val TAG = "Flashcard"

@@ -28,16 +28,19 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import ua.com.andromeda.wordgalaxy.R
+import ua.com.andromeda.wordgalaxy.ui.common.Message
 import ua.com.andromeda.wordgalaxy.ui.navigation.graph.studyNavGraph
 import ua.com.andromeda.wordgalaxy.ui.navigation.graph.vocabularyGraph
-import ua.com.andromeda.wordgalaxy.ui.screens.common.Message
 import ua.com.andromeda.wordgalaxy.ui.screens.start.home.HomeScreen
+import ua.com.andromeda.wordgalaxy.ui.screens.study.reportmistake.ReportMistakeScreen
 
 @Composable
 fun WordGalaxyNavHost(modifier: Modifier = Modifier) {
@@ -111,6 +114,20 @@ fun WordGalaxyNavHost(modifier: Modifier = Modifier) {
                     ) {
                         Icon(imageVector = Icons.Outlined.Info, contentDescription = null)
                     }
+                }
+
+                composable(
+                    route = Destination.ReportMistakeScreen.fullRoute,
+                    arguments = listOf(
+                        navArgument(Destination.ReportMistakeScreen.WORD_ID_KEY) {
+                            type = NavType.LongType
+                        }
+                    )
+                ) {
+                    ReportMistakeScreen(
+                        modifier = modifierWithSmallPadding,
+                        navigateUp = { navController.navigateUp() }
+                    )
                 }
             }
         }

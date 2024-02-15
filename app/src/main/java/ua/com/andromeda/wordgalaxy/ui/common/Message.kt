@@ -1,4 +1,4 @@
-package ua.com.andromeda.wordgalaxy.ui.screens.common
+package ua.com.andromeda.wordgalaxy.ui.common
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background

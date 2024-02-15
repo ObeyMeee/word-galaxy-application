@@ -1,4 +1,4 @@
-package ua.com.andromeda.wordgalaxy.ui.screens.common
+package ua.com.andromeda.wordgalaxy.ui.common
 
 import androidx.annotation.StringRes
 import androidx.compose.ui.graphics.painter.Painter

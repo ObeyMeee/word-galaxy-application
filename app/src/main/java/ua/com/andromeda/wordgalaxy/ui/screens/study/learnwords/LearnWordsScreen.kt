@@ -64,17 +64,17 @@ import ua.com.andromeda.wordgalaxy.R
 import ua.com.andromeda.wordgalaxy.data.DefaultStorage
 import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
 import ua.com.andromeda.wordgalaxy.data.model.WordStatus
+import ua.com.andromeda.wordgalaxy.ui.common.CardMode
+import ua.com.andromeda.wordgalaxy.ui.common.CenteredLoadingSpinner
+import ua.com.andromeda.wordgalaxy.ui.common.DropdownItemState
+import ua.com.andromeda.wordgalaxy.ui.common.Message
+import ua.com.andromeda.wordgalaxy.ui.common.flashcard.Flashcard
+import ua.com.andromeda.wordgalaxy.ui.common.flashcard.FlashcardScope.CardModeSelectorRow
+import ua.com.andromeda.wordgalaxy.ui.common.flashcard.FlashcardScope.ExampleList
+import ua.com.andromeda.wordgalaxy.ui.common.flashcard.FlashcardScope.RowWithWordControls
+import ua.com.andromeda.wordgalaxy.ui.common.flashcard.FlashcardScope.WordWithTranscriptionOrTranslation
+import ua.com.andromeda.wordgalaxy.ui.common.flashcard.FlashcardState
 import ua.com.andromeda.wordgalaxy.ui.navigation.Destination
-import ua.com.andromeda.wordgalaxy.ui.screens.common.CardMode
-import ua.com.andromeda.wordgalaxy.ui.screens.common.CenteredLoadingSpinner
-import ua.com.andromeda.wordgalaxy.ui.screens.common.DropdownItemState
-import ua.com.andromeda.wordgalaxy.ui.screens.common.Message
-import ua.com.andromeda.wordgalaxy.ui.screens.common.flashcard.Flashcard
-import ua.com.andromeda.wordgalaxy.ui.screens.common.flashcard.FlashcardScope.CardModeSelectorRow
-import ua.com.andromeda.wordgalaxy.ui.screens.common.flashcard.FlashcardScope.ExampleList
-import ua.com.andromeda.wordgalaxy.ui.screens.common.flashcard.FlashcardScope.RowWithWordControls
-import ua.com.andromeda.wordgalaxy.ui.screens.common.flashcard.FlashcardScope.WordWithTranscriptionOrTranslation
-import ua.com.andromeda.wordgalaxy.ui.screens.common.flashcard.FlashcardState
 import ua.com.andromeda.wordgalaxy.ui.theme.WordGalaxyTheme
 
 @Composable
@@ -105,7 +105,10 @@ fun LearnWordsScreen(
         },
         modifier = modifier
     ) { innerPadding ->
-        LearnWordsMain(modifier = Modifier.padding(innerPadding))
+        LearnWordsMain(
+            navigateTo = navController::navigate,
+            modifier = Modifier.padding(innerPadding)
+        )
     }
 }
 
@@ -188,41 +191,12 @@ private fun TopAppNavigationBar(
 }
 
 @Composable
-fun LearnWordsMain(modifier: Modifier = Modifier) {
+fun LearnWordsMain(
+    navigateTo: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
     val viewModel: LearnWordsViewModel = hiltViewModel()
     val learnWordsUiState by viewModel.uiState.collectAsState()
-    val menuItems = listOf(
-        DropdownItemState(
-            labelRes = R.string.reset_progress_for_this_word,
-            icon = rememberVectorPainter(Icons.Default.Undo),
-            toastMessageRes = R.string.progress_has_been_reset_successfully,
-            onClick = viewModel::resetWord
-        ),
-        DropdownItemState(
-            labelRes = R.string.copy_to_my_category,
-            icon = rememberVectorPainter(Icons.Default.FolderCopy),
-            toastMessageRes = R.string.word_has_been_copied_to_your_category,
-            onClick = viewModel::copyWordToMyCategory
-        ),
-        DropdownItemState(
-            labelRes = R.string.report_a_mistake,
-            icon = rememberVectorPainter(Icons.Default.Report),
-            showToast = false,
-            onClick = viewModel::reportMistake
-        ),
-        DropdownItemState(
-            labelRes = R.string.edit,
-            onClick = viewModel::edit,
-            showToast = false,
-            icon = rememberVectorPainter(Icons.Default.EditNote),
-        ),
-        DropdownItemState(
-            labelRes = R.string.remove,
-            onClick = viewModel::removeWord,
-            toastMessageRes = R.string.word_has_been_successfully_removed,
-            icon = rememberVectorPainter(Icons.Default.Remove),
-        )
-    )
 
     when (val uiState = learnWordsUiState) {
         is LearnWordsUiState.Default -> {
@@ -257,6 +231,42 @@ fun LearnWordsMain(modifier: Modifier = Modifier) {
                     onRightClick = viewModel::moveToNextWord
                 )
             }
+
+            val menuItems = listOf(
+                DropdownItemState(
+                    labelRes = R.string.reset_progress_for_this_word,
+                    icon = rememberVectorPainter(Icons.Default.Undo),
+                    toastMessageRes = R.string.progress_has_been_reset_successfully,
+                    onClick = viewModel::resetWord
+                ),
+                DropdownItemState(
+                    labelRes = R.string.copy_to_my_category,
+                    icon = rememberVectorPainter(Icons.Default.FolderCopy),
+                    toastMessageRes = R.string.word_has_been_copied_to_your_category,
+                    onClick = viewModel::copyWordToMyCategory
+                ),
+                DropdownItemState(
+                    labelRes = R.string.report_a_mistake,
+                    icon = rememberVectorPainter(Icons.Default.Report),
+                    showToast = false,
+                    onClick = {
+                        navigateTo(Destination.ReportMistakeScreen(word.id))
+                    }
+                ),
+                DropdownItemState(
+                    labelRes = R.string.edit,
+                    onClick = viewModel::edit,
+                    showToast = false,
+                    icon = rememberVectorPainter(Icons.Default.EditNote),
+                ),
+                DropdownItemState(
+                    labelRes = R.string.remove,
+                    onClick = viewModel::removeWord,
+                    toastMessageRes = R.string.word_has_been_successfully_removed,
+                    icon = rememberVectorPainter(Icons.Default.Remove),
+                )
+            )
+
             Flashcard(
                 embeddedWord = uiState.embeddedWord,
                 flashcardState = flashcardState,
@@ -322,33 +332,33 @@ private fun ColumnScope.CardModeContent(
 //                    (fadeOut() + slideOutVertically { it })
 //        }
 //    ) { cardMode ->
-        when (uiState.cardMode) {
-            CardMode.ShowAnswer -> {
-                ShowAnswerCardMode(wordToLearn)
-            }
+    when (uiState.cardMode) {
+        CardMode.ShowAnswer -> {
+            ShowAnswerCardMode(wordToLearn)
+        }
 
-            CardMode.TypeAnswer -> {
-                val checkAnswer = viewModel::checkAnswer
-                TypeAnswerCardMode(
-                    textFieldValue = uiState.userGuess,
-                    amountAttempts = uiState.amountAttempts,
-                    onValueChanged = viewModel::updateUserGuess,
-                    keyboardAction = checkAnswer,
-                    revealOneLetter = viewModel::revealOneLetter,
-                    checkAnswer = checkAnswer,
-                    modifier = Modifier.padding(dimensionResource(R.dimen.padding_larger))
-                )
-            }
+        CardMode.TypeAnswer -> {
+            val checkAnswer = viewModel::checkAnswer
+            TypeAnswerCardMode(
+                textFieldValue = uiState.userGuess,
+                amountAttempts = uiState.amountAttempts,
+                onValueChanged = viewModel::updateUserGuess,
+                keyboardAction = checkAnswer,
+                revealOneLetter = viewModel::revealOneLetter,
+                checkAnswer = checkAnswer,
+                modifier = Modifier.padding(dimensionResource(R.dimen.padding_larger))
+            )
+        }
 
-            CardMode.Default -> {
-                DefaultCardMode(
-                    isWordNew = isWordNew,
-                    updateCardMode = viewModel::updateCardMode,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
+        CardMode.Default -> {
+            DefaultCardMode(
+                isWordNew = isWordNew,
+                updateCardMode = viewModel::updateCardMode,
+                modifier = Modifier.fillMaxWidth()
+            )
         }
     }
+}
 //}
 
 @Composable

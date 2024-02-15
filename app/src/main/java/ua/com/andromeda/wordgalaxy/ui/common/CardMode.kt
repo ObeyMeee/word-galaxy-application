@@ -1,4 +1,4 @@
-package ua.com.andromeda.wordgalaxy.ui.screens.common
+package ua.com.andromeda.wordgalaxy.ui.common
 
 enum class CardMode {
     Default, TypeAnswer, ShowAnswer

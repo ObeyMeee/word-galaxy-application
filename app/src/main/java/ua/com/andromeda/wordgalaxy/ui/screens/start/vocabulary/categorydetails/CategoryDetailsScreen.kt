@@ -40,10 +40,10 @@ import kotlinx.coroutines.launch
 import ua.com.andromeda.wordgalaxy.R
 import ua.com.andromeda.wordgalaxy.data.DefaultStorage
 import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
-import ua.com.andromeda.wordgalaxy.ui.screens.common.CenteredLoadingSpinner
-import ua.com.andromeda.wordgalaxy.ui.screens.common.Message
-import ua.com.andromeda.wordgalaxy.ui.screens.common.ScrollToTop
-import ua.com.andromeda.wordgalaxy.ui.screens.common.isScrollingUp
+import ua.com.andromeda.wordgalaxy.ui.common.CenteredLoadingSpinner
+import ua.com.andromeda.wordgalaxy.ui.common.Message
+import ua.com.andromeda.wordgalaxy.ui.common.ScrollToTop
+import ua.com.andromeda.wordgalaxy.ui.common.isScrollingUp
 import ua.com.andromeda.wordgalaxy.ui.theme.WordGalaxyTheme
 import ua.com.andromeda.wordgalaxy.utils.playPronunciation
 
@@ -52,6 +52,7 @@ private const val TAG = "CategoryDetailsScreen"
 @Composable
 fun CategoryDetailsScreen(
     navigateUp: () -> Unit,
+    navigateTo: (String) -> Unit,
     modifier: Modifier = Modifier,
     firstShownWord: String? = null,
 ) {
@@ -85,6 +86,7 @@ fun CategoryDetailsScreen(
             viewModel = viewModel,
             snackbarHostState = snackbarHostState,
             firstShownWord = firstShownWord,
+            navigateTo = navigateTo,
             modifier = Modifier.padding(innerPadding),
         )
     }
@@ -93,6 +95,7 @@ fun CategoryDetailsScreen(
 @Composable
 private fun CategoryDetailsMain(
     snackbarHostState: SnackbarHostState,
+    navigateTo: (String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: CategoryDetailsViewModel = hiltViewModel(),
     firstShownWord: String? = null,
@@ -124,7 +127,8 @@ private fun CategoryDetailsMain(
             Dialogs(
                 state = state,
                 viewModel = viewModel,
-                snackbarHostState = snackbarHostState
+                snackbarHostState = snackbarHostState,
+                navigateTo = navigateTo
             )
             WordList(
                 items = items,

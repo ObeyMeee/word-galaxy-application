@@ -1,4 +1,4 @@
-package ua.com.andromeda.wordgalaxy.ui.screens.common
+package ua.com.andromeda.wordgalaxy.ui.common
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween

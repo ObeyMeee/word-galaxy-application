@@ -20,7 +20,7 @@ import ua.com.andromeda.wordgalaxy.data.model.toWordWithCategories
 import ua.com.andromeda.wordgalaxy.data.model.updateStatus
 import ua.com.andromeda.wordgalaxy.data.repository.preferences.UserPreferencesRepository
 import ua.com.andromeda.wordgalaxy.data.repository.word.WordRepository
-import ua.com.andromeda.wordgalaxy.ui.screens.common.CardMode
+import ua.com.andromeda.wordgalaxy.ui.common.CardMode
 import javax.inject.Inject
 
 @HiltViewModel

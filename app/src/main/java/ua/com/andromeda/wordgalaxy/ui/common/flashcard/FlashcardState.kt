@@ -1,4 +1,4 @@
-package ua.com.andromeda.wordgalaxy.ui.screens.common.flashcard
+package ua.com.andromeda.wordgalaxy.ui.common.flashcard
 
 import ua.com.andromeda.wordgalaxy.R
 

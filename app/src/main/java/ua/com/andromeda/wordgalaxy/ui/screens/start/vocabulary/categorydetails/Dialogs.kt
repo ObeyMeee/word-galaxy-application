@@ -43,17 +43,20 @@ import kotlinx.coroutines.launch
 import ua.com.andromeda.wordgalaxy.R
 import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
 import ua.com.andromeda.wordgalaxy.data.model.WordStatus
+import ua.com.andromeda.wordgalaxy.ui.navigation.Destination
 
 @Composable
 fun Dialogs(
     state: CategoryDetailsUiState.Success,
     snackbarHostState: SnackbarHostState,
+    navigateTo: (String) -> Unit,
     viewModel: CategoryDetailsViewModel = hiltViewModel(),
 ) {
     WordActionDialog(
         selectedWord = state.selectedWord,
         snackbarHostState = snackbarHostState,
         closeDialog = viewModel::selectWord,
+        navigateTo = navigateTo
     )
     ResetProgressDialog(
         visible = state.resetProgressDialogVisible,
@@ -156,81 +159,82 @@ fun WordActionDialog(
     selectedWord: EmbeddedWord?,
     snackbarHostState: SnackbarHostState,
     closeDialog: () -> Unit,
+    navigateTo: (String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: CategoryDetailsViewModel = hiltViewModel()
 ) {
     val coroutineScope = rememberCoroutineScope()
-    if (selectedWord != null) {
-        AlertDialog(
-            onDismissRequest = closeDialog,
-            confirmButton = {},
-            modifier = modifier,
-            title = {
-                Text(text = stringResource(R.string.word_actions))
-            },
-            text = {
-                Column {
-                    if (selectedWord.word.status == WordStatus.New) {
-                        WordActionButton(
-                            labelRes = R.string.mark_word_as_already_known,
-                            icon = Icons.Default.Check,
-                            snackbarHostState = snackbarHostState,
-                            coroutineScope = coroutineScope,
-                            messageRes = R.string.you_have_successfully_marked_word_as_already_known,
-                            action = { viewModel.updateWordStatus(WordStatus.AlreadyKnown) }
-                        )
-                        WordActionButton(
-                            labelRes = R.string.learn,
-                            icon = Icons.Default.Lightbulb,
-                            snackbarHostState = snackbarHostState,
-                            coroutineScope = coroutineScope,
-                            messageRes = R.string.word_status_has_been_changed,
-                            action = { viewModel.updateWordStatus(WordStatus.InProgress) }
-                        )
-                    } else {
-                        WordActionButton(
-                            labelRes = R.string.reset_progress_for_this_word,
-                            icon = Icons.Default.HourglassEmpty,
-                            snackbarHostState = snackbarHostState,
-                            coroutineScope = coroutineScope,
-                            messageRes = R.string.progress_has_been_reset_successfully,
-                            action = { viewModel.resetWordProgress() }
-                        )
-                    }
+    if (selectedWord == null) return
+
+    AlertDialog(
+        onDismissRequest = closeDialog,
+        confirmButton = {},
+        modifier = modifier,
+        title = {
+            Text(text = stringResource(R.string.word_actions))
+        },
+        text = {
+            Column {
+                if (selectedWord.word.status == WordStatus.New) {
                     WordActionButton(
-                        labelRes = R.string.copy_to_my_category,
-                        icon = Icons.Default.FolderCopy,
+                        labelRes = R.string.mark_word_as_already_known,
+                        icon = Icons.Default.Check,
                         snackbarHostState = snackbarHostState,
                         coroutineScope = coroutineScope,
-                        messageRes = R.string.word_has_been_copied_to_your_category,
-                        action = { viewModel.copyWordToMyCategory() }
+                        messageRes = R.string.you_have_successfully_marked_word_as_already_known,
+                        action = { viewModel.updateWordStatus(WordStatus.AlreadyKnown) }
                     )
                     WordActionButton(
-                        labelRes = R.string.report_a_mistake,
-                        icon = Icons.Default.Report,
-                        coroutineScope = coroutineScope,
+                        labelRes = R.string.learn,
+                        icon = Icons.Default.Lightbulb,
                         snackbarHostState = snackbarHostState,
-                        action = { viewModel.reportMistake() }
+                        coroutineScope = coroutineScope,
+                        messageRes = R.string.word_status_has_been_changed,
+                        action = { viewModel.updateWordStatus(WordStatus.InProgress) }
                     )
+                } else {
                     WordActionButton(
-                        labelRes = R.string.edit,
-                        icon = Icons.Default.Edit,
-                        coroutineScope = coroutineScope,
+                        labelRes = R.string.reset_progress_for_this_word,
+                        icon = Icons.Default.HourglassEmpty,
                         snackbarHostState = snackbarHostState,
-                        action = { viewModel.editWord() }
-                    )
-                    WordActionButton(
-                        labelRes = R.string.remove,
-                        icon = Icons.Default.Remove,
                         coroutineScope = coroutineScope,
-                        snackbarHostState = snackbarHostState,
-                        messageRes = R.string.word_has_been_successfully_removed,
-                        action = { viewModel.removeWord() }
+                        messageRes = R.string.progress_has_been_reset_successfully,
+                        action = { viewModel.resetWordProgress() }
                     )
                 }
+                WordActionButton(
+                    labelRes = R.string.copy_to_my_category,
+                    icon = Icons.Default.FolderCopy,
+                    snackbarHostState = snackbarHostState,
+                    coroutineScope = coroutineScope,
+                    messageRes = R.string.word_has_been_copied_to_your_category,
+                    action = { viewModel.copyWordToMyCategory() }
+                )
+                WordActionButton(
+                    labelRes = R.string.report_a_mistake,
+                    icon = Icons.Default.Report,
+                    coroutineScope = coroutineScope,
+                    snackbarHostState = snackbarHostState,
+                    action = { navigateTo(Destination.ReportMistakeScreen(selectedWord.word.id)) }
+                )
+                WordActionButton(
+                    labelRes = R.string.edit,
+                    icon = Icons.Default.Edit,
+                    coroutineScope = coroutineScope,
+                    snackbarHostState = snackbarHostState,
+                    action = { viewModel.editWord() }
+                )
+                WordActionButton(
+                    labelRes = R.string.remove,
+                    icon = Icons.Default.Remove,
+                    coroutineScope = coroutineScope,
+                    snackbarHostState = snackbarHostState,
+                    messageRes = R.string.word_has_been_successfully_removed,
+                    action = { viewModel.removeWord() }
+                )
             }
-        )
-    }
+        }
+    )
 }
 
 @Composable
