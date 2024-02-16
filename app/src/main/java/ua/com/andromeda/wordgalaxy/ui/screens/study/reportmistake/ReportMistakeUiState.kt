@@ -10,5 +10,6 @@ sealed interface ReportMistakeUiState {
         val mistakenWord: Word,
         val report: Report = Report(mistakenWord.value, mistakenWord.translation),
         val isFormValid: Boolean = false,
+        val isReportSending: Boolean = false
     ) : ReportMistakeUiState
 }

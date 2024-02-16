@@ -1,5 +1,6 @@
 package ua.com.andromeda.wordgalaxy.ui.screens.study.reportmistake
 
+import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -30,6 +31,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -46,6 +48,12 @@ fun ReportMistakeScreen(
 ) {
     val viewModel: ReportMistakeViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+    val success = uiState as? ReportMistakeUiState.Success
+    val successfulMessage = stringResource(
+        R.string.report_on_word_has_been_sent_successfully,
+        success?.report?.word ?: ""
+    )
 
     Scaffold(
         topBar = {
@@ -53,11 +61,15 @@ fun ReportMistakeScreen(
         },
         floatingActionButton = {
             Button(
-                onClick = viewModel::send,
+                onClick = {
+                    viewModel.send()
+                    navigateUp()
+                    Toast.makeText(context, successfulMessage, Toast.LENGTH_LONG).show()
+                },
                 modifier = Modifier.defaultMinSize(minWidth = 56.dp, minHeight = 56.dp),
-                enabled = (uiState as? ReportMistakeUiState.Success)?.isFormValid ?: false,
+                enabled = success?.isFormValid ?: false && success?.isReportSending?.not() ?: false,
             ) {
-                Icon(Icons.Default.Send, contentDescription = null)
+                Icon(imageVector = Icons.Default.Send, contentDescription = null)
                 Text(
                     text = stringResource(R.string.send),
                     modifier = Modifier.padding(
@@ -150,7 +162,7 @@ private fun ReportMistakeMain(
                     label = {
                         Text(text = stringResource(R.string.comment_optional))
                     },
-                    minLines = 6,
+                    minLines = 10,
                     colors = TextFieldDefaults.colors(
                         focusedIndicatorColor = transparent,
                         unfocusedIndicatorColor = transparent,

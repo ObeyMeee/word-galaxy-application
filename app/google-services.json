@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "174775479573",
+    "firebase_url": "https://word-galaxy-16f22-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "word-galaxy-16f22",
+    "storage_bucket": "word-galaxy-16f22.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:174775479573:android:7808d1177e72b96436cd1c",
+        "android_client_info": {
+          "package_name": "ua.com.andromeda.wordgalaxy"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDD3XQYCBusS9Vj9bHgbHOtpz6YaBT4Yj0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

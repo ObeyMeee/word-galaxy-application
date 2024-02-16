@@ -74,6 +74,7 @@ fun NavGraphBuilder.vocabularyGraph(
                     navController.navigateUp()
                 },
                 firstShownWord = word,
+                snackbarHostState = snackbarHostState,
                 navigateTo = navController::navigate,
                 modifier = modifier
             )

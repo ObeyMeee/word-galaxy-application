@@ -1,9 +1,9 @@
 package ua.com.andromeda.wordgalaxy.ui.screens.study.reportmistake
 
-import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.database.DatabaseReference
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,7 +18,8 @@ private const val TAG = "ReportMistakeViewModel"
 @HiltViewModel
 class ReportMistakeViewModel @Inject constructor(
     private val wordRepository: WordRepository,
-    stateHandle: SavedStateHandle
+    private val databaseReference: DatabaseReference,
+    stateHandle: SavedStateHandle,
 ) : ViewModel() {
     private var _uiState = MutableStateFlow<ReportMistakeUiState>(ReportMistakeUiState.Default)
     val uiState: StateFlow<ReportMistakeUiState> = _uiState
@@ -85,8 +86,14 @@ class ReportMistakeViewModel @Inject constructor(
     }
 
     fun send() {
+        updateUiState { it.copy(isReportSending = true) }
         (_uiState.value as? ReportMistakeUiState.Success)?.let {
-            Log.d(TAG, it.report.toString())
+            databaseReference
+                .child("reports")
+                .push()
+                .setValue(it.report)
         }
+        updateUiState { it.copy(isReportSending = false) }
+
     }
 }

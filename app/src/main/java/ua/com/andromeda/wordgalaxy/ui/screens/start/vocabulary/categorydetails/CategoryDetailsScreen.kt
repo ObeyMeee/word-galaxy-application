@@ -19,7 +19,6 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -27,7 +26,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -53,15 +51,12 @@ private const val TAG = "CategoryDetailsScreen"
 fun CategoryDetailsScreen(
     navigateUp: () -> Unit,
     navigateTo: (String) -> Unit,
+    snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier,
     firstShownWord: String? = null,
 ) {
     val viewModel: CategoryDetailsViewModel = hiltViewModel()
     val state by viewModel.uiState.collectAsState()
-
-    val snackbarHostState = remember {
-        SnackbarHostState()
-    }
 
     Scaffold(
         topBar = {
@@ -76,9 +71,6 @@ fun CategoryDetailsScreen(
                 expandMenu = viewModel::expandTopAppBarMenu,
                 openOrderDialog = viewModel::openOrderDialog
             )
-        },
-        snackbarHost = {
-            SnackbarHost(hostState = snackbarHostState)
         },
         modifier = modifier
     ) { innerPadding ->
