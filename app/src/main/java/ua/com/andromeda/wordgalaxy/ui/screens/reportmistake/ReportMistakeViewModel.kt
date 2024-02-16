@@ -1,4 +1,4 @@
-package ua.com.andromeda.wordgalaxy.ui.screens.study.reportmistake
+package ua.com.andromeda.wordgalaxy.ui.screens.reportmistake
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel

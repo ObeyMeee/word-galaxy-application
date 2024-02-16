@@ -78,7 +78,7 @@
     <string name="clear_input">Clear input</string>
     <string name="send">Send</string>
     <string name="comment_optional">Comment(optional)</string>
-    <string name="report_on_word_has_been_sent_successfully">Report on word %s has been sent successfully</string>
+    <string name="report_on_word_has_been_sent_successfully">Report on word \'%s\' has been sent successfully</string>
 
     <plurals name="days">
         <item quantity="one">day</item>

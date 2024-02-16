@@ -39,8 +39,8 @@ import ua.com.andromeda.wordgalaxy.R
 import ua.com.andromeda.wordgalaxy.ui.common.Message
 import ua.com.andromeda.wordgalaxy.ui.navigation.graph.studyNavGraph
 import ua.com.andromeda.wordgalaxy.ui.navigation.graph.vocabularyGraph
+import ua.com.andromeda.wordgalaxy.ui.screens.reportmistake.ReportMistakeScreen
 import ua.com.andromeda.wordgalaxy.ui.screens.start.home.HomeScreen
-import ua.com.andromeda.wordgalaxy.ui.screens.study.reportmistake.ReportMistakeScreen
 
 @Composable
 fun WordGalaxyNavHost(modifier: Modifier = Modifier) {
