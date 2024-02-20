@@ -16,7 +16,7 @@ import ua.com.andromeda.wordgalaxy.data.repository.preferences.UserPreferencesRe
 @Module
 object PreferencesModule {
     @Provides
-    fun bindsUserPreferencesRepository(@ApplicationContext appContext: Context) =
+    fun providesUserPreferencesRepository(@ApplicationContext appContext: Context) =
         UserPreferencesRepository(appContext.dataStore)
 }
 
