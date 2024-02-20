@@ -79,6 +79,11 @@
     <string name="send">Send</string>
     <string name="comment_optional">Comment(optional)</string>
     <string name="report_on_word_has_been_sent_successfully">Report on word \'%s\' has been sent successfully</string>
+    <string name="clikc_button_to_add_some_examples">Click button to add some examples</string>
+    <string name="next">Next</string>
+    <string name="select_categories">Select categories</string>
+    <string name="add_examples">Add examples</string>
+    <string name="delete_category">Delete category</string>
 
     <plurals name="days">
         <item quantity="one">day</item>

@@ -33,6 +33,7 @@ data class Category(
 )
 
 val MY_WORDS_CATEGORY = Category(name = "My words")
+val EMPTY_CATEGORY = Category(name = "")
 
 typealias Percentage = Float
 

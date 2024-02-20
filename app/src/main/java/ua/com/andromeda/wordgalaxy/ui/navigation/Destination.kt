@@ -13,8 +13,12 @@ sealed class Destination(protected val route: String, vararg params: String) {
         data object HomeScreen : NoArgumentsDestination("home")
 
         data object VocabularyScreen : NoArgumentsDestination("vocabulary") {
-            data object CategoriesScreen : NoArgumentsDestination("categories")
-            data object NewWordScreen : NoArgumentsDestination("new_word")
+            data object CategoriesScreen : NoArgumentsDestination("vocabulary/categories")
+            data object NewWord : NoArgumentsDestination("vocabulary/new_word") {
+                data object Screen : NoArgumentsDestination("vocabulary/word/new")
+                data object ExamplesScreen : NoArgumentsDestination("vocabulary/word/new/examples")
+            }
+
             data object NewCategoryScreen : NoArgumentsDestination("new_category")
             data object CategoryDetailsScreen : Destination("categories/{id}?word={word}") {
                 const val ID_KEY = "id"

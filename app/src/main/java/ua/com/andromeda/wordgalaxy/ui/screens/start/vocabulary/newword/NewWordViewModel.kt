@@ -10,12 +10,14 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import ua.com.andromeda.wordgalaxy.data.model.Category
+import ua.com.andromeda.wordgalaxy.data.model.EMPTY_CATEGORY
 import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
 import ua.com.andromeda.wordgalaxy.data.model.Example
 import ua.com.andromeda.wordgalaxy.data.model.Phonetic
 import ua.com.andromeda.wordgalaxy.data.model.Word
 import ua.com.andromeda.wordgalaxy.data.repository.category.CategoryRepository
 import ua.com.andromeda.wordgalaxy.data.repository.word.WordRepository
+import java.util.Random
 import javax.inject.Inject
 
 private const val TAG = "NewWordViewModel"
@@ -30,11 +32,14 @@ class NewWordViewModel @Inject constructor(
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            _uiState.update {
-                val categories = categoryRepository.findAllChildCategories().first()
-                NewWordUiState.Success(
-                    categories = categories
-                )
+            launch(Dispatchers.IO) {
+                categoryRepository.findAllChildCategories().collect { categories ->
+                    _uiState.update {
+                        NewWordUiState.Success(
+                            suggestedCategories = categories
+                        )
+                    }
+                }
             }
         }
     }
@@ -57,7 +62,7 @@ class NewWordViewModel @Inject constructor(
         }
     }
 
-    fun updateTranslation(value: String) {
+    fun updateExampleTranslation(value: String) {
         updateUiState {
             it.copy(translation = value)
         }
@@ -79,7 +84,7 @@ class NewWordViewModel @Inject constructor(
         throw IllegalStateException("Unexpected state")
     }
 
-    fun updateText(index: Int, value: String) {
+    fun updateExampleText(index: Int, value: String) {
         updateUiState {
             val updatedExamples = it.examples.toMutableList()
             updatedExamples[index] = updatedExamples[index].copy(
@@ -89,7 +94,7 @@ class NewWordViewModel @Inject constructor(
         }
     }
 
-    fun updateTranslation(index: Int, value: String) {
+    fun updateExampleTranslation(index: Int, value: String) {
         updateUiState {
             val updatedExamples = it.examples.toMutableList()
             updatedExamples[index] = updatedExamples[index].copy(
@@ -99,21 +104,45 @@ class NewWordViewModel @Inject constructor(
         }
     }
 
+    companion object {
+        private val RANDOM = Random()
+    }
+
     fun addEmptyExample() {
         updateUiState {
-            val example = Example(
-                text = "",
-                translation = "",
-                wordId = 0
-            )
+            val example = buildEmptyExample()
             it.copy(examples = it.examples + example)
         }
     }
+
+    private fun buildEmptyExample() = Example(
+        id = RANDOM.nextLong(),
+        text = "",
+        translation = "",
+        wordId = 0
+    )
 
     fun deleteExample(index: Int) {
         updateUiState {
             val examples = it.examples
             it.copy(examples = examples - examples[index])
+        }
+    }
+
+    fun addCategory() {
+        updateUiState {
+            it.copy(
+                selectedCategories = it.selectedCategories + (EMPTY_CATEGORY to false)
+            )
+        }
+    }
+
+    fun deleteCategory(index: Int) {
+        updateUiState {
+            val selectedCategories = it.selectedCategories
+            it.copy(
+                selectedCategories = selectedCategories - selectedCategories[index]
+            )
         }
     }
 
@@ -132,26 +161,36 @@ class NewWordViewModel @Inject constructor(
                 value = state.word,
                 translation = state.translation
             ),
-            categories = listOf(state.selectedCategory),
+            categories = state.selectedCategories
+                .map { it.first }
+                .filter { it.name.isNotBlank() }
+                .distinct(),
             phonetics = listOf(
                 Phonetic(text = formattedTranscription, audio = "")
             ),
             examples = state.examples
+                .filter { it.text.isNotBlank() }
+                .map { it.copy(id = 0) }
         )
     }
 
-    fun updateCategory(value: Category) {
+    fun updateCategory(index: Int, value: Category) {
         updateUiState {
+            val modifiedSelectedCategories = it.selectedCategories
+                .toMutableList()
+                .apply { this[index] = value to false }
             it.copy(
-                selectedCategory = value,
-                categoriesExpanded = false
+                selectedCategories = modifiedSelectedCategories
             )
         }
     }
 
-    fun updateCategoriesExpanded(value: Boolean = false) {
+    fun updateCategoriesExpanded(index: Int, value: Boolean) {
         updateUiState {
-            it.copy(categoriesExpanded = value)
+            val modifiedSelectedCategories = it.selectedCategories.toMutableList().apply {
+                this[index] = this[index].first to value
+            }
+            it.copy(selectedCategories = modifiedSelectedCategories)
         }
     }
 }

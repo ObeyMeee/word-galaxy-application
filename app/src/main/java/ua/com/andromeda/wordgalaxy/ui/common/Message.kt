@@ -5,9 +5,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Error
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
@@ -23,9 +24,15 @@ import ua.com.andromeda.wordgalaxy.R
 @Composable
 fun Message(
     message: String,
-    backgroundColor: Color,
     modifier: Modifier = Modifier,
-    icon: @Composable () -> Unit
+    backgroundColor: Color = MaterialTheme.colorScheme.errorContainer,
+    icon: @Composable () -> Unit = {
+        Icon(
+            imageVector = Icons.Default.Error,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.error
+        )
+    }
 ) {
     Box(
         modifier = modifier,
@@ -47,7 +54,7 @@ fun Message(
             verticalAlignment = Alignment.CenterVertically
         ) {
             icon()
-            Spacer(modifier = Modifier.width(dimensionResource(R.dimen.padding_small)))
+            HorizontalSpacer(R.dimen.padding_small)
             Text(text = message)
         }
     }

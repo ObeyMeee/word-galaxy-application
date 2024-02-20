@@ -8,12 +8,11 @@ sealed interface NewWordUiState {
     data object Default : NewWordUiState
     data class Error(val message: String = "Unexpected error occurred") : NewWordUiState
     data class Success(
-        val categories: List<Category> = emptyList(),
+        val suggestedCategories: List<Category> = emptyList(),
         val word: String = "",
         val transcription: String = "",
         val translation: String = "",
-        val categoriesExpanded: Boolean = false,
-        val selectedCategory: Category = MY_WORDS_CATEGORY,
+        val selectedCategories: List<Pair<Category, Boolean>> = listOf(MY_WORDS_CATEGORY to false),
         val examples: List<Example> = emptyList(),
         val existingWords: List<ExistingWord> = emptyList()
     ) : NewWordUiState

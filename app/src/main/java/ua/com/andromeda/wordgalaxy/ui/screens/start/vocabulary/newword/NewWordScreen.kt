@@ -1,33 +1,21 @@
 package ua.com.andromeda.wordgalaxy.ui.screens.start.vocabulary.newword
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -40,9 +28,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -56,54 +42,69 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import ua.com.andromeda.wordgalaxy.R
-import ua.com.andromeda.wordgalaxy.data.model.Example
+import ua.com.andromeda.wordgalaxy.data.model.Category
+import ua.com.andromeda.wordgalaxy.data.model.MY_WORDS_CATEGORY
+import ua.com.andromeda.wordgalaxy.ui.common.AddTextButton
 import ua.com.andromeda.wordgalaxy.ui.common.CenteredLoadingSpinner
+import ua.com.andromeda.wordgalaxy.ui.common.Message
+import ua.com.andromeda.wordgalaxy.ui.navigation.Destination
 import ua.com.andromeda.wordgalaxy.ui.theme.WordGalaxyTheme
 import ua.com.andromeda.wordgalaxy.utils.RESOURCE_NOT_FOUND
 import ua.com.andromeda.wordgalaxy.utils.getCategoryIconIdentifier
 
+private const val TAG = "NewWordScreen"
+
 @Composable
 fun NewWordScreen(
     navigateUp: () -> Unit,
-    modifier: Modifier = Modifier
+    navigateTo: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: NewWordViewModel = hiltViewModel()
 ) {
-    val viewModel: NewWordViewModel = hiltViewModel()
     Scaffold(
         topBar = {
-            NewWordTopAppBar(onClickNavIcon = navigateUp)
+            NewWordTopAppBar(
+                titleRes = R.string.new_word,
+                onClickNavIcon = navigateUp
+            )
         },
         floatingActionButton = {
+            val label = stringResource(R.string.next)
             ExtendedFloatingActionButton(
                 text = {
-                    Text(text = stringResource(R.string.add))
+                    Text(text = label)
                 },
                 icon = {
                     Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = stringResource(R.string.add)
+                        imageVector = Icons.Default.ArrowForward,
+                        contentDescription = label
                     )
                 },
-                onClick = viewModel::submitForm
+                onClick = {
+                    navigateTo(Destination.Start.VocabularyScreen.NewWord.ExamplesScreen())
+                }
             )
         },
         floatingActionButtonPosition = FabPosition.End,
         modifier = modifier
     ) { innerPadding ->
-        NewWordMain(modifier = Modifier.padding(innerPadding))
+        NewWordMain(
+            modifier = Modifier.padding(innerPadding),
+            viewModel = viewModel
+        )
     }
 }
 
 @Composable
-@OptIn(ExperimentalMaterial3Api::class)
-private fun NewWordTopAppBar(
+fun NewWordMain(
     modifier: Modifier = Modifier,
-    onClickNavIcon: () -> Unit = {}
+    viewModel: NewWordViewModel = hiltViewModel()
 ) {
-    val viewModel: NewWordViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsState()
 
     when (val state = uiState) {
@@ -112,144 +113,86 @@ private fun NewWordTopAppBar(
         }
 
         is NewWordUiState.Error -> {
-            Text(text = state.message)
+            Message(state.message)
         }
 
         is NewWordUiState.Success -> {
-            TopAppBar(
-                title = {
-                    Text(text = "Add word")
-                    ExposedDropdownMenuBox(
-                        expanded = state.categoriesExpanded,
-                        onExpandedChange = viewModel::updateCategoriesExpanded
-                    ) {
-                        TextField(
-                            value = state.selectedCategory.name,
-                            onValueChange = {},
-                            readOnly = true,
-                            trailingIcon = {
-                                ExposedDropdownMenuDefaults.TrailingIcon(state.categoriesExpanded)
-                            },
-                            colors = ExposedDropdownMenuDefaults.textFieldColors(),
-                            modifier = Modifier.menuAnchor()
-                        )
-
-                        ExposedDropdownMenu(
-                            expanded = state.categoriesExpanded,
-                            onDismissRequest = viewModel::updateCategoriesExpanded
-                        ) {
-                            state.categories.forEach {
-                                DropdownMenuItem(
-                                    text = {
-                                        Text(text = it.name)
-                                    },
-                                    onClick = {
-                                        viewModel.updateCategory(it)
-                                    }
-                                )
-                            }
-                        }
-                    }
-                },
-                modifier = modifier,
-                navigationIcon = {
-                    IconButton(onClick = onClickNavIcon) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = stringResource(R.string.back)
-                        )
-                    }
-                }
-            )
+            Column(modifier) {
+                TextFields(
+                    state = state,
+                    viewModel = viewModel,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                ExistingWordsList(
+                    items = state.existingWords,
+                    modifier = Modifier.padding(dimensionResource(R.dimen.padding_small))
+                )
+                AddTextButton(
+                    onClick = viewModel::addCategory,
+                    labelRes = R.string.add_category
+                )
+                CategoryList(
+                    onExpandedChange = viewModel::updateCategoriesExpanded,
+                    selectedCategories = state.selectedCategories,
+                    suggestedCategories = state.suggestedCategories,
+                    updateCategory = viewModel::updateCategory,
+                    deleteCategory = viewModel::deleteCategory
+                )
+            }
         }
     }
 }
 
 @Composable
-fun NewWordMain(modifier: Modifier = Modifier) {
-    val viewModel: NewWordViewModel = hiltViewModel()
-    val uiState by viewModel.uiState.collectAsState()
+private fun TextFields(
+    state: NewWordUiState.Success,
+    viewModel: NewWordViewModel,
+    modifier: Modifier = Modifier
+) {
+    val focusRequester = remember { FocusRequester() }
+    Column(
+        verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_medium)),
+        modifier = modifier
+    ) {
+        val fillMaxWidthModifier = Modifier.fillMaxWidth()
+        val keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
 
-    if (uiState is NewWordUiState.Success) {
-        val state = uiState as NewWordUiState.Success
-        val examples = state.examples
-        val focusRequester = remember { FocusRequester() }
-
-        Column(modifier.verticalScroll(rememberScrollState())) {
-            TextField(
-                value = state.word,
-                onValueChange = viewModel::updateWord,
-                label = {
-                    Text(text = "${stringResource(R.string.word)}*")
-                },
-                singleLine = true,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .focusRequester(focusRequester)
-            )
-            VerticalSpacer()
-            TextField(
-                value = state.translation,
-                onValueChange = viewModel::updateTranslation,
-                label = {
-                    Text(text = "${stringResource(R.string.translation)}*")
-                },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth()
-            )
-            VerticalSpacer()
-            TextField(
-                value = state.transcription,
-                onValueChange = viewModel::updateTranscription,
-                label = {
-                    Text(text = stringResource(R.string.transcription_optional))
-                },
-                leadingIcon = {
-                  Text(text = "/")
-                },
-                trailingIcon = {
-                    Text(text = "/")
-                },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth()
-            )
-            if (examples.isNotEmpty()) {
-                VerticalSpacer()
-            }
-            ExistingWordsList(
-                items = (uiState as NewWordUiState.Success).existingWords,
-                modifier = Modifier.padding(
-                    dimensionResource(R.dimen.padding_small)
-                )
-            )
-            ExampleList(
-                examples = examples,
-                updateText = viewModel::updateText,
-                updateTranslation = viewModel::updateTranslation,
-                deleteExample = viewModel::deleteExample,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    // TODO:  
-                    .heightIn(0.dp, 2000.dp)
-            )
-            TextButton(
-                onClick = viewModel::addEmptyExample,
-                modifier = Modifier.offset(y = dimensionResource(R.dimen.offset_smaller))
-            ) {
-                Row(
-                    modifier = Modifier.padding(
-                        dimensionResource(R.dimen.padding_small)
-                    )
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = stringResource(R.string.add_example)
-                    )
-                    Spacer(modifier = Modifier.width(dimensionResource(R.dimen.padding_small)))
-                    Text(text = stringResource(R.string.add_example))
-                }
-            }
-        }
+        TextField(
+            value = state.word,
+            onValueChange = viewModel::updateWord,
+            label = {
+                Text(text = "${stringResource(R.string.word)}*")
+            },
+            singleLine = true,
+            keyboardOptions = keyboardOptions,
+            modifier = fillMaxWidthModifier.focusRequester(focusRequester)
+        )
+        TextField(
+            value = state.translation,
+            onValueChange = viewModel::updateExampleTranslation,
+            label = {
+                Text(text = "${stringResource(R.string.translation)}*")
+            },
+            singleLine = true,
+            keyboardOptions = keyboardOptions,
+            modifier = fillMaxWidthModifier
+        )
+        TextField(
+            value = state.transcription,
+            onValueChange = viewModel::updateTranscription,
+            label = {
+                Text(text = stringResource(R.string.transcription_optional))
+            },
+            leadingIcon = {
+                Text(text = "/")
+            },
+            trailingIcon = {
+                Text(text = "/")
+            },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+            modifier = fillMaxWidthModifier
+        )
     }
 }
 
@@ -308,95 +251,86 @@ fun ExistingWordsList(
 }
 
 @Composable
-fun ExampleList(
-    examples: List<Example>,
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+private fun CategoryList(
+    onExpandedChange: (index: Int, value: Boolean) -> Unit,
+    suggestedCategories: List<Category>,
+    selectedCategories: List<Pair<Category, Boolean>>,
+    updateCategory: (Int, Category) -> Unit,
+    deleteCategory: (Int) -> Unit,
     modifier: Modifier = Modifier,
-    updateText: (index: Int, value: String) -> Unit = { _, _ -> },
-    updateTranslation: (index: Int, value: String) -> Unit = { _, _ -> },
-    deleteExample: (index: Int) -> Unit = { _ -> },
 ) {
     LazyColumn(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_mediumish))
+        verticalArrangement = Arrangement.spacedBy(
+            dimensionResource(R.dimen.padding_medium)
+        )
     ) {
-        itemsIndexed(examples) { i, example ->
-            AnimatedContent(
-                targetState = example,
-                transitionSpec = {
-                    fadeIn() + slideInVertically() togetherWith fadeOut() + slideOutVertically()
-                },
-                label = ""
-            ) { targetExample ->
-                Card {
-                    Column(
-                        modifier = Modifier.padding(dimensionResource(R.dimen.padding_mediumish)),
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .offset(y = -dimensionResource(R.dimen.offset_small)),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "${stringResource(R.string.example)} ${i + 1}",
-                                modifier = Modifier.weight(1f),
-                                color = MaterialTheme.colorScheme.primary,
-                                style = MaterialTheme.typography.titleMedium,
-                            )
-                            IconButton(
-                                onClick = { deleteExample(i) },
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Delete,
-                                    contentDescription = "Delete",
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                            }
-                        }
-                        TextField(
-                            value = targetExample.text,
-                            onValueChange = { updateText(i, it) },
-                            label = {
-                                Text(text = stringResource(R.string.text))
-                            },
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                        VerticalSpacer()
-                        TextField(
-                            value = targetExample.translation,
-                            onValueChange = { updateTranslation(i, it) },
-                            label = {
-                                Text(text = stringResource(R.string.translation))
-                            },
-                            modifier = Modifier.fillMaxWidth()
-                        )
+        itemsIndexed(selectedCategories, key = { i, _ -> i }) { i, (selectedCategory, expanded) ->
+            Row(
+                modifier = Modifier.animateItemPlacement(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                ExposedDropdownMenuBox(
+                    expanded = expanded,
+                    onExpandedChange = {
+                        onExpandedChange(i, it)
                     }
+                ) {
+                    TextField(
+                        value = selectedCategory.name,
+                        onValueChange = {},
+                        readOnly = true,
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded)
+                        },
+                        colors = ExposedDropdownMenuDefaults.textFieldColors(),
+                        modifier = Modifier.menuAnchor()
+                    )
+
+                    ExposedDropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { onExpandedChange(i, false) },
+                    ) {
+                        suggestedCategories.forEach {
+                            DropdownMenuItem(
+                                text = {
+                                    Text(text = it.name)
+                                },
+                                onClick = {
+                                    updateCategory(i, it)
+                                }
+                            )
+                        }
+                    }
+                }
+
+                IconButton(onClick = { deleteCategory(i) }) {
+                    Icon(
+                        imageVector = Icons.Filled.Delete,
+                        contentDescription = stringResource(R.string.delete_category),
+                        modifier = Modifier.size(dimensionResource(R.dimen.icon_size_large)),
+                    )
                 }
             }
         }
     }
 }
 
-@Composable
-private fun VerticalSpacer(modifier: Modifier = Modifier) {
-    Spacer(
-        modifier.height(
-            dimensionResource(R.dimen.padding_medium)
-        )
-    )
-}
-
 @Preview
 @Composable
-fun ExampleListPreview() {
+fun CategoryListPreview() {
     WordGalaxyTheme {
         Surface {
-            ExampleList(
-                examples = listOf(
-                    Example(text = "", translation = "", wordId = 0),
-                    Example(text = "", translation = "", wordId = 0),
-                    Example(text = "", translation = "", wordId = 0)
-                )
+            CategoryList(
+                onExpandedChange = { _, _ -> },
+                suggestedCategories = emptyList(),
+                selectedCategories = listOf(MY_WORDS_CATEGORY to false, MY_WORDS_CATEGORY to false),
+                updateCategory = { _, _ -> },
+                deleteCategory = {},
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(dimensionResource(R.dimen.padding_medium))
             )
         }
     }

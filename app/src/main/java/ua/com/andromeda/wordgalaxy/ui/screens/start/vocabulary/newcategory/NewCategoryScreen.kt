@@ -9,7 +9,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Error
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -17,7 +16,6 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -97,16 +95,7 @@ fun NewCategoryMain(
         }
 
         is NewCategoryUiState.Error -> {
-            Message(
-                message = state.message,
-                backgroundColor = MaterialTheme.colorScheme.errorContainer
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Error,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.error
-                )
-            }
+            Message(state.message)
         }
 
         is NewCategoryUiState.Success -> {

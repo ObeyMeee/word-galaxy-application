@@ -27,14 +27,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.ViewModel
+import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.navigation.navigation
 import ua.com.andromeda.wordgalaxy.R
 import ua.com.andromeda.wordgalaxy.ui.common.Message
 import ua.com.andromeda.wordgalaxy.ui.navigation.graph.studyNavGraph
@@ -174,7 +178,7 @@ private fun AddWordFloatingActionButton(
                     )
                 },
                 onClick = {
-                    navController.navigate(Destination.Start.VocabularyScreen.NewWordScreen())
+                    navController.navigate(Destination.Start.VocabularyScreen.NewWord.Screen())
                 }
             )
         }
@@ -194,4 +198,14 @@ private fun StartContent(
     if (currentRoute in startDestinations) {
         content()
     }
+}
+
+@Composable
+inline fun <reified T : ViewModel> NavBackStackEntry.sharedViewModel(navController: NavController): T {
+    val navGraphRoute = destination.parent?.route ?: return hiltViewModel()
+    val parentEntry = remember(this) {
+        navController.getBackStackEntry(navGraphRoute)
+    }
+
+    return hiltViewModel(parentEntry)
 }

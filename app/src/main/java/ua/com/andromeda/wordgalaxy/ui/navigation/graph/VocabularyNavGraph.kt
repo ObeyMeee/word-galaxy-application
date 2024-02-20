@@ -11,10 +11,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.navArgument
 import ua.com.andromeda.wordgalaxy.ui.navigation.Destination
+import ua.com.andromeda.wordgalaxy.ui.navigation.sharedViewModel
 import ua.com.andromeda.wordgalaxy.ui.screens.start.vocabulary.categories.VocabularyScreen
 import ua.com.andromeda.wordgalaxy.ui.screens.start.vocabulary.categorydetails.CategoryDetailsScreen
 import ua.com.andromeda.wordgalaxy.ui.screens.start.vocabulary.newcategory.NewCategoryScreen
+import ua.com.andromeda.wordgalaxy.ui.screens.start.vocabulary.newword.ExamplesScreen
 import ua.com.andromeda.wordgalaxy.ui.screens.start.vocabulary.newword.NewWordScreen
+import ua.com.andromeda.wordgalaxy.ui.screens.start.vocabulary.newword.NewWordViewModel
 
 fun NavGraphBuilder.vocabularyGraph(
     navController: NavController,
@@ -25,6 +28,9 @@ fun NavGraphBuilder.vocabularyGraph(
 ) {
     val categoriesScreenRoute = Destination.Start.VocabularyScreen.CategoriesScreen()
     val categoryDetailsScreen = Destination.Start.VocabularyScreen.CategoryDetailsScreen
+    val newWordStartDestination = Destination.Start.VocabularyScreen.NewWord.Screen()
+    val newWordRoute = Destination.Start.VocabularyScreen.NewWord()
+
     navigation(
         startDestination = categoriesScreenRoute,
         route = Destination.Start.VocabularyScreen()
@@ -38,13 +44,33 @@ fun NavGraphBuilder.vocabularyGraph(
                 snackbarHostState = snackbarHostState,
             )
         }
-        composable(Destination.Start.VocabularyScreen.NewWordScreen()) {
-            NewWordScreen(
-                navigateUp = {
-                    navController.navigateUp()
-                },
-                modifier = modifier
-            )
+
+        val navigateTo = { route: String -> navController.navigate(route) }
+        navigation(
+            startDestination = newWordStartDestination,
+            route = newWordRoute
+        ) {
+            composable(newWordStartDestination) {
+                val viewModel = it.sharedViewModel<NewWordViewModel>(navController)
+                NewWordScreen(
+                    navigateUp = {
+                        navController.navigateUp()
+                    },
+                    navigateTo = navigateTo,
+                    viewModel = viewModel,
+                    modifier = modifier
+                )
+            }
+            composable(Destination.Start.VocabularyScreen.NewWord.ExamplesScreen()) {
+                val viewModel = it.sharedViewModel<NewWordViewModel>(navController)
+                ExamplesScreen(
+                    navigateUp = {
+                        navController.navigateUp()
+                    },
+                    viewModel = viewModel,
+                    modifier = modifier
+                )
+            }
         }
         composable(Destination.Start.VocabularyScreen.NewCategoryScreen()) {
             NewCategoryScreen(
@@ -75,7 +101,7 @@ fun NavGraphBuilder.vocabularyGraph(
                 },
                 firstShownWord = word,
                 snackbarHostState = snackbarHostState,
-                navigateTo = navController::navigate,
+                navigateTo = navigateTo,
                 modifier = modifier
             )
         }

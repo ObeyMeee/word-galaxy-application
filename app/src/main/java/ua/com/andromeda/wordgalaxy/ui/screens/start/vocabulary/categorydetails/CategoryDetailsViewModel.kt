@@ -111,6 +111,10 @@ class CategoryDetailsViewModel @Inject constructor(
         }
     }
 
+    fun removeWord(embeddedWord: EmbeddedWord) = viewModelScope.launch(Dispatchers.IO) {
+        wordRepository.remove(embeddedWord)
+    }
+
     fun updateWordStatus(status: WordStatus) {
         (_uiState.value as? CategoryDetailsUiState.Success)?.let { state ->
             state.selectedWord?.let { embeddedWord ->

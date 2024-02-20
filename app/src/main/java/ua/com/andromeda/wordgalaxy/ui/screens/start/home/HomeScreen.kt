@@ -10,14 +10,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -56,7 +54,9 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import ua.com.andromeda.wordgalaxy.R
 import ua.com.andromeda.wordgalaxy.ui.common.CenteredLoadingSpinner
+import ua.com.andromeda.wordgalaxy.ui.common.HorizontalSpacer
 import ua.com.andromeda.wordgalaxy.ui.common.Message
+import ua.com.andromeda.wordgalaxy.ui.common.VerticalSpacer
 import ua.com.andromeda.wordgalaxy.ui.navigation.Destination
 import ua.com.andromeda.wordgalaxy.ui.screens.start.home.graphics.ResultBarChart
 import ua.com.andromeda.wordgalaxy.ui.theme.WordGalaxyTheme
@@ -91,17 +91,13 @@ fun HomeScreen(
         }
 
         is HomeUiState.Success -> {
-            val spacer = @Composable {
-                Spacer(modifier = Modifier.height(dimensionResource(R.dimen.padding_medium)))
-            }
             val scrollState = rememberScrollState()
 
             Column(modifier = modifier.verticalScroll(scrollState)) {
                 RepetitionSection(state, navController)
-                spacer()
-                Spacer(modifier = Modifier.height(dimensionResource(R.dimen.padding_medium)))
+                VerticalSpacer(R.dimen.padding_medium)
                 StatsSection(state, modifier = Modifier.fillMaxWidth())
-                spacer()
+                VerticalSpacer(R.dimen.padding_medium)
                 ChartSection(
                     state = state,
                     updateTimePeriod = viewModel::updateTimePeriod,
@@ -122,7 +118,7 @@ private fun RepetitionSection(
         text = stringResource(R.string.repetition),
         style = MaterialTheme.typography.labelMedium
     )
-    Spacer(modifier = Modifier.height(dimensionResource(R.dimen.padding_small)))
+    VerticalSpacer(R.dimen.padding_small)
     Column(verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_medium))) {
         LearningTab(
             icon = painterResource(R.drawable.bulb_icon),
@@ -195,7 +191,7 @@ fun StatsSection(
         text = stringResource(R.string.stats),
         style = MaterialTheme.typography.labelMedium
     )
-    Spacer(modifier = Modifier.height(dimensionResource(R.dimen.padding_small)))
+    VerticalSpacer(R.dimen.padding_small)
     val fillMaxWidthModifier = Modifier.fillMaxWidth()
     Card(modifier = modifier) {
         Column(modifier = Modifier.padding(dimensionResource(R.dimen.padding_medium))) {
@@ -312,7 +308,7 @@ private fun StreakCard(
             Text(text = stringResource(labelResId))
             Row(verticalAlignment = Alignment.Bottom) {
                 Text(text = count.toString(), style = MaterialTheme.typography.titleMedium)
-                Spacer(modifier = Modifier.width(dimensionResource(R.dimen.padding_smallest)))
+                HorizontalSpacer(R.dimen.padding_smallest)
                 Text(
                     text = pluralStringResource(valueResId, count),
                     modifier = Modifier.offset(y = (-3).dp),
@@ -337,7 +333,7 @@ fun ChartSection(
         text = stringResource(R.string.chart),
         style = MaterialTheme.typography.labelMedium
     )
-    Spacer(modifier = Modifier.height(dimensionResource(R.dimen.padding_small)))
+    VerticalSpacer(R.dimen.padding_small)
     Card(modifier = modifier) {
         Row(modifier = Modifier.padding(dimensionResource(R.dimen.padding_medium))) {
             Text(text = stringResource(id = R.string.time_period))
