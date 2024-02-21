@@ -46,7 +46,10 @@ class NewWordViewModel @Inject constructor(
 
     fun updateWord(value: String) {
         updateUiState {
-            it.copy(word = value)
+            it.copy(
+                word = value,
+                isFormValid = isFormValid(value, it.translation, it.selectedCategories)
+            )
         }
         viewModelScope.launch(Dispatchers.IO) {
             val existingWords = wordRepository.findWordsByValue(value).first()
@@ -62,11 +65,24 @@ class NewWordViewModel @Inject constructor(
         }
     }
 
-    fun updateExampleTranslation(value: String) {
+    fun updateTranslation(value: String) {
         updateUiState {
-            it.copy(translation = value)
+            it.copy(
+                translation = value,
+                isFormValid = isFormValid(it.word, value, it.selectedCategories)
+            )
         }
     }
+
+    private fun isFormValid(
+        word: String,
+        translation: String,
+        selectedCategories: List<Pair<Category, Boolean>>,
+    ): Boolean =
+        word.isNotBlank()
+                && translation.isNotBlank()
+                && selectedCategories.isNotEmpty()
+
 
     private fun updateUiState(
         action: (NewWordUiState.Success) -> NewWordUiState

@@ -7,6 +7,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -16,11 +17,11 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -66,6 +67,7 @@ fun NewWordScreen(
     modifier: Modifier = Modifier,
     viewModel: NewWordViewModel = hiltViewModel()
 ) {
+    val uiState by viewModel.uiState.collectAsState()
     Scaffold(
         topBar = {
             NewWordTopAppBar(
@@ -75,20 +77,22 @@ fun NewWordScreen(
         },
         floatingActionButton = {
             val label = stringResource(R.string.next)
-            ExtendedFloatingActionButton(
-                text = {
-                    Text(text = label)
-                },
-                icon = {
-                    Icon(
-                        imageVector = Icons.Default.ArrowForward,
-                        contentDescription = label
-                    )
-                },
+            Button(
                 onClick = {
                     navigateTo(Destination.Start.VocabularyScreen.NewWord.ExamplesScreen())
-                }
-            )
+                },
+                modifier = Modifier.defaultMinSize(minWidth = 56.dp, minHeight = 56.dp),
+                enabled = uiState.isFormValid,
+            ) {
+                Text(text = label)
+                Icon(
+                    imageVector = Icons.Default.ArrowForward,
+                    contentDescription = label,
+                    modifier = Modifier.padding(
+                        start = dimensionResource(R.dimen.padding_medium)
+                    )
+                )
+            }
         },
         floatingActionButtonPosition = FabPosition.End,
         modifier = modifier
@@ -169,7 +173,7 @@ private fun TextFields(
         )
         TextField(
             value = state.translation,
-            onValueChange = viewModel::updateExampleTranslation,
+            onValueChange = viewModel::updateTranslation,
             label = {
                 Text(text = "${stringResource(R.string.translation)}*")
             },
