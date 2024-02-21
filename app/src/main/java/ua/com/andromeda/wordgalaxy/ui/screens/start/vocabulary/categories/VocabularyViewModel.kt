@@ -15,8 +15,6 @@ import ua.com.andromeda.wordgalaxy.data.repository.category.CategoryRepository
 import ua.com.andromeda.wordgalaxy.data.repository.word.WordRepository
 import javax.inject.Inject
 
-private const val TAG = "VocabularyViewModel"
-
 @HiltViewModel
 class VocabularyViewModel @Inject constructor(
     private val wordRepository: WordRepository,

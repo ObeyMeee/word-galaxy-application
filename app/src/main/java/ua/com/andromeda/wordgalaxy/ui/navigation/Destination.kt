@@ -44,6 +44,12 @@ sealed class Destination(protected val route: String, vararg params: String) {
         operator fun invoke(wordId: Long): String =
             route.appendParams(WORD_ID_KEY to wordId)
     }
+
+    data object EditWordScreen : Destination("words/{id}/edit") {
+        const val ID_KEY = "id"
+        operator fun invoke(wordId: Long): String =
+            route.appendParams(ID_KEY to wordId)
+    }
 }
 
 internal fun String.appendParams(vararg params: Pair<String, Any?>): String {

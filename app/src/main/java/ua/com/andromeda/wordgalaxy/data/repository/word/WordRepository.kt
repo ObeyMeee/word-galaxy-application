@@ -12,6 +12,7 @@ interface WordRepository {
     fun findOneRandomWordWhereStatusEquals(status: WordStatus): Flow<EmbeddedWord>
     fun findWordToReview(): Flow<EmbeddedWord?>
     fun findWordById(id: Long): Flow<Word>
+    fun findEmbeddedWordById(id: Long): Flow<EmbeddedWord>
     fun findWordsByValue(value: String): Flow<List<ExistingWord>>
     fun findWordsByValueOrTranslation(searchQuery: String): Flow<List<EmbeddedWord>>
     fun findWordsByCategoryId(categoryId: Long): Flow<List<EmbeddedWord>>

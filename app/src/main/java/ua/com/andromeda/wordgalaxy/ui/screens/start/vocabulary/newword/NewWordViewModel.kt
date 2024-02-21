@@ -20,8 +20,6 @@ import ua.com.andromeda.wordgalaxy.data.repository.word.WordRepository
 import java.util.Random
 import javax.inject.Inject
 
-private const val TAG = "NewWordViewModel"
-
 @HiltViewModel
 class NewWordViewModel @Inject constructor(
     private val wordRepository: WordRepository,
@@ -74,15 +72,6 @@ class NewWordViewModel @Inject constructor(
         }
     }
 
-    private fun isFormValid(
-        word: String,
-        translation: String,
-        selectedCategories: List<Pair<Category, Boolean>>,
-    ): Boolean =
-        word.isNotBlank()
-                && translation.isNotBlank()
-                && selectedCategories.isNotEmpty()
-
 
     private fun updateUiState(
         action: (NewWordUiState.Success) -> NewWordUiState
@@ -96,9 +85,8 @@ class NewWordViewModel @Inject constructor(
         }
     }
 
-    private fun errorState(): Nothing {
-        throw IllegalStateException("Unexpected state")
-    }
+    private fun errorState() = NewWordUiState.Error("Unexpected state")
+
 
     fun updateExampleText(index: Int, value: String) {
         updateUiState {
@@ -118,10 +106,6 @@ class NewWordViewModel @Inject constructor(
             )
             it.copy(examples = updatedExamples)
         }
-    }
-
-    companion object {
-        private val RANDOM = Random()
     }
 
     fun addEmptyExample() {
@@ -209,6 +193,10 @@ class NewWordViewModel @Inject constructor(
             it.copy(selectedCategories = modifiedSelectedCategories)
         }
     }
+
+    companion object {
+        private val RANDOM = Random()
+    }
 }
 
 private fun formatTranscription(transcription: String): String {
@@ -225,3 +213,12 @@ private fun formatTranscription(transcription: String): String {
         }
     }
 }
+
+private fun isFormValid(
+    word: String,
+    translation: String,
+    selectedCategories: List<Pair<Category, Boolean>>,
+): Boolean =
+    word.isNotBlank()
+            && translation.isNotBlank()
+            && selectedCategories.isNotEmpty()

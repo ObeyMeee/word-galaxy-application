@@ -219,6 +219,7 @@ fun LearnWordsMain(
 
         is LearnWordsUiState.Success -> {
             val word = uiState.embeddedWord.word
+            val wordId = word.id
             val isWordStatusNew = word.status == WordStatus.New
             val flashcardState = if (isWordStatusNew) {
                 FlashcardState.New(
@@ -250,12 +251,14 @@ fun LearnWordsMain(
                     icon = rememberVectorPainter(Icons.Default.Report),
                     showToast = false,
                     onClick = {
-                        navigateTo(Destination.ReportMistakeScreen(word.id))
-                    }
+                        navigateTo(Destination.ReportMistakeScreen(wordId))
+                    },
                 ),
                 DropdownItemState(
                     labelRes = R.string.edit,
-                    onClick = viewModel::edit,
+                    onClick = {
+                        navigateTo(Destination.EditWordScreen(wordId))
+                    },
                     showToast = false,
                     icon = rememberVectorPainter(Icons.Default.EditNote),
                 ),

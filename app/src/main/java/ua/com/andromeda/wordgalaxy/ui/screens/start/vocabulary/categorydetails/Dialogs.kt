@@ -174,6 +174,7 @@ fun WordActionDialog(
             Text(text = stringResource(R.string.word_actions))
         },
         text = {
+            val wordId = selectedWord.word.id
             Column {
                 if (selectedWord.word.status == WordStatus.New) {
                     WordActionButton(
@@ -215,14 +216,14 @@ fun WordActionDialog(
                     icon = Icons.Default.Report,
                     coroutineScope = coroutineScope,
                     snackbarHostState = snackbarHostState,
-                    action = { navigateTo(Destination.ReportMistakeScreen(selectedWord.word.id)) }
+                    action = { navigateTo(Destination.ReportMistakeScreen(wordId)) }
                 )
                 WordActionButton(
                     labelRes = R.string.edit,
                     icon = Icons.Default.Edit,
                     coroutineScope = coroutineScope,
                     snackbarHostState = snackbarHostState,
-                    action = { viewModel.editWord() }
+                    action = { navigateTo(Destination.EditWordScreen(wordId)) }
                 )
                 WordActionButton(
                     labelRes = R.string.remove,

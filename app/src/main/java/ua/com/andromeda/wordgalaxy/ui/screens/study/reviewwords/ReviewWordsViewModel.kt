@@ -13,8 +13,6 @@ import ua.com.andromeda.wordgalaxy.data.repository.word.WordRepository
 import ua.com.andromeda.wordgalaxy.ui.common.CardMode
 import javax.inject.Inject
 
-private const val TAG = "ReviewWordsViewModel"
-
 @HiltViewModel
 class ReviewWordsViewModel @Inject constructor(
     private val wordRepository: WordRepository

@@ -86,6 +86,10 @@ interface WordDao {
     @Query("SELECT * FROM Word WHERE id = :id")
     fun findWordById(id: Long): Flow<Word>
 
+    @Query("SELECT * FROM Word WHERE id = :id")
+    fun findEmbeddedWordById(id: Long): Flow<EmbeddedWord>
+
+
     @Query(
         """
         SELECT *

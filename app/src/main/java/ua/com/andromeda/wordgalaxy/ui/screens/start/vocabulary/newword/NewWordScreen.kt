@@ -58,8 +58,6 @@ import ua.com.andromeda.wordgalaxy.ui.theme.WordGalaxyTheme
 import ua.com.andromeda.wordgalaxy.utils.RESOURCE_NOT_FOUND
 import ua.com.andromeda.wordgalaxy.utils.getCategoryIconIdentifier
 
-private const val TAG = "NewWordScreen"
-
 @Composable
 fun NewWordScreen(
     navigateUp: () -> Unit,
@@ -123,9 +121,13 @@ fun NewWordMain(
         is NewWordUiState.Success -> {
             Column(modifier) {
                 TextFields(
-                    state = state,
-                    viewModel = viewModel,
-                    modifier = Modifier.fillMaxWidth()
+                    word = state.word,
+                    updateWord = viewModel::updateWord,
+                    translation = state.translation,
+                    updateTranslation = viewModel::updateTranslation,
+                    transcription = state.transcription,
+                    updateTranscription = viewModel::updateTranscription,
+                    modifier = Modifier.fillMaxWidth(),
                 )
                 ExistingWordsList(
                     items = state.existingWords,
@@ -148,9 +150,13 @@ fun NewWordMain(
 }
 
 @Composable
-private fun TextFields(
-    state: NewWordUiState.Success,
-    viewModel: NewWordViewModel,
+fun TextFields(
+    word: String,
+    updateWord: (String) -> Unit,
+    translation: String,
+    updateTranslation: (String) -> Unit,
+    transcription: String,
+    updateTranscription: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val focusRequester = remember { FocusRequester() }
@@ -162,8 +168,8 @@ private fun TextFields(
         val keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
 
         TextField(
-            value = state.word,
-            onValueChange = viewModel::updateWord,
+            value = word,
+            onValueChange = updateWord,
             label = {
                 Text(text = "${stringResource(R.string.word)}*")
             },
@@ -172,8 +178,8 @@ private fun TextFields(
             modifier = fillMaxWidthModifier.focusRequester(focusRequester)
         )
         TextField(
-            value = state.translation,
-            onValueChange = viewModel::updateTranslation,
+            value = translation,
+            onValueChange = updateTranslation,
             label = {
                 Text(text = "${stringResource(R.string.translation)}*")
             },
@@ -182,8 +188,8 @@ private fun TextFields(
             modifier = fillMaxWidthModifier
         )
         TextField(
-            value = state.transcription,
-            onValueChange = viewModel::updateTranscription,
+            value = transcription,
+            onValueChange = updateTranscription,
             label = {
                 Text(text = stringResource(R.string.transcription_optional))
             },
@@ -256,7 +262,7 @@ fun ExistingWordsList(
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
-private fun CategoryList(
+fun CategoryList(
     onExpandedChange: (index: Int, value: Boolean) -> Unit,
     suggestedCategories: List<Category>,
     selectedCategories: List<Pair<Category, Boolean>>,

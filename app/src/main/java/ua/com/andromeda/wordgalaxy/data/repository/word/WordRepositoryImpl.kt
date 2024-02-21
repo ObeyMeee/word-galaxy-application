@@ -20,8 +20,6 @@ import java.time.temporal.TemporalUnit
 import javax.inject.Inject
 import javax.inject.Singleton
 
-private const val TAG = "WordRepositoryImpl"
-
 @Singleton
 class WordRepositoryImpl @Inject constructor(
     private val wordDao: WordDao
@@ -35,6 +33,9 @@ class WordRepositoryImpl @Inject constructor(
 
     override fun findWordById(id: Long) =
         wordDao.findWordById(id)
+
+    override fun findEmbeddedWordById(id: Long) =
+        wordDao.findEmbeddedWordById(id)
 
     override fun findWordsByValue(value: String): Flow<List<ExistingWord>> =
         wordDao.findWordByValue(value)

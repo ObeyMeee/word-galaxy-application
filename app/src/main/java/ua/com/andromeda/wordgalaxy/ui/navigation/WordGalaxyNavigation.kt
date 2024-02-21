@@ -43,6 +43,7 @@ import ua.com.andromeda.wordgalaxy.R
 import ua.com.andromeda.wordgalaxy.ui.common.Message
 import ua.com.andromeda.wordgalaxy.ui.navigation.graph.studyNavGraph
 import ua.com.andromeda.wordgalaxy.ui.navigation.graph.vocabularyGraph
+import ua.com.andromeda.wordgalaxy.ui.screens.editword.EditWordScreen
 import ua.com.andromeda.wordgalaxy.ui.screens.reportmistake.ReportMistakeScreen
 import ua.com.andromeda.wordgalaxy.ui.screens.start.home.HomeScreen
 
@@ -61,6 +62,7 @@ fun WordGalaxyNavHost(modifier: Modifier = Modifier) {
         SnackbarHostState()
     }
 
+    val navigateUp: () -> Unit = { navController.navigateUp() }
     Scaffold(
         topBar = {
             StartContent(currentRoute) {
@@ -130,7 +132,21 @@ fun WordGalaxyNavHost(modifier: Modifier = Modifier) {
                 ) {
                     ReportMistakeScreen(
                         modifier = modifierWithSmallPadding,
-                        navigateUp = { navController.navigateUp() }
+                        navigateUp = navigateUp
+                    )
+                }
+
+                composable(
+                    route = Destination.EditWordScreen.fullRoute,
+                    arguments = listOf(
+                        navArgument(Destination.EditWordScreen.ID_KEY) {
+                            type = NavType.LongType
+                        }
+                    )
+                ) {
+                    EditWordScreen(
+                        modifier = modifierWithSmallPadding,
+                        navigateUp = navigateUp,
                     )
                 }
             }

@@ -13,8 +13,6 @@ import kotlinx.coroutines.launch
 import ua.com.andromeda.wordgalaxy.data.repository.word.WordRepository
 import javax.inject.Inject
 
-private const val TAG = "ReportMistakeViewModel"
-
 @HiltViewModel
 class ReportMistakeViewModel @Inject constructor(
     private val wordRepository: WordRepository,
@@ -94,6 +92,5 @@ class ReportMistakeViewModel @Inject constructor(
                 .setValue(it.report)
         }
         updateUiState { it.copy(isReportSending = false) }
-
     }
 }
