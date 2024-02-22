@@ -1,6 +1,5 @@
 package ua.com.andromeda.wordgalaxy.ui.screens.start.vocabulary.categorydetails
 
-import android.content.res.Configuration
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -17,10 +16,10 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.PlayCircleFilled
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.HourglassEmpty
+import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.material.icons.rounded.Square
 import androidx.compose.material3.DismissDirection
 import androidx.compose.material3.DismissValue
@@ -33,7 +32,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
 import androidx.compose.material3.SwipeToDismiss
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDismissState
@@ -49,21 +47,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import ua.com.andromeda.wordgalaxy.R
-import ua.com.andromeda.wordgalaxy.data.DefaultStorage
 import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
+import ua.com.andromeda.wordgalaxy.data.model.WordStatus
 import ua.com.andromeda.wordgalaxy.ui.common.CenteredLoadingSpinner
 import ua.com.andromeda.wordgalaxy.ui.common.Message
 import ua.com.andromeda.wordgalaxy.ui.common.ScrollToTop
 import ua.com.andromeda.wordgalaxy.ui.common.isScrollingUp
-import ua.com.andromeda.wordgalaxy.ui.theme.WordGalaxyTheme
 import ua.com.andromeda.wordgalaxy.utils.playPronunciation
-
-private const val TAG = "CategoryDetailsScreen"
 
 @Composable
 fun CategoryDetailsScreen(
@@ -115,22 +109,8 @@ private fun CategoryDetailsMain(
     val coroutineScope = rememberCoroutineScope()
 
     when (val state = uiState) {
-        is CategoryDetailsUiState.Default -> {
-            CenteredLoadingSpinner()
-        }
-
-        is CategoryDetailsUiState.Error -> {
-            Message(
-                message = state.message,
-                backgroundColor = MaterialTheme.colorScheme.errorContainer
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Error,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.error
-                )
-            }
-        }
+        is CategoryDetailsUiState.Default -> CenteredLoadingSpinner()
+        is CategoryDetailsUiState.Error -> Message(message = state.message)
 
         is CategoryDetailsUiState.Success -> {
             val items = state.embeddedWords
@@ -138,7 +118,7 @@ private fun CategoryDetailsMain(
                 state = state,
                 viewModel = viewModel,
                 snackbarHostState = snackbarHostState,
-                navigateTo = navigateTo
+                navigateTo = navigateTo,
             )
             WordList(
                 items = items,
@@ -146,8 +126,9 @@ private fun CategoryDetailsMain(
                 snackbarHostState = snackbarHostState,
                 selectItem = viewModel::selectWord,
                 removeItem = viewModel::removeWord,
-                editItem = { /* TODO: */ },
-                modifier = modifier
+                updateWordStatus = viewModel::updateWordStatus,
+                resetWordProgress = viewModel::resetWordProgress,
+                modifier = modifier,
             )
             val indexToScroll = firstShownWord?.let { word ->
                 items.indexOfFirst { it.word.value == word }
@@ -176,11 +157,15 @@ private fun WordList(
     items: List<EmbeddedWord>,
     selectItem: (EmbeddedWord) -> Unit,
     removeItem: (EmbeddedWord) -> Unit,
-    editItem: (EmbeddedWord) -> Unit,
+    updateWordStatus: (EmbeddedWord, WordStatus) -> Unit,
+    resetWordProgress: (EmbeddedWord) -> Unit,
     snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier,
     listState: LazyListState = rememberLazyListState(),
 ) {
+    val coroutineScope = rememberCoroutineScope()
+    val removeMessage = stringResource(R.string.word_has_been_successfully_removed)
+
     LazyColumn(
         modifier = modifier,
         state = listState,
@@ -189,9 +174,25 @@ private fun WordList(
         items(items, key = { it.word.id }) {
             WordListItem(
                 embeddedWord = it,
-                onSwipeLeft = removeItem,
-                onSwipeRight = editItem,
-                snackbarHostState = snackbarHostState,
+                onSwipeLeft = {
+                    removeItem(it)
+                    LaunchedEffect(it.word) {
+                        coroutineScope.launch(Dispatchers.IO) {
+                            snackbarHostState.showSnackbar(
+                                message = removeMessage,
+                                actionLabel = "Undo",
+                                duration = SnackbarDuration.Long,
+                            )
+                        }
+                    }
+                },
+                onSwipeRight = {
+                    if (it.word.status == WordStatus.New) {
+                        updateWordStatus(it, WordStatus.InProgress)
+                    } else {
+                        resetWordProgress(it)
+                    }
+                },
                 modifier = Modifier
                     .animateItemPlacement(tween(500))
                     .clickable {
@@ -206,10 +207,9 @@ private fun WordList(
 @Composable
 private fun WordListItem(
     embeddedWord: EmbeddedWord,
-    onSwipeLeft: (EmbeddedWord) -> Unit,
-    onSwipeRight: (EmbeddedWord) -> Unit,
-    modifier: Modifier = Modifier,
-    snackbarHostState: SnackbarHostState
+    onSwipeLeft: @Composable () -> Unit,
+    onSwipeRight: @Composable () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val (word, _, phonetics) = embeddedWord
     val context = LocalContext.current
@@ -218,25 +218,19 @@ private fun WordListItem(
     val numberReview = amountRepetition + 1
     val label = stringResource(status.labelRes, numberReview)
     val dismissState = rememberDismissState()
-    val coroutineScope = rememberCoroutineScope()
 
     // check if the user swiped
     if (dismissState.isDismissed(direction = DismissDirection.EndToStart)) {
-        val removeMessage = stringResource(R.string.word_has_been_successfully_removed)
-        LaunchedEffect(embeddedWord.word) {
-            coroutineScope.launch(Dispatchers.IO) {
-                snackbarHostState.showSnackbar(
-                    removeMessage,
-                    actionLabel = "Undo",
-                    duration = SnackbarDuration.Long
-                )
-            }
-        }
-        onSwipeLeft(embeddedWord)
+        onSwipeLeft()
     } else if (dismissState.isDismissed(direction = DismissDirection.StartToEnd)) {
-        onSwipeRight(embeddedWord)
+        onSwipeRight()
     }
 
+    if (dismissState.currentValue != DismissValue.Default) {
+        LaunchedEffect(Unit) {
+            dismissState.reset()
+        }
+    }
     SwipeToDismiss(
         state = dismissState,
         directions = DismissDirection.entries.toSet(),
@@ -248,7 +242,12 @@ private fun WordListItem(
             val backgroundColor by animateColorAsState(
                 when (dismissState.targetValue) {
                     DismissValue.DismissedToStart -> Color.Red.copy(alpha = 0.8f)
-                    DismissValue.DismissedToEnd -> Color.Green.copy(alpha = 0.8f)
+                    DismissValue.DismissedToEnd -> {
+                        val new = WordStatus.New
+                        if (status == new) WordStatus.InProgress.iconColor
+                        else new.iconColor
+                    }
+
                     else -> Color.Transparent
                 },
                 label = ""
@@ -256,7 +255,12 @@ private fun WordListItem(
 
             // icon
             val iconImageVector = when (dismissState.targetValue) {
-                DismissValue.DismissedToEnd -> Icons.Outlined.Edit
+                DismissValue.DismissedToEnd -> {
+                    val new = WordStatus.New
+                    if (status == new) Icons.Outlined.Lightbulb
+                    else Icons.Outlined.HourglassEmpty
+                }
+
                 else -> Icons.Outlined.Delete
             }
 
@@ -337,36 +341,36 @@ private fun WordListItem(
     )
 }
 
-@Preview
-@Composable
-fun WordListPreview() {
-    WordGalaxyTheme {
-        Surface {
-            WordList(
-                items = DefaultStorage.embeddedWords,
-                removeItem = {},
-                editItem = {},
-                selectItem = {},
-                modifier = Modifier.padding(dimensionResource(R.dimen.padding_small)),
-                snackbarHostState = SnackbarHostState()
-            )
-        }
-    }
-}
-
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-@Composable
-fun WordListDarkThemePreview() {
-    WordGalaxyTheme {
-        Surface {
-            WordList(
-                items = DefaultStorage.embeddedWords,
-                removeItem = {},
-                editItem = {},
-                selectItem = {},
-                modifier = Modifier.padding(dimensionResource(R.dimen.padding_small)),
-                snackbarHostState = SnackbarHostState()
-            )
-        }
-    }
-}
+//@Preview
+//@Composable
+//fun WordListPreview() {
+//    WordGalaxyTheme {
+//        Surface {
+//            WordList(
+//                items = DefaultStorage.embeddedWords,
+//                removeItem = {},
+//                navigateTo = {},
+//                selectItem = {},
+//                modifier = Modifier.padding(dimensionResource(R.dimen.padding_small)),
+//                snackbarHostState = SnackbarHostState()
+//            )
+//        }
+//    }
+//}
+//
+//@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+//@Composable
+//fun WordListDarkThemePreview() {
+//    WordGalaxyTheme {
+//        Surface {
+//            WordList(
+//                items = DefaultStorage.embeddedWords,
+//                removeItem = {},
+//                navigateTo = {},
+//                selectItem = {},
+//                modifier = Modifier.padding(dimensionResource(R.dimen.padding_small)),
+//                snackbarHostState = SnackbarHostState()
+//            )
+//        }
+//    }
+//}

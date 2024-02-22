@@ -84,6 +84,8 @@
     <string name="select_categories">Select categories</string>
     <string name="add_examples">Add examples</string>
     <string name="delete_category">Delete category</string>
+    <string name="save">Save</string>
+    <string name="edit_examples">Edit examples</string>
 
     <plurals name="days">
         <item quantity="one">day</item>

@@ -143,6 +143,45 @@ class EditWordViewModel @Inject constructor(
         }
     }
 
+    fun updateExampleText(index: Int, value: String) {
+        updateUiState {
+            val updatedExamples = it.examples.toMutableList()
+            updatedExamples[index] = updatedExamples[index].copy(
+                text = value
+            )
+            it.copy(examples = updatedExamples)
+        }
+    }
+
+    fun updateExampleTranslation(index: Int, value: String) {
+        updateUiState {
+            val updatedExamples = it.examples.toMutableList()
+            updatedExamples[index] = updatedExamples[index].copy(
+                translation = value
+            )
+            it.copy(examples = updatedExamples)
+        }
+    }
+
+    fun submitForm() {
+        val state = uiState.value
+        if (state !is EditWordUiState.Success) return
+
+        val editableWord = state.editableWord
+        viewModelScope.launch(Dispatchers.IO) {
+            val updatedWord = editableWord.copy(
+                word = editableWord.word.copy(
+                    value = state.word,
+                    translation = state.translation,
+                ),
+                categories = state.selectedCategories.map { it.first },
+                examples = state.examples,
+                phonetics = editableWord.phonetics
+            )
+            wordRepository.update(updatedWord)
+        }
+    }
+
     companion object {
         private val RANDOM = Random()
     }

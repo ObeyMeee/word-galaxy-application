@@ -257,7 +257,7 @@ fun LearnWordsMain(
                 DropdownItemState(
                     labelRes = R.string.edit,
                     onClick = {
-                        navigateTo(Destination.EditWordScreen(wordId))
+                        navigateTo(Destination.EditWord(wordId))
                     },
                     showToast = false,
                     icon = rememberVectorPainter(Icons.Default.EditNote),

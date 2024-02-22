@@ -18,7 +18,7 @@ import ua.com.andromeda.wordgalaxy.R
 fun TitledTopAppBar(
     @StringRes titleRes: Int,
     modifier: Modifier = Modifier,
-    navigateUp: () -> Unit = {},
+    navigateUp: () -> Unit,
 ) {
     TopAppBar(
         title = {

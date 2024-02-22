@@ -43,6 +43,7 @@ import ua.com.andromeda.wordgalaxy.data.model.Example
 import ua.com.andromeda.wordgalaxy.ui.common.AddTextButton
 import ua.com.andromeda.wordgalaxy.ui.common.CenteredLoadingSpinner
 import ua.com.andromeda.wordgalaxy.ui.common.Message
+import ua.com.andromeda.wordgalaxy.ui.common.TitledTopAppBar
 import ua.com.andromeda.wordgalaxy.ui.common.VerticalSpacer
 import ua.com.andromeda.wordgalaxy.ui.theme.WordGalaxyTheme
 
@@ -54,9 +55,9 @@ fun ExamplesScreen(
 ) {
     Scaffold(
         topBar = {
-            NewWordTopAppBar(
+            TitledTopAppBar(
                 titleRes = R.string.add_examples,
-                onClickNavIcon = navigateUp
+                navigateUp = navigateUp,
             )
         },
         floatingActionButton = {
@@ -116,7 +117,7 @@ private fun ExamplesMain(
 }
 
 @Composable
-private fun NoExamplesMessage(
+fun NoExamplesMessage(
     visible: Boolean,
     modifier: Modifier = Modifier
 ) {
@@ -139,7 +140,7 @@ private fun NoExamplesMessage(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun ExampleList(
+fun ExampleList(
     examples: List<Example>,
     modifier: Modifier = Modifier,
     updateText: (index: Int, value: String) -> Unit = { _, _ -> },

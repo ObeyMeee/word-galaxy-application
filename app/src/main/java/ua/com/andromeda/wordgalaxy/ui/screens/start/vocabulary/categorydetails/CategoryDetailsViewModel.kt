@@ -22,8 +22,6 @@ import ua.com.andromeda.wordgalaxy.ui.navigation.Destination.Start.VocabularyScr
 import ua.com.andromeda.wordgalaxy.utils.Direction
 import javax.inject.Inject
 
-private const val TAG = "CategoryDetailsViewModel"
-
 @HiltViewModel
 class CategoryDetailsViewModel @Inject constructor(
     private val wordRepository: WordRepository,
@@ -74,12 +72,14 @@ class CategoryDetailsViewModel @Inject constructor(
 
     fun resetWordProgress() {
         (_uiState.value as? CategoryDetailsUiState.Success)?.let { state ->
-            viewModelScope.launch(Dispatchers.IO) {
-                state.selectedWord?.let { embeddedWord ->
-                    wordRepository.update(embeddedWord.word.reset())
-                }
+            state.selectedWord?.let { embeddedWord ->
+                resetWordProgress(embeddedWord)
             }
         }
+    }
+
+    fun resetWordProgress(embeddedWord: EmbeddedWord) = viewModelScope.launch(Dispatchers.IO) {
+        wordRepository.update(embeddedWord.word.reset())
     }
 
     fun copyWordToMyCategory() {
@@ -95,10 +95,6 @@ class CategoryDetailsViewModel @Inject constructor(
                 }
             }
         }
-    }
-
-    fun editWord() {
-        TODO("Not yet implemented")
     }
 
     fun removeWord() {
@@ -118,13 +114,18 @@ class CategoryDetailsViewModel @Inject constructor(
     fun updateWordStatus(status: WordStatus) {
         (_uiState.value as? CategoryDetailsUiState.Success)?.let { state ->
             state.selectedWord?.let { embeddedWord ->
-                viewModelScope.launch(Dispatchers.IO) {
-                    wordRepository.update(
-                        embeddedWord.word.updateStatus(status)
-                    )
-                }
+                updateWordStatus(embeddedWord, status)
             }
         }
+    }
+
+    fun updateWordStatus(
+        embeddedWord: EmbeddedWord,
+        status: WordStatus
+    ) = viewModelScope.launch(Dispatchers.IO) {
+        wordRepository.update(
+            embeddedWord.word.updateStatus(status)
+        )
     }
 
     fun expandTopAppBarMenu(expanded: Boolean = false) {

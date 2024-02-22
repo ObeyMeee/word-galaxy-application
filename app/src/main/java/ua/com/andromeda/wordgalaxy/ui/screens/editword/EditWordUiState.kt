@@ -13,7 +13,7 @@ sealed class EditWordUiState(
     data class Success(
         val editableWord: EmbeddedWord,
         val word: String = editableWord.word.value,
-        val transcription: String = editableWord.phonetics[0].text,
+        val transcription: String = getTranscription(editableWord),
         val translation: String = editableWord.word.translation,
         val selectedCategories: List<Pair<Category, Boolean>> = editableWord.categories.map { it to false },
         val examples: List<Example> = editableWord.examples,
@@ -21,3 +21,10 @@ sealed class EditWordUiState(
         override val isFormValid: Boolean = true,
     ) : EditWordUiState(isFormValid)
 }
+
+private fun getTranscription(editableWord: EmbeddedWord) =
+    editableWord
+        .phonetics[0]
+        .text
+        .removePrefix("/")
+        .removeSuffix("/")

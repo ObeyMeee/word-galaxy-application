@@ -223,7 +223,7 @@ fun WordActionDialog(
                     icon = Icons.Default.Edit,
                     coroutineScope = coroutineScope,
                     snackbarHostState = snackbarHostState,
-                    action = { navigateTo(Destination.EditWordScreen(wordId)) }
+                    action = { navigateTo(Destination.EditWord(wordId)) }
                 )
                 WordActionButton(
                     labelRes = R.string.remove,

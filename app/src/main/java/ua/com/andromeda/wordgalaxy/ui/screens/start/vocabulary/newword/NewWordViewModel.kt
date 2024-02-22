@@ -148,10 +148,10 @@ class NewWordViewModel @Inject constructor(
 
     fun submitForm() = viewModelScope.launch(Dispatchers.IO) {
         val state = uiState.value
-        if (state !is NewWordUiState.Success) return@launch
-
-        val embeddedWord = buildEmbeddedWord(state)
-        wordRepository.insert(embeddedWord)
+        if (state is NewWordUiState.Success) {
+            val embeddedWord = buildEmbeddedWord(state)
+            wordRepository.insert(embeddedWord)
+        }
     }
 
     private fun buildEmbeddedWord(state: NewWordUiState.Success): EmbeddedWord {

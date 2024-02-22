@@ -161,6 +161,10 @@ class WordRepositoryImpl @Inject constructor(
     override suspend fun update(vararg words: Word) =
         wordDao.updateWord(*words)
 
+    override suspend fun update(embeddedWord: EmbeddedWord) =
+        wordDao.updateEmbeddedWord(embeddedWord)
+
+
     @Transaction
     override suspend fun insert(embeddedWord: EmbeddedWord) {
         val wordId = wordDao.insertWordWithCategories(embeddedWord.toWordWithCategories())

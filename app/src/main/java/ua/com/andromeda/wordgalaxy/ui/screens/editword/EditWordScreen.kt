@@ -3,6 +3,7 @@ package ua.com.andromeda.wordgalaxy.ui.screens.editword
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -14,14 +15,20 @@ import ua.com.andromeda.wordgalaxy.ui.common.AddTextButton
 import ua.com.andromeda.wordgalaxy.ui.common.CenteredLoadingSpinner
 import ua.com.andromeda.wordgalaxy.ui.common.Message
 import ua.com.andromeda.wordgalaxy.ui.common.TitledTopAppBar
+import ua.com.andromeda.wordgalaxy.ui.navigation.Destination
 import ua.com.andromeda.wordgalaxy.ui.screens.start.vocabulary.newword.CategoryList
+import ua.com.andromeda.wordgalaxy.ui.screens.start.vocabulary.newword.EnabledFloatingActionButton
 import ua.com.andromeda.wordgalaxy.ui.screens.start.vocabulary.newword.TextFields
 
 @Composable
 fun EditWordScreen(
     navigateUp: () -> Unit,
+    navigateTo: (String) -> Unit,
     modifier: Modifier = Modifier,
+    viewModel: EditWordViewModel = hiltViewModel()
 ) {
+    val uiState by viewModel.uiState.collectAsState()
+
     Scaffold(
         topBar = {
             TitledTopAppBar(
@@ -29,7 +36,16 @@ fun EditWordScreen(
                 navigateUp = navigateUp
             )
         },
-
+        floatingActionButton = {
+            EnabledFloatingActionButton(
+                textRes = R.string.next,
+                enabled = uiState.isFormValid,
+                onClick = {
+                    navigateTo(Destination.EditWord.ExamplesScreen())
+                }
+            )
+        },
+        floatingActionButtonPosition = FabPosition.End,
         modifier = modifier,
     ) { innerPadding ->
         EditWordMain(modifier = Modifier.padding(innerPadding))
@@ -49,14 +65,12 @@ fun EditWordMain(
 
         is EditWordUiState.Success -> {
             Column(modifier) {
-                val embeddedWord = state.editableWord
-                val word = embeddedWord.word
                 TextFields(
-                    word = word.value,
+                    word = state.word,
                     updateWord = viewModel::updateWord,
-                    translation = word.translation,
+                    translation = state.translation,
                     updateTranslation = viewModel::updateTranslation,
-                    transcription = embeddedWord.phonetics[0].text,
+                    transcription = state.transcription,
                     updateTranscription = viewModel::updateTranscription,
                     modifier = Modifier.fillMaxWidth()
                 )

@@ -24,12 +24,12 @@ interface WordRepository {
     fun countCurrentStreak(): Flow<Int>
     fun countBestStreak(): Flow<Int>
     suspend fun update(vararg words: Word)
+    suspend fun update(embeddedWord: EmbeddedWord)
+    suspend fun updateWordWithCategories(wordWithCategories: WordWithCategories)
 
     suspend fun insert(embeddedWord: EmbeddedWord)
 
     suspend fun remove(embeddedWord: EmbeddedWord)
 
     suspend fun insertAll(embeddedWords: List<EmbeddedWord>)
-
-    suspend fun updateWordWithCategories(wordWithCategories: WordWithCategories)
 }

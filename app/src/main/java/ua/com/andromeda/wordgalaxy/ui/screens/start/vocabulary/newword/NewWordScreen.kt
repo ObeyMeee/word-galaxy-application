@@ -1,5 +1,6 @@
 package ua.com.andromeda.wordgalaxy.ui.screens.start.vocabulary.newword
 
+import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -53,6 +54,7 @@ import ua.com.andromeda.wordgalaxy.data.model.MY_WORDS_CATEGORY
 import ua.com.andromeda.wordgalaxy.ui.common.AddTextButton
 import ua.com.andromeda.wordgalaxy.ui.common.CenteredLoadingSpinner
 import ua.com.andromeda.wordgalaxy.ui.common.Message
+import ua.com.andromeda.wordgalaxy.ui.common.TitledTopAppBar
 import ua.com.andromeda.wordgalaxy.ui.navigation.Destination
 import ua.com.andromeda.wordgalaxy.ui.theme.WordGalaxyTheme
 import ua.com.andromeda.wordgalaxy.utils.RESOURCE_NOT_FOUND
@@ -68,29 +70,19 @@ fun NewWordScreen(
     val uiState by viewModel.uiState.collectAsState()
     Scaffold(
         topBar = {
-            NewWordTopAppBar(
+            TitledTopAppBar(
                 titleRes = R.string.new_word,
-                onClickNavIcon = navigateUp
+                navigateUp = navigateUp,
             )
         },
         floatingActionButton = {
-            val label = stringResource(R.string.next)
-            Button(
+            EnabledFloatingActionButton(
+                textRes = R.string.next,
+                enabled = uiState.isFormValid,
                 onClick = {
                     navigateTo(Destination.Start.VocabularyScreen.NewWord.ExamplesScreen())
-                },
-                modifier = Modifier.defaultMinSize(minWidth = 56.dp, minHeight = 56.dp),
-                enabled = uiState.isFormValid,
-            ) {
-                Text(text = label)
-                Icon(
-                    imageVector = Icons.Default.ArrowForward,
-                    contentDescription = label,
-                    modifier = Modifier.padding(
-                        start = dimensionResource(R.dimen.padding_medium)
-                    )
-                )
-            }
+                }
+            )
         },
         floatingActionButtonPosition = FabPosition.End,
         modifier = modifier
@@ -98,6 +90,29 @@ fun NewWordScreen(
         NewWordMain(
             modifier = Modifier.padding(innerPadding),
             viewModel = viewModel
+        )
+    }
+}
+
+@Composable
+fun EnabledFloatingActionButton(
+    @StringRes textRes: Int,
+    enabled: Boolean,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+) {
+    Button(
+        onClick = onClick,
+        modifier = modifier.defaultMinSize(minWidth = 56.dp, minHeight = 56.dp),
+        enabled = enabled,
+    ) {
+        Text(text = stringResource(textRes))
+        Icon(
+            imageVector = Icons.Default.ArrowForward,
+            contentDescription = null,
+            modifier = Modifier.padding(
+                start = dimensionResource(R.dimen.padding_medium)
+            )
         )
     }
 }

@@ -86,6 +86,7 @@ interface WordDao {
     @Query("SELECT * FROM Word WHERE id = :id")
     fun findWordById(id: Long): Flow<Word>
 
+    @Transaction
     @Query("SELECT * FROM Word WHERE id = :id")
     fun findEmbeddedWordById(id: Long): Flow<EmbeddedWord>
 
@@ -161,30 +162,25 @@ interface WordDao {
     suspend fun removeExamples(examples: List<Example>)
 
     @Update
-    suspend fun updateWord(vararg words: Word)
+    suspend fun updateWord(vararg word: Word)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertWord(word: Word): Long
+    @Update
+    suspend fun updateCategory(vararg category: Category)
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertWordAndCategories(wordAndCategoryCrossRef: List<WordAndCategoryCrossRef>)
+    @Update
+    suspend fun updatePhonetic(vararg phonetic: Phonetic)
+
+    @Update
+    suspend fun updateExample(vararg example: Example)
 
     @Transaction
-    suspend fun insertWordWithCategories(wordWithCategories: WordWithCategories): Long {
-        val (word, categories) = wordWithCategories
-        val wordId = insertWord(word)
-
-        val categoriesIds = insertCategories(categories)
-        val wordAndCategoryCrossRefs = categoriesIds.map {
-            WordAndCategoryCrossRef(wordId, it)
-        }
-        insertWordAndCategories(wordAndCategoryCrossRefs)
-        return wordId
+    suspend fun updateEmbeddedWord(embeddedWord: EmbeddedWord) {
+        val (word, categories, phonetics, examples) = embeddedWord
+        updateWord(word)
+        updateCategory(*categories.toTypedArray())
+        updatePhonetic(*phonetics.toTypedArray())
+        updateExample(*examples.toTypedArray())
     }
-
-    @Transaction
-    suspend fun insertAllWords(wordsWithCategories: List<WordWithCategories>) =
-        wordsWithCategories.map { insertWordWithCategories(it) }
 
     @Transaction
     suspend fun updateWordWithCategories(wordWithCategories: WordWithCategories) {
@@ -208,6 +204,29 @@ interface WordDao {
         }
         insertWordAndCategories(updatedWordAndCategoryCrossRefs)
     }
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertWord(word: Word): Long
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertWordAndCategories(wordAndCategoryCrossRef: List<WordAndCategoryCrossRef>)
+
+    @Transaction
+    suspend fun insertWordWithCategories(wordWithCategories: WordWithCategories): Long {
+        val (word, categories) = wordWithCategories
+        val wordId = insertWord(word)
+
+        val categoriesIds = insertCategories(categories)
+        val wordAndCategoryCrossRefs = categoriesIds.map {
+            WordAndCategoryCrossRef(wordId, it)
+        }
+        insertWordAndCategories(wordAndCategoryCrossRefs)
+        return wordId
+    }
+
+    @Transaction
+    suspend fun insertAllWords(wordsWithCategories: List<WordWithCategories>) =
+        wordsWithCategories.map { insertWordWithCategories(it) }
 
     @Insert
     suspend fun insertPhonetics(phonetics: List<Phonetic>): List<Long>

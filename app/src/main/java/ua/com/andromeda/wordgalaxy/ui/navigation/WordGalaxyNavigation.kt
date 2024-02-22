@@ -41,9 +41,9 @@ import androidx.navigation.navArgument
 import androidx.navigation.navigation
 import ua.com.andromeda.wordgalaxy.R
 import ua.com.andromeda.wordgalaxy.ui.common.Message
+import ua.com.andromeda.wordgalaxy.ui.navigation.graph.editNavGraph
 import ua.com.andromeda.wordgalaxy.ui.navigation.graph.studyNavGraph
 import ua.com.andromeda.wordgalaxy.ui.navigation.graph.vocabularyGraph
-import ua.com.andromeda.wordgalaxy.ui.screens.editword.EditWordScreen
 import ua.com.andromeda.wordgalaxy.ui.screens.reportmistake.ReportMistakeScreen
 import ua.com.andromeda.wordgalaxy.ui.screens.start.home.HomeScreen
 
@@ -135,20 +135,10 @@ fun WordGalaxyNavHost(modifier: Modifier = Modifier) {
                         navigateUp = navigateUp
                     )
                 }
-
-                composable(
-                    route = Destination.EditWordScreen.fullRoute,
-                    arguments = listOf(
-                        navArgument(Destination.EditWordScreen.ID_KEY) {
-                            type = NavType.LongType
-                        }
-                    )
-                ) {
-                    EditWordScreen(
-                        modifier = modifierWithSmallPadding,
-                        navigateUp = navigateUp,
-                    )
-                }
+                editNavGraph(
+                    navController = navController,
+                    modifier = modifierWithSmallPadding,
+                )
             }
         }
     }
