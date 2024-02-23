@@ -13,7 +13,7 @@ import ua.com.andromeda.wordgalaxy.data.model.Word
 import ua.com.andromeda.wordgalaxy.data.model.WordStatus
 import ua.com.andromeda.wordgalaxy.data.model.WordWithCategories
 import ua.com.andromeda.wordgalaxy.data.model.toWordWithCategories
-import ua.com.andromeda.wordgalaxy.ui.screens.start.vocabulary.newword.ExistingWord
+import ua.com.andromeda.wordgalaxy.ui.common.wordform.ExistingWord
 import ua.com.andromeda.wordgalaxy.utils.getLastNDates
 import java.time.LocalDate
 import java.time.temporal.TemporalUnit

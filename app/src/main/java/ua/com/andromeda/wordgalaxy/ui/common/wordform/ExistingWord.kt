@@ -1,4 +1,4 @@
-package ua.com.andromeda.wordgalaxy.ui.screens.start.vocabulary.newword
+package ua.com.andromeda.wordgalaxy.ui.common.wordform
 
 import ua.com.andromeda.wordgalaxy.data.model.Category
 

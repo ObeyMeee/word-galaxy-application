@@ -5,7 +5,7 @@ import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
 import ua.com.andromeda.wordgalaxy.data.model.Word
 import ua.com.andromeda.wordgalaxy.data.model.WordStatus
 import ua.com.andromeda.wordgalaxy.data.model.WordWithCategories
-import ua.com.andromeda.wordgalaxy.ui.screens.start.vocabulary.newword.ExistingWord
+import ua.com.andromeda.wordgalaxy.ui.common.wordform.ExistingWord
 import java.time.temporal.TemporalUnit
 
 interface WordRepository {

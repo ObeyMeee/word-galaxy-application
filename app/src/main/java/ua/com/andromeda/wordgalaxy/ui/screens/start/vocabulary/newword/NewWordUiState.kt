@@ -3,6 +3,7 @@ package ua.com.andromeda.wordgalaxy.ui.screens.start.vocabulary.newword
 import ua.com.andromeda.wordgalaxy.data.model.Category
 import ua.com.andromeda.wordgalaxy.data.model.Example
 import ua.com.andromeda.wordgalaxy.data.model.MY_WORDS_CATEGORY
+import ua.com.andromeda.wordgalaxy.ui.common.wordform.ExistingWord
 
 sealed class NewWordUiState(
     open val isFormValid: Boolean = false,

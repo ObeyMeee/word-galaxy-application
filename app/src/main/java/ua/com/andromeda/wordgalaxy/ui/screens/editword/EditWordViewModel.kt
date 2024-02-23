@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import ua.com.andromeda.wordgalaxy.data.model.Category
@@ -62,13 +63,20 @@ class EditWordViewModel @Inject constructor(
 
     private fun errorState() = EditWordUiState.Error()
 
-    fun updateWord(value: String) =
+    fun updateWord(value: String) {
         updateUiState {
             it.copy(
                 word = value,
                 isFormValid = isFormValid(it.word, value, it.selectedCategories)
             )
         }
+        viewModelScope.launch(Dispatchers.IO) {
+            val existingWords = wordRepository.findWordsByValue(value).first()
+            updateUiState {
+                it.copy(existingWords = existingWords)
+            }
+        }
+    }
 
     fun updateTranscription(value: String) =
         updateUiState {
