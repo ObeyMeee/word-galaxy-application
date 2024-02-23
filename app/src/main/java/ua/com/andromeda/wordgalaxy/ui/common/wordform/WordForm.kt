@@ -109,21 +109,21 @@ fun ExistingWordsList(
     items: List<ExistingWord>,
     modifier: Modifier = Modifier
 ) {
-    val context = LocalContext.current
-
     AnimatedContent(
         targetState = items,
-        label = "ExistingWordsAnimation"
+        label = "ExistingWordsAnimation",
+        modifier = modifier,
     ) { words ->
-        Column(modifier) {
+        Column {
             if (words.isNotEmpty()) {
                 Text(
                     text = stringResource(R.string.this_word_already_exists),
                     style = MaterialTheme.typography.labelMedium
                 )
             }
-            words.forEach { existingWord ->
-                Row(
+            words.forEach {
+                ExistingWordItem(
+                    item = it,
                     modifier = Modifier
                         .padding(vertical = dimensionResource(R.dimen.padding_small))
                         .border(
@@ -132,34 +132,45 @@ fun ExistingWordsList(
                                 color = MaterialTheme.colorScheme.primary
                             ),
                             shape = MaterialTheme.shapes.medium
-                        ),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = existingWord.translation,
-                        modifier = Modifier.padding(dimensionResource(R.dimen.padding_small))
-                    )
-                    existingWord.categories.forEach { category ->
-                        val iconRes = context.getCategoryIconIdentifier(category)
-                        if (iconRes != RESOURCE_NOT_FOUND) {
-                            Icon(
-                                painter = painterResource(iconRes),
-                                contentDescription = null,
-                                tint = Color.Unspecified,
-                                modifier = Modifier
-                                    .size(dimensionResource(R.dimen.icon_size_largest))
-                                    .padding(dimensionResource(R.dimen.padding_small))
-                            )
-                        }
-                    }
-                }
+                        )
+                )
             }
         }
     }
 }
 
 @Composable
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+private fun ExistingWordItem(
+    item: ExistingWord,
+    modifier: Modifier = Modifier,
+) {
+    val context = LocalContext.current
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = item.translation,
+            modifier = Modifier.padding(dimensionResource(R.dimen.padding_small)),
+        )
+        item.categories.forEach { category ->
+            val iconRes = context.getCategoryIconIdentifier(category)
+            if (iconRes != RESOURCE_NOT_FOUND) {
+                Icon(
+                    painter = painterResource(iconRes),
+                    contentDescription = null,
+                    tint = Color.Unspecified,
+                    modifier = Modifier
+                        .size(dimensionResource(R.dimen.icon_size_largest))
+                        .padding(dimensionResource(R.dimen.padding_small)),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+@OptIn(ExperimentalFoundationApi::class)
 fun CategoryList(
     onExpandedChange: (index: Int, value: Boolean) -> Unit,
     suggestedCategories: List<Category>,
@@ -172,56 +183,105 @@ fun CategoryList(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(
             dimensionResource(R.dimen.padding_medium)
-        )
+        ),
     ) {
-        itemsIndexed(selectedCategories, key = { i, _ -> i }) { i, (selectedCategory, expanded) ->
-            Row(
+        itemsIndexed(selectedCategories, key = { i, _ -> i }) { i, selectedCategory ->
+            CategoryItem(
+                item = selectedCategory,
+                index = i,
+                onExpandedChange = onExpandedChange,
+                suggestedCategories = suggestedCategories,
+                updateCategory = updateCategory,
+                deleteCategory = deleteCategory,
                 modifier = Modifier.animateItemPlacement(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                ExposedDropdownMenuBox(
-                    expanded = expanded,
-                    onExpandedChange = {
-                        onExpandedChange(i, it)
-                    }
-                ) {
-                    TextField(
-                        value = selectedCategory.name,
-                        onValueChange = {},
-                        readOnly = true,
-                        trailingIcon = {
-                            ExposedDropdownMenuDefaults.TrailingIcon(expanded)
-                        },
-                        colors = ExposedDropdownMenuDefaults.textFieldColors(),
-                        modifier = Modifier.menuAnchor()
-                    )
+            )
+        }
+    }
+}
 
-                    ExposedDropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { onExpandedChange(i, false) },
-                    ) {
-                        suggestedCategories.forEach {
-                            DropdownMenuItem(
-                                text = {
-                                    Text(text = it.name)
-                                },
-                                onClick = {
-                                    updateCategory(i, it)
-                                }
-                            )
-                        }
-                    }
-                }
+@Composable
+private fun CategoryItem(
+    item: Pair<Category, Boolean>,
+    index: Int,
+    onExpandedChange: (index: Int, value: Boolean) -> Unit,
+    suggestedCategories: List<Category>,
+    updateCategory: (Int, Category) -> Unit,
+    deleteCategory: (Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        CategoryDropdown(
+            item = item,
+            index = index,
+            onExpandedChange = onExpandedChange,
+            suggestedCategories = suggestedCategories,
+            updateCategory = updateCategory,
+        )
+        DeleteCategoryIcon { deleteCategory(index) }
+    }
+}
 
-                IconButton(onClick = { deleteCategory(i) }) {
-                    Icon(
-                        imageVector = Icons.Filled.Delete,
-                        contentDescription = stringResource(R.string.delete_category),
-                        modifier = Modifier.size(dimensionResource(R.dimen.icon_size_large)),
-                    )
-                }
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+private fun CategoryDropdown(
+    item: Pair<Category, Boolean>,
+    onExpandedChange: (index: Int, value: Boolean) -> Unit,
+    index: Int,
+    suggestedCategories: List<Category>,
+    updateCategory: (Int, Category) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val (category, expanded) = item
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = {
+            onExpandedChange(index, it)
+        },
+        modifier = modifier,
+    ) {
+        TextField(
+            value = category.name,
+            onValueChange = {},
+            readOnly = true,
+            trailingIcon = {
+                ExposedDropdownMenuDefaults.TrailingIcon(expanded)
+            },
+            colors = ExposedDropdownMenuDefaults.textFieldColors(),
+            modifier = Modifier.menuAnchor()
+        )
+
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { onExpandedChange(index, false) },
+        ) {
+            suggestedCategories.forEach {
+                DropdownMenuItem(
+                    text = {
+                        Text(text = it.name)
+                    },
+                    onClick = {
+                        updateCategory(index, it)
+                    }
+                )
             }
         }
+    }
+}
+
+@Composable
+private fun DeleteCategoryIcon(
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+) {
+    IconButton(onClick = onClick, modifier = modifier) {
+        Icon(
+            imageVector = Icons.Filled.Delete,
+            contentDescription = stringResource(R.string.delete_category),
+            modifier = Modifier.size(dimensionResource(R.dimen.icon_size_large)),
+        )
     }
 }
 
