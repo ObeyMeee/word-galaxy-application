@@ -86,6 +86,10 @@
     <string name="delete_category">Delete category</string>
     <string name="save">Save</string>
     <string name="edit_examples">Edit examples</string>
+    <string name="rate_us">Rate us</string>
+    <string name="support">Support</string>
+    <string name="about_us">About us</string>
+    <string name="menu">Menu</string>
 
     <plurals name="days">
         <item quantity="one">day</item>

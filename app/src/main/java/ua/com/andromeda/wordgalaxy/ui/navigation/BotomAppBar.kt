@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Book
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -48,10 +48,10 @@ fun StartBottomAppBar(
                 navController = navController
             )
             BottomNavigationBarItem(
-                destination = Destination.Start.Settings(),
+                destination = Destination.Start.Menu(),
                 currentRoute = currentRoute,
-                icon = rememberVectorPainter(Icons.Default.Settings),
-                label = R.string.settings,
+                icon = rememberVectorPainter(Icons.Default.Menu),
+                label = R.string.menu,
                 navController = navController
             )
         }

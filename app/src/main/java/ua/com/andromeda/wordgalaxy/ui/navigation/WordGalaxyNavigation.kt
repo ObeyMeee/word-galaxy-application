@@ -10,11 +10,9 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -40,8 +38,8 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navigation
 import ua.com.andromeda.wordgalaxy.R
-import ua.com.andromeda.wordgalaxy.ui.common.Message
 import ua.com.andromeda.wordgalaxy.ui.navigation.graph.editNavGraph
+import ua.com.andromeda.wordgalaxy.ui.navigation.graph.menuNavGraph
 import ua.com.andromeda.wordgalaxy.ui.navigation.graph.studyNavGraph
 import ua.com.andromeda.wordgalaxy.ui.navigation.graph.vocabularyGraph
 import ua.com.andromeda.wordgalaxy.ui.screens.reportmistake.ReportMistakeScreen
@@ -113,15 +111,10 @@ fun WordGalaxyNavHost(modifier: Modifier = Modifier) {
                     navController = navController,
                     modifier = modifierWithSmallPadding
                 )
-                composable(Destination.Start.Settings()) {
-                    Message(
-                        message = "SETTINGS",
-                        backgroundColor = MaterialTheme.colorScheme.primary
-                    ) {
-                        Icon(imageVector = Icons.Outlined.Info, contentDescription = null)
-                    }
-                }
-
+                menuNavGraph(
+                    navController = navController,
+                    modifier = modifierWithSmallPadding
+                )
                 composable(
                     route = Destination.ReportMistakeScreen.fullRoute,
                     arguments = listOf(
@@ -199,7 +192,7 @@ private fun StartContent(
     val startDestinations = listOf(
         Destination.Start.HomeScreen(),
         Destination.Start.VocabularyScreen.CategoriesScreen(),
-        Destination.Start.Settings()
+        Destination.Start.Menu()
     )
     if (currentRoute in startDestinations) {
         content()

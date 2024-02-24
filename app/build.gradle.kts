@@ -112,6 +112,14 @@ dependencies {
     // Firebase
     implementation(platform("com.google.firebase:firebase-bom:32.7.2"))
     implementation("com.google.firebase:firebase-database")
+
+    // Simple settings
+    implementation("com.chillibits:simplesettings:1.3.4")
+
+    // Additional dependencies for simple settings
+    implementation("com.google.android.material:material:1.11.0")
+    implementation("androidx.preference:preference-ktx:1.2.1")
+
     // For backward compatibility to use java.time package
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 
