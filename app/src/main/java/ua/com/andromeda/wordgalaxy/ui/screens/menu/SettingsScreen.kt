@@ -8,6 +8,8 @@ import com.chillibits.simplesettings.clicklistener.DialogClickListener
 import com.chillibits.simplesettings.core.SimpleSettings
 import com.chillibits.simplesettings.core.SimpleSettingsConfig
 import ua.com.andromeda.wordgalaxy.R
+import ua.com.andromeda.wordgalaxy.ui.DEFAULT_AMOUNT_WORDS_TO_LEARN_PER_DAY
+import ua.com.andromeda.wordgalaxy.ui.KEY_AMOUNT_WORDS_TO_LEARN_PER_DAY
 
 @Composable
 fun SettingsScreen(modifier: Modifier = Modifier) {
@@ -45,11 +47,11 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
             }
             SeekBarPref {
                 title = "How many words per day you want to learn"
-                key = "amount_word_to_learn_per_day"
+                key = KEY_AMOUNT_WORDS_TO_LEARN_PER_DAY
                 summary = "Summary"
                 min = 1
                 max = 50
-                defaultValue = 10
+                defaultValue = DEFAULT_AMOUNT_WORDS_TO_LEARN_PER_DAY
                 showValue = true
                 icon = R.drawable.bulb_icon
                 iconSpaceReserved = true

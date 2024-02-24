@@ -1,16 +1,25 @@
 package ua.com.andromeda.wordgalaxy.ui.screens.study.learnwords
 
+import android.content.Context
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
+import com.chillibits.simplesettings.tool.getPreferenceLiveData
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
 import ua.com.andromeda.wordgalaxy.data.model.MY_WORDS_CATEGORY
 import ua.com.andromeda.wordgalaxy.data.model.WordStatus
@@ -18,15 +27,16 @@ import ua.com.andromeda.wordgalaxy.data.model.memorize
 import ua.com.andromeda.wordgalaxy.data.model.reset
 import ua.com.andromeda.wordgalaxy.data.model.toWordWithCategories
 import ua.com.andromeda.wordgalaxy.data.model.updateStatus
-import ua.com.andromeda.wordgalaxy.data.repository.preferences.UserPreferencesRepository
 import ua.com.andromeda.wordgalaxy.data.repository.word.WordRepository
+import ua.com.andromeda.wordgalaxy.ui.DEFAULT_AMOUNT_WORDS_TO_LEARN_PER_DAY
+import ua.com.andromeda.wordgalaxy.ui.KEY_AMOUNT_WORDS_TO_LEARN_PER_DAY
 import ua.com.andromeda.wordgalaxy.ui.common.CardMode
 import javax.inject.Inject
 
 @HiltViewModel
 class LearnWordsViewModel @Inject constructor(
     private val wordRepository: WordRepository,
-    private val userPreferencesRepository: UserPreferencesRepository,
+    @ApplicationContext private val context: Context,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow<LearnWordsUiState>(LearnWordsUiState.Default)
     val uiState: StateFlow<LearnWordsUiState> = _uiState
@@ -37,33 +47,35 @@ class LearnWordsViewModel @Inject constructor(
 
     private fun fetchUiState() {
         viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val amountWordsToLearnPerDay =
-                    userPreferencesRepository.amountWordsToLearnPerDay.first()
-                val learnedWordsToday = wordRepository.countLearnedWordsToday().first()
-                val amountWordsInProgress =
-                    wordRepository.countWordsWhereStatusEquals(WordStatus.InProgress).first()
-                var amountWordsToReview = 0
-                launch {
-                    wordRepository.countWordsToReview().collect { value ->
-                        amountWordsToReview = value
-                    }
-                }
-                val randomWord = getRandomWord(amountWordsInProgress, amountWordsToLearnPerDay)
+            var amountWordsToLearnPerDayFlow: Flow<Int>
+            withContext(Dispatchers.Main) {
+                amountWordsToLearnPerDayFlow = getPreferenceLiveData(
+                    context,
+                    KEY_AMOUNT_WORDS_TO_LEARN_PER_DAY,
+                    DEFAULT_AMOUNT_WORDS_TO_LEARN_PER_DAY
+                ).asFlow()
+            }
 
+            combine(
+                amountWordsToLearnPerDayFlow,
+                wordRepository.countLearnedWordsToday(),
+                wordRepository.countWordsToReview(),
+                wordRepository.countWordsWhereStatusEquals(WordStatus.InProgress),
+            ) { amountWordsToLearnPerDay, amountLearnedWordsToday, amountWordsToReview, amountWordsInProgress ->
+                val randomWord = getRandomWord(amountWordsInProgress, amountWordsToLearnPerDay)
                 _uiState.update {
                     LearnWordsUiState.Success(
                         embeddedWord = randomWord,
-                        learnedWordsToday = learnedWordsToday,
+                        learnedWordsToday = amountLearnedWordsToday,
                         amountWordsToReview = amountWordsToReview,
                         amountWordsLearnPerDay = amountWordsToLearnPerDay
                     )
                 }
-            } catch (e: Exception) {
+            }.catch { error ->
                 _uiState.update {
-                    LearnWordsUiState.Error(e.message ?: "Unknown error")
+                    errorUiState(error.message ?: "Something went wrong")
                 }
-            }
+            }.collect()
         }
     }
 
@@ -217,10 +229,6 @@ class LearnWordsViewModel @Inject constructor(
                 )
             }
         }
-    }
-
-    fun edit() {
-        TODO("Not yet implemented")
     }
 
     fun removeWord() {

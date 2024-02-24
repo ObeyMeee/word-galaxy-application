@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.AlertDialog
@@ -63,8 +62,6 @@ import ua.com.andromeda.wordgalaxy.ui.theme.WordGalaxyTheme
 import java.time.DayOfWeek
 import java.time.LocalDateTime
 
-private const val TAG = "HomeScreen"
-
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
@@ -73,22 +70,8 @@ fun HomeScreen(
     val viewModel: HomeViewModel = hiltViewModel()
     val homeUiState by viewModel.uiState.collectAsState()
     when (val state = homeUiState) {
-        is HomeUiState.Default -> {
-            CenteredLoadingSpinner()
-        }
-
-        is HomeUiState.Error -> {
-            Message(
-                message = state.message,
-                backgroundColor = MaterialTheme.colorScheme.errorContainer
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Error,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.error
-                )
-            }
-        }
+        is HomeUiState.Default -> CenteredLoadingSpinner(modifier)
+        is HomeUiState.Error -> Message(state.message, modifier)
 
         is HomeUiState.Success -> {
             val scrollState = rememberScrollState()

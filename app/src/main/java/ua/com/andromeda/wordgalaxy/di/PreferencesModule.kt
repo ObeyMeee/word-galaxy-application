@@ -9,7 +9,6 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import ua.com.andromeda.wordgalaxy.data.repository.preferences.KEY_AMOUNT_WORDS_TO_LEARN_PER_DAY
 import ua.com.andromeda.wordgalaxy.data.repository.preferences.UserPreferencesRepository
 
 @InstallIn(SingletonComponent::class)
@@ -21,5 +20,5 @@ object PreferencesModule {
 }
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(
-    name = KEY_AMOUNT_WORDS_TO_LEARN_PER_DAY
+    name = "my_preferences"
 )

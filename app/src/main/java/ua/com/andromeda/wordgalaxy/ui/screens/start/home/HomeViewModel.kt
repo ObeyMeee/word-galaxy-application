@@ -1,9 +1,13 @@
 package ua.com.andromeda.wordgalaxy.ui.screens.start.home
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
+import com.chillibits.simplesettings.tool.getPreferenceLiveData
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,8 +16,11 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import ua.com.andromeda.wordgalaxy.data.repository.preferences.UserPreferencesRepository
 import ua.com.andromeda.wordgalaxy.data.repository.word.WordRepository
+import ua.com.andromeda.wordgalaxy.ui.DEFAULT_AMOUNT_WORDS_TO_LEARN_PER_DAY
+import ua.com.andromeda.wordgalaxy.ui.KEY_AMOUNT_WORDS_TO_LEARN_PER_DAY
 import java.time.temporal.ChronoUnit
 import javax.inject.Inject
 
@@ -22,7 +29,8 @@ private const val TAG = "HomeViewModel"
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val wordRepository: WordRepository,
-    private val userPreferencesRepository: UserPreferencesRepository
+    private val userPreferencesRepository: UserPreferencesRepository,
+    @ApplicationContext private val context: Context,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Default)
     val uiState: StateFlow<HomeUiState> = _uiState
@@ -34,8 +42,17 @@ class HomeViewModel @Inject constructor(
     }
 
     private suspend fun combinedLatestData() {
+        var amountWordsToLearnPerDayFlow: Flow<Int>
+        withContext(Dispatchers.Main) {
+            amountWordsToLearnPerDayFlow = getPreferenceLiveData(
+                context,
+                KEY_AMOUNT_WORDS_TO_LEARN_PER_DAY,
+                DEFAULT_AMOUNT_WORDS_TO_LEARN_PER_DAY
+            ).asFlow()
+        }
+
         val combinedFlow: Flow<HomeUiState> = combine(
-            userPreferencesRepository.amountWordsToLearnPerDay,
+            amountWordsToLearnPerDayFlow,
             wordRepository.countLearnedWordsToday(),
             wordRepository.countWordsToReview(),
             userPreferencesRepository.timePeriodChartOptions,
