@@ -13,6 +13,7 @@ sealed interface ReviewWordsUiState {
     data class Success(
         val wordToReview: EmbeddedWord,
         val reviewedToday: Int = 0,
+        val amountWordsToReview: Int = 0,
         val cardMode: CardMode = CardMode.Default,
         val userGuess: String = "",
         val amountAttempts: Int = DEFAULT_AMOUNT_USER_ATTEMPTS_TO_GUESS

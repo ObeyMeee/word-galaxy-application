@@ -310,7 +310,7 @@ fun ChartSection(
     updateTimePeriod: (TimePeriodChartOptions) -> Unit = {}
 ) {
     val configuration = LocalConfiguration.current
-    val chartHeight = configuration.screenHeightDp / 2
+    val chartHeight = configuration.screenHeightDp / 2.5
 
     Text(
         text = stringResource(R.string.chart),

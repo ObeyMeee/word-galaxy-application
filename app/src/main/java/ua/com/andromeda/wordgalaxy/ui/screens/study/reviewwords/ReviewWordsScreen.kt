@@ -4,32 +4,23 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Keyboard
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.RemoveRedEye
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -40,7 +31,6 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.dimensionResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -61,20 +51,25 @@ import ua.com.andromeda.wordgalaxy.ui.common.flashcard.FlashcardScope.ExampleLis
 import ua.com.andromeda.wordgalaxy.ui.common.flashcard.FlashcardScope.RowWithWordControls
 import ua.com.andromeda.wordgalaxy.ui.common.flashcard.FlashcardScope.WordWithTranscription
 import ua.com.andromeda.wordgalaxy.ui.common.flashcard.FlashcardState
+import ua.com.andromeda.wordgalaxy.ui.common.flashcard.FlashcardTopBar
 import ua.com.andromeda.wordgalaxy.ui.navigation.Destination
 import ua.com.andromeda.wordgalaxy.ui.theme.WordGalaxyTheme
-
-private const val TAG = "ReviewWordsScreen"
 
 @Composable
 fun ReviewWordsScreen(
     modifier: Modifier = Modifier,
     navController: NavController = rememberNavController()
 ) {
+    val viewModel: ReviewWordsViewModel = hiltViewModel()
+    val uiState by viewModel.uiState.collectAsState()
+
     Scaffold(
         topBar = {
             val homeRoute = Destination.Start.HomeScreen()
-            ReviewWordsTopAppBar(
+            FlashcardTopBar(
+                amountWordsToReview = (uiState as? ReviewWordsUiState.Success)?.amountWordsToReview
+                    ?: 0,
+                currentRoute = Destination.Study.ReviewWordsScreen(),
                 navigateUp = {
                     navController.navigate(homeRoute) {
                         popUpTo(homeRoute) {
@@ -82,7 +77,7 @@ fun ReviewWordsScreen(
                         }
                     }
                 },
-                navigateToLearnNewWords = { navController.navigate(Destination.Study.LearnWordsScreen()) },
+                navigateTo = navController::navigate,
                 modifier = Modifier.fillMaxWidth()
             )
         },
@@ -92,79 +87,18 @@ fun ReviewWordsScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun ReviewWordsTopAppBar(
-    navigateUp: () -> Unit,
-    modifier: Modifier = Modifier,
-    navigateToLearnNewWords: () -> Unit = {},
-) {
-    TopAppBar(
-        title = { TopAppNavigationBar(navigateToLearnNewWords) },
-        modifier = modifier,
-        navigationIcon = {
-            IconButton(onClick = navigateUp) {
-                Icon(
-                    imageVector = Icons.Filled.ArrowBack,
-                    contentDescription = stringResource(R.string.back)
-                )
-            }
-        }
-    )
-}
-
-@Composable
-private fun TopAppNavigationBar(
-    navigateToLearnNewWords: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    NavigationBar(
-        modifier = modifier,
-        containerColor = MaterialTheme.colorScheme.surface
-    ) {
-        NavigationBarItem(
-            selected = false,
-            onClick = navigateToLearnNewWords,
-            icon = {
-                Icon(
-                    painter = painterResource(R.drawable.bulb_icon),
-                    contentDescription = null,
-                    tint = Color.Yellow,
-                    modifier = Modifier.size(30.dp)
-                )
-            },
-            label = { Text(text = stringResource(R.string.learn_new_words)) }
-        )
-        NavigationBarItem(
-            selected = true,
-            onClick = { },
-            icon = {
-                Icon(
-                    imageVector = Icons.Filled.Refresh,
-                    contentDescription = null,
-                    tint = Color.Green
-                )
-            },
-            label = { Text(text = stringResource(R.string.review_words)) }
-        )
-    }
-}
-
 @Composable
 fun ReviewWordsMain(modifier: Modifier = Modifier) {
     val viewModel: ReviewWordsViewModel = hiltViewModel()
     val reviewWordsUiState by viewModel.uiState.collectAsState()
 
     when (val uiState = reviewWordsUiState) {
-        is ReviewWordsUiState.Default -> {
-            CenteredLoadingSpinner()
-        }
-
+        is ReviewWordsUiState.Default -> CenteredLoadingSpinner(modifier)
         is ReviewWordsUiState.Error -> {
             Message(
                 message = uiState.message,
                 backgroundColor = MaterialTheme.colorScheme.primaryContainer,
-                modifier = Modifier.fillMaxSize()
+                modifier = modifier,
             ) {
                 Icon(
                     imageVector = Icons.Default.Info,
@@ -179,39 +113,42 @@ fun ReviewWordsMain(modifier: Modifier = Modifier) {
                 onLeftClick = viewModel::repeatWord,
                 onRightClick = viewModel::skipWord
             )
-            Flashcard(
-                embeddedWord = uiState.wordToReview,
-                flashcardState = reviewWordCard,
-                screenHeader = {
-                    ScreenHeader(uiState.reviewedToday)
-                },
-                content = {
+            Column(modifier) {
+                Header(uiState.reviewedToday)
+                Flashcard(
+                    embeddedWord = uiState.wordToReview,
+                    flashcardState = reviewWordCard,
+                ) {
                     CardModeContent(uiState, viewModel)
-                },
-                modifier = modifier
-            )
+                }
+            }
         }
     }
 }
 
 @Composable
-private fun ScreenHeader(reviewedWordsToday: Int) {
-    Text(
-        text = pluralStringResource(
-            R.plurals.words_reviewed,
-            reviewedWordsToday,
-            reviewedWordsToday
-        ),
-        color = MaterialTheme.colorScheme.secondary,
-        style = MaterialTheme.typography.bodyMedium,
-        modifier = Modifier.padding(top = dimensionResource(R.dimen.padding_small))
-    )
-    LinearProgressIndicator(
-        progress = .35f,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = dimensionResource(R.dimen.padding_medium))
-    )
+private fun Header(
+    reviewedWordsToday: Int,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier) {
+        Text(
+            text = pluralStringResource(
+                R.plurals.words_reviewed,
+                reviewedWordsToday,
+                reviewedWordsToday
+            ),
+            color = MaterialTheme.colorScheme.secondary,
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(top = dimensionResource(R.dimen.padding_small))
+        )
+        LinearProgressIndicator(
+            progress = .35f,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = dimensionResource(R.dimen.padding_medium))
+        )
+    }
 }
 
 @Composable
@@ -310,21 +247,11 @@ private fun TextFieldWithControls(
 
 @Preview
 @Composable
-fun ReviewWordsTopAppBarPreview() {
-    WordGalaxyTheme {
-        Surface {
-            ReviewWordsTopAppBar(navigateUp = { })
-        }
-    }
-}
-
-@Preview
-@Composable
 fun ScreenHeaderPreview() {
     WordGalaxyTheme {
         Surface {
             Column {
-                ScreenHeader(0)
+                Header(0)
             }
         }
     }

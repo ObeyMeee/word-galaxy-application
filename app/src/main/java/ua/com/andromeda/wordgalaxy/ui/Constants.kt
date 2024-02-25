@@ -3,8 +3,10 @@ package ua.com.andromeda.wordgalaxy.ui
 import ua.com.andromeda.wordgalaxy.ui.screens.start.home.TimePeriodChartOptions
 
 // PREFERENCES
-const val DEFAULT_AMOUNT_WORDS_TO_LEARN_PER_DAY = 10
 const val KEY_AMOUNT_WORDS_TO_LEARN_PER_DAY = "amount_words_to_learn_per_day"
+const val DEFAULT_AMOUNT_WORDS_TO_LEARN_PER_DAY = 10
+const val MIN_AMOUNT_WORDS_TO_LEARN_PER_DAY = 1
+const val MAX_AMOUNT_WORDS_TO_LEARN_PER_DAY = 50
 
 const val DEFAULT_AMOUNT_USER_ATTEMPTS_TO_GUESS = 3
 

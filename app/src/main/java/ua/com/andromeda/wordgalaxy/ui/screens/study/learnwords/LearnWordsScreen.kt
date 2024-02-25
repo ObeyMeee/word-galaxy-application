@@ -9,36 +9,25 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.EditNote
 import androidx.compose.material.icons.filled.FolderCopy
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.Rectangle
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.RemoveRedEye
 import androidx.compose.material.icons.filled.Report
 import androidx.compose.material.icons.filled.Undo
 import androidx.compose.material.icons.outlined.Rectangle
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -50,7 +39,6 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.res.dimensionResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -74,6 +62,7 @@ import ua.com.andromeda.wordgalaxy.ui.common.flashcard.FlashcardScope.ExampleLis
 import ua.com.andromeda.wordgalaxy.ui.common.flashcard.FlashcardScope.RowWithWordControls
 import ua.com.andromeda.wordgalaxy.ui.common.flashcard.FlashcardScope.WordWithTranscriptionOrTranslation
 import ua.com.andromeda.wordgalaxy.ui.common.flashcard.FlashcardState
+import ua.com.andromeda.wordgalaxy.ui.common.flashcard.FlashcardTopBar
 import ua.com.andromeda.wordgalaxy.ui.navigation.Destination
 import ua.com.andromeda.wordgalaxy.ui.theme.WordGalaxyTheme
 
@@ -89,8 +78,9 @@ fun LearnWordsScreen(
     Scaffold(
         topBar = {
             val homeRoute = Destination.Start.HomeScreen()
-            LearnWordsTopAppBar(
+            FlashcardTopBar(
                 amountWordsToReview = amountWordsToReview,
+                currentRoute = Destination.Study.LearnWordsScreen(),
                 navigateUp = {
                     navController.navigate(homeRoute) {
                         popUpTo(homeRoute) {
@@ -98,9 +88,8 @@ fun LearnWordsScreen(
                         }
                     }
                 },
-                navigateToReviewWords = {
-                    navController.navigate(Destination.Study.ReviewWordsScreen())
-                }
+                navigateTo = navController::navigate,
+                modifier = Modifier.fillMaxWidth()
             )
         },
         modifier = modifier
@@ -119,106 +108,19 @@ fun getAmountWordsToReview(uiState: LearnWordsUiState) =
     }
 
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun LearnWordsTopAppBar(
-    amountWordsToReview: Int,
-    navigateUp: () -> Unit,
-    navigateToReviewWords: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    TopAppBar(
-        title = {
-            TopAppNavigationBar(navigateToReviewWords, amountWordsToReview)
-        },
-        modifier = modifier,
-        navigationIcon = {
-            IconButton(onClick = navigateUp) {
-                Icon(
-                    imageVector = Icons.Filled.ArrowBack,
-                    contentDescription = stringResource(R.string.back)
-                )
-            }
-        }
-    )
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun TopAppNavigationBar(
-    navigateToReviewWords: () -> Unit,
-    amountWordsToReview: Int,
-    modifier: Modifier = Modifier
-) {
-    NavigationBar(
-        modifier = modifier,
-        containerColor = MaterialTheme.colorScheme.surface
-    ) {
-        NavigationBarItem(
-            selected = true,
-            onClick = { },
-            icon = {
-                Icon(
-                    painter = painterResource(R.drawable.bulb_icon),
-                    contentDescription = null,
-                    tint = Color.Yellow,
-                    modifier = Modifier.size(30.dp)
-                )
-            },
-            label = { Text(text = stringResource(R.string.learn_new_words)) }
-        )
-        NavigationBarItem(
-            selected = false,
-            onClick = navigateToReviewWords,
-            icon = {
-                Icon(
-                    imageVector = Icons.Filled.Refresh,
-                    contentDescription = null,
-                    tint = Color.Green
-                )
-            },
-            label = {
-                BadgedBox(badge = {
-                    Badge {
-                        Text(text = amountWordsToReview.toString())
-                    }
-                }) {
-                    Text(text = stringResource(R.string.review_words))
-                }
-            }
-        )
-    }
-}
-
 @Composable
 fun LearnWordsMain(
     navigateTo: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val viewModel: LearnWordsViewModel = hiltViewModel()
-    val learnWordsUiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
 
-    when (val uiState = learnWordsUiState) {
-        is LearnWordsUiState.Default -> {
-            CenteredLoadingSpinner()
-        }
-
-        is LearnWordsUiState.Error -> {
-            Message(
-                message = uiState.message,
-                backgroundColor = MaterialTheme.colorScheme.primaryContainer,
-                modifier = Modifier.fillMaxSize()
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Info,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            }
-        }
-
+    when (val state = uiState) {
+        is LearnWordsUiState.Default -> CenteredLoadingSpinner()
+        is LearnWordsUiState.Error -> Message(state.message, modifier)
         is LearnWordsUiState.Success -> {
-            val word = uiState.embeddedWord.word
+            val word = state.embeddedWord.word
             val wordId = word.id
             val isWordStatusNew = word.status == WordStatus.New
             val flashcardState = if (isWordStatusNew) {
@@ -269,51 +171,51 @@ fun LearnWordsMain(
                     icon = rememberVectorPainter(Icons.Default.Remove),
                 )
             )
-
-            Flashcard(
-                embeddedWord = uiState.embeddedWord,
-                flashcardState = flashcardState,
-                menuItems = menuItems,
-                screenHeader = {
-                    ScreenHeader(
-                        learnedWordsToday = uiState.learnedWordsToday,
-                        amountWordsLearnPerDay = uiState.amountWordsLearnPerDay
-                    )
-                },
-                content = {
-                    CardModeContent(uiState, viewModel)
-                },
-                modifier = modifier
-            )
+            Column(modifier) {
+                Header(
+                    learnedWordsToday = state.learnedWordsToday,
+                    amountWordsLearnPerDay = state.amountWordsLearnPerDay
+                )
+                Flashcard(
+                    embeddedWord = state.embeddedWord,
+                    flashcardState = flashcardState,
+                    menuItems = menuItems,
+                ) {
+                    CardModeContent(state, viewModel)
+                }
+            }
         }
     }
 }
 
 @Composable
-private fun ScreenHeader(
+private fun Header(
     learnedWordsToday: Int,
-    amountWordsLearnPerDay: Int
+    amountWordsLearnPerDay: Int,
+    modifier: Modifier = Modifier,
 ) {
-    Text(
-        text = pluralStringResource(
-            R.plurals.new_words_memorized,
-            learnedWordsToday,
-            learnedWordsToday
-        ),
-        color = MaterialTheme.colorScheme.secondary,
-        style = MaterialTheme.typography.bodyMedium
-    )
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = dimensionResource(R.dimen.padding_small))
-    ) {
-        (1..learnedWordsToday).forEach { _ ->
-            Icon(imageVector = Icons.Filled.Rectangle, contentDescription = null)
-        }
+    Column(modifier) {
+        Text(
+            text = pluralStringResource(
+                R.plurals.new_words_memorized,
+                learnedWordsToday,
+                learnedWordsToday
+            ),
+            color = MaterialTheme.colorScheme.secondary,
+            style = MaterialTheme.typography.bodyMedium
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = dimensionResource(R.dimen.padding_small))
+        ) {
+            (1..learnedWordsToday).forEach { _ ->
+                Icon(imageVector = Icons.Filled.Rectangle, contentDescription = null)
+            }
 
-        (learnedWordsToday..<amountWordsLearnPerDay).forEach { _ ->
-            Icon(imageVector = Icons.Outlined.Rectangle, contentDescription = null)
+            (learnedWordsToday..<amountWordsLearnPerDay).forEach { _ ->
+                Icon(imageVector = Icons.Outlined.Rectangle, contentDescription = null)
+            }
         }
     }
 }

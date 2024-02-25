@@ -3,9 +3,11 @@ package ua.com.andromeda.wordgalaxy.ui.screens.study.reviewwords
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import ua.com.andromeda.wordgalaxy.data.model.repeat
@@ -26,21 +28,25 @@ class ReviewWordsViewModel @Inject constructor(
     }
 
     private fun fetchUiState() {
-        viewModelScope.launch {
-            val wordToReview = wordRepository.findWordToReview().first()
-            val reviewedToday = wordRepository.countReviewedWordsToday().first()
-            _uiState.update {
-                if (wordToReview == null)
-                    errorUiState("No words to repeat. You do a great work!")
-                else
-                    ReviewWordsUiState.Success(wordToReview, reviewedToday, CardMode.Default)
-            }
+        viewModelScope.launch(Dispatchers.IO) {
+            combine(
+                wordRepository.findWordToReview(),
+                wordRepository.countReviewedWordsToday(),
+                wordRepository.countWordsToReview()
+            ) { wordToReview, reviewedToday, amountWordsToReview ->
+                _uiState.update {
+                    if (wordToReview == null)
+                        errorUiState("No words to repeat. You do a great work!")
+                    else
+                        ReviewWordsUiState.Success(
+                            wordToReview = wordToReview,
+                            reviewedToday = reviewedToday,
+                            amountWordsToReview = amountWordsToReview,
+                        )
+                }
+            }.collect()
         }
     }
-
-    private fun errorUiState(message: String) =
-        ReviewWordsUiState.Error(message)
-
 
     private fun updateUiState(
         errorMessage: String = "Something went wrong",
@@ -54,6 +60,9 @@ class ReviewWordsViewModel @Inject constructor(
             }
         }
     }
+
+    private fun errorUiState(message: String = "Something went wrong") =
+        ReviewWordsUiState.Error(message)
 
     fun repeatWord() {
         viewModelScope.launch {

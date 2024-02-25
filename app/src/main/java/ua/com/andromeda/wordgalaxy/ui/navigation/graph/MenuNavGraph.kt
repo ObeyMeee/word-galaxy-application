@@ -6,8 +6,8 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import ua.com.andromeda.wordgalaxy.ui.navigation.Destination
-import ua.com.andromeda.wordgalaxy.ui.screens.menu.MenuScreen
-import ua.com.andromeda.wordgalaxy.ui.screens.menu.SettingsScreen
+import ua.com.andromeda.wordgalaxy.ui.screens.start.menu.MenuScreen
+import ua.com.andromeda.wordgalaxy.ui.screens.start.menu.SettingsScreen
 
 fun NavGraphBuilder.menuNavGraph(
     navController: NavController,

@@ -78,16 +78,13 @@ import ua.com.andromeda.wordgalaxy.ui.common.DropdownItemState
 import ua.com.andromeda.wordgalaxy.ui.common.flashcard.FlashcardScope.WordWithTranscriptionOrTranslation
 import kotlin.math.abs
 
-private const val TAG = "Flashcard"
-
 @Composable
 fun Flashcard(
     embeddedWord: EmbeddedWord,
     flashcardState: FlashcardState,
-    screenHeader: @Composable () -> Unit,
-    content: @Composable (ColumnScope.() -> Unit),
     modifier: Modifier = Modifier,
-    menuItems: List<DropdownItemState> = listOf()
+    menuItems: List<DropdownItemState> = listOf(),
+    content: @Composable (ColumnScope.() -> Unit),
 ) {
     val coroutineScope = rememberCoroutineScope()
 
@@ -108,7 +105,6 @@ fun Flashcard(
     }
 
     Column(modifier = modifier) {
-        screenHeader()
         AnimatedContent(
             targetState = word,
             label = "FlashcardAnimation",
@@ -371,7 +367,6 @@ fun FlashcardNewPreview() {
             Flashcard(
                 embeddedWord = DefaultStorage.embeddedWord,
                 flashcardState = FlashcardState.New({}, {}),
-                screenHeader = {},
                 content = {}
             )
         }
@@ -386,7 +381,6 @@ fun FlashcardInProgressPreview() {
             Flashcard(
                 embeddedWord = DefaultStorage.embeddedWord,
                 flashcardState = FlashcardState.InProgress({}, {}),
-                screenHeader = {},
                 content = {}
             )
         }
@@ -401,7 +395,6 @@ fun FlashcardReviewPreview() {
             Flashcard(
                 embeddedWord = DefaultStorage.embeddedWord,
                 flashcardState = FlashcardState.Review({}, {}),
-                screenHeader = {},
                 content = {}
             )
         }

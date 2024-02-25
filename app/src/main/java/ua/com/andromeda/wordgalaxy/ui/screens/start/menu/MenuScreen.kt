@@ -1,4 +1,4 @@
-package ua.com.andromeda.wordgalaxy.ui.screens.menu
+package ua.com.andromeda.wordgalaxy.ui.screens.start.menu
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
