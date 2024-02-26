@@ -15,6 +15,7 @@ sealed interface LearnWordsUiState {
         val amountWordsLearnPerDay: Int = 0,
         val amountWordsToReview: Int = 0,
         val userGuess: TextFieldValue = TextFieldValue(),
-        val amountAttempts: Int = DEFAULT_AMOUNT_USER_ATTEMPTS_TO_GUESS
+        val amountAttempts: Int = DEFAULT_AMOUNT_USER_ATTEMPTS_TO_GUESS,
+        val menuExpanded: Boolean = false,
     ) : LearnWordsUiState
 }

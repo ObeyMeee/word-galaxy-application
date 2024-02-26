@@ -1,70 +1,49 @@
 package ua.com.andromeda.wordgalaxy.ui.screens.study.learnwords
 
-import androidx.compose.foundation.background
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.EditNote
 import androidx.compose.material.icons.filled.FolderCopy
-import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.Rectangle
 import androidx.compose.material.icons.filled.Remove
-import androidx.compose.material.icons.filled.RemoveRedEye
 import androidx.compose.material.icons.filled.Report
 import androidx.compose.material.icons.filled.Undo
 import androidx.compose.material.icons.outlined.Rectangle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import ua.com.andromeda.wordgalaxy.R
-import ua.com.andromeda.wordgalaxy.data.DefaultStorage
-import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
 import ua.com.andromeda.wordgalaxy.data.model.WordStatus
 import ua.com.andromeda.wordgalaxy.ui.common.CardMode
 import ua.com.andromeda.wordgalaxy.ui.common.CenteredLoadingSpinner
 import ua.com.andromeda.wordgalaxy.ui.common.DropdownItemState
 import ua.com.andromeda.wordgalaxy.ui.common.Message
 import ua.com.andromeda.wordgalaxy.ui.common.flashcard.Flashcard
-import ua.com.andromeda.wordgalaxy.ui.common.flashcard.FlashcardScope.CardModeSelectorRow
-import ua.com.andromeda.wordgalaxy.ui.common.flashcard.FlashcardScope.ExampleList
-import ua.com.andromeda.wordgalaxy.ui.common.flashcard.FlashcardScope.RowWithWordControls
-import ua.com.andromeda.wordgalaxy.ui.common.flashcard.FlashcardScope.WordWithTranscriptionOrTranslation
+import ua.com.andromeda.wordgalaxy.ui.common.flashcard.FlashcardScope
 import ua.com.andromeda.wordgalaxy.ui.common.flashcard.FlashcardState
 import ua.com.andromeda.wordgalaxy.ui.common.flashcard.FlashcardTopBar
 import ua.com.andromeda.wordgalaxy.ui.navigation.Destination
-import ua.com.andromeda.wordgalaxy.ui.theme.WordGalaxyTheme
 
 @Composable
 fun LearnWordsScreen(
@@ -120,9 +99,13 @@ fun LearnWordsMain(
         is LearnWordsUiState.Default -> CenteredLoadingSpinner()
         is LearnWordsUiState.Error -> Message(state.message, modifier)
         is LearnWordsUiState.Success -> {
-            val word = state.embeddedWord.word
+            val embeddedWord = state.embeddedWord
+            val word = embeddedWord.word
             val wordId = word.id
-            val isWordStatusNew = word.status == WordStatus.New
+            val status = word.status
+            val isWordStatusNew = status == WordStatus.New
+            val amountRepetition = word.amountRepetition ?: 0
+            val numberReview = amountRepetition + 1
             val flashcardState = if (isWordStatusNew) {
                 FlashcardState.New(
                     onLeftClick = viewModel::alreadyKnowWord,
@@ -134,7 +117,6 @@ fun LearnWordsMain(
                     onRightClick = viewModel::moveToNextWord
                 )
             }
-
             val menuItems = listOf(
                 DropdownItemState(
                     labelRes = R.string.reset_progress_for_this_word,
@@ -171,17 +153,41 @@ fun LearnWordsMain(
                     icon = rememberVectorPainter(Icons.Default.Remove),
                 )
             )
+
             Column(modifier) {
                 Header(
                     learnedWordsToday = state.learnedWordsToday,
                     amountWordsLearnPerDay = state.amountWordsLearnPerDay
                 )
                 Flashcard(
-                    embeddedWord = state.embeddedWord,
+                    embeddedWord = embeddedWord,
+                    cardMode = state.cardMode,
                     flashcardState = flashcardState,
-                    menuItems = menuItems,
                 ) {
-                    CardModeContent(state, viewModel)
+                    Header(
+                        menuExpanded = state.menuExpanded,
+                        onExpandMenu = viewModel::updateMenuExpanded,
+                        squareColor = status.iconColor,
+                        label = stringResource(status.labelRes, numberReview),
+                        dropdownItemStates = menuItems,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(dimensionResource(R.dimen.padding_medium))
+                    )
+                    CategoriesText(
+                        categories = embeddedWord.categories,
+                        modifier = Modifier.padding(start = dimensionResource(R.dimen.padding_largest))
+                    )
+                    WordWithTranscriptionOrTranslation(
+                        word = word,
+                        phonetics = embeddedWord.phonetics,
+                        predicate = { isWordStatusNew },
+                    )
+                    CardModeContent(
+                        state = state,
+                        viewModel = viewModel,
+                        modifier = Modifier.weight(1f)
+                    )
                 }
             }
         }
@@ -221,140 +227,53 @@ private fun Header(
 }
 
 @Composable
-private fun ColumnScope.CardModeContent(
-    uiState: LearnWordsUiState.Success,
+private fun FlashcardScope.CardModeContent(
+    state: LearnWordsUiState.Success,
+    modifier: Modifier = Modifier,
     viewModel: LearnWordsViewModel = hiltViewModel(),
 ) {
-    val wordToLearn = uiState.embeddedWord
+    val wordToLearn = state.embeddedWord
     val isWordNew = wordToLearn.word.status == WordStatus.New
 
-    // TODO:
-//    AnimatedContent(
-//        targetState = uiState.cardMode,
-//        label = "CardModeAnimation",
-//        transitionSpec = {
-//            (fadeIn() + slideInVertically { -it }) togetherWith
-//                    (fadeOut() + slideOutVertically { it })
-//        }
-//    ) { cardMode ->
-    when (uiState.cardMode) {
-        CardMode.ShowAnswer -> {
-            ShowAnswerCardMode(wordToLearn)
-        }
+    AnimatedContent(
+        targetState = state.cardMode,
+        label = "CardModeAnimation",
+        modifier = modifier,
+        transitionSpec = {
+            (fadeIn() + slideInVertically { -it }) togetherWith
+                    (fadeOut() + slideOutVertically { it })
+        },
+    ) { cardMode ->
+        val commonModifier = Modifier.fillMaxWidth()
+        when (cardMode) {
+            CardMode.ShowAnswer -> {
+                ShowAnswerMode(wordToLearn, commonModifier)
+            }
 
-        CardMode.TypeAnswer -> {
-            val checkAnswer = viewModel::checkAnswer
-            TypeAnswerCardMode(
-                textFieldValue = uiState.userGuess,
-                amountAttempts = uiState.amountAttempts,
-                onValueChanged = viewModel::updateUserGuess,
-                keyboardAction = checkAnswer,
-                revealOneLetter = viewModel::revealOneLetter,
-                checkAnswer = checkAnswer,
-                modifier = Modifier.padding(dimensionResource(R.dimen.padding_larger))
-            )
-        }
+            CardMode.TypeAnswer -> {
+                TypeAnswerMode(
+                    textFieldValue = state.userGuess,
+                    amountAttempts = state.amountAttempts,
+                    onValueChanged = viewModel::updateUserGuess,
+                    revealOneLetter = viewModel::revealOneLetter,
+                    checkAnswer = viewModel::checkAnswer,
+                    modifier = commonModifier,
+                )
+            }
 
-        CardMode.Default -> {
-            DefaultCardMode(
-                isWordNew = isWordNew,
-                updateCardMode = viewModel::updateCardMode,
-                modifier = Modifier.fillMaxWidth()
-            )
+            CardMode.Default -> {
+                DefaultMode(
+                    isWordNew = isWordNew,
+                    updateCardMode = viewModel::updateCardMode,
+                    modifier = commonModifier,
+                )
+            }
         }
     }
 }
-//}
 
-@Composable
-private fun ColumnScope.ShowAnswerCardMode(embeddedWord: EmbeddedWord) {
-    val (word, _, phonetics, examples) = embeddedWord
-    Divider()
-    WordWithTranscriptionOrTranslation(
-        word = word,
-        phonetics = phonetics,
-        predicate = { word.status != WordStatus.New }
-    )
-    Divider()
-    ExampleList(
-        examples = examples,
-        modifier = Modifier.weight(1f)
-    )
-}
 
-@Composable
-private fun TypeAnswerCardMode(
-    textFieldValue: TextFieldValue,
-    amountAttempts: Int,
-    onValueChanged: (TextFieldValue) -> Unit,
-    keyboardAction: () -> Unit,
-    revealOneLetter: () -> Unit,
-    checkAnswer: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val focusRequester = remember { FocusRequester() }
-
-    Column(modifier = modifier) {
-        TextField(
-            value = textFieldValue,
-            onValueChange = onValueChanged,
-            modifier = Modifier.focusRequester(focusRequester),
-            placeholder = { Text(text = stringResource(R.string.type_here)) },
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-            keyboardActions = KeyboardActions { keyboardAction() },
-            singleLine = true,
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = Color.Transparent,
-                unfocusedContainerColor = Color.Transparent,
-                disabledContainerColor = Color.Transparent,
-            )
-        )
-
-        // autofocus the text field
-        LaunchedEffect(Unit) {
-            focusRequester.requestFocus()
-        }
-
-        RowWithWordControls(
-            revealOneLetter = revealOneLetter,
-            checkAnswer = checkAnswer,
-            amountAttempts = amountAttempts,
-            modifier = Modifier.padding(top = dimensionResource(R.dimen.padding_small))
-        )
-    }
-}
-
-@Composable
-private fun ColumnScope.DefaultCardMode(
-    isWordNew: Boolean,
-    updateCardMode: (CardMode) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val iconsToCardModes = mutableListOf(
-        Icons.Default.RemoveRedEye to CardMode.ShowAnswer
-    )
-    if (!isWordNew) {
-        iconsToCardModes.add(0, Icons.Default.Keyboard to CardMode.TypeAnswer)
-    }
-    Spacer(modifier = Modifier.weight(1f))
-    CardModeSelectorRow(
-        iconsToCardModes = iconsToCardModes,
-        updateCardMode = updateCardMode,
-        modifier = modifier
-    )
-    Spacer(modifier = Modifier.weight(1f))
-}
-
-@Composable
-private fun Divider(modifier: Modifier = Modifier) {
-    Spacer(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(1.dp)
-            .background(color = MaterialTheme.colorScheme.surface)
-    )
-}
-
+/*
 @Preview(showBackground = true)
 @Composable
 fun CardModeContentPreview() {
@@ -362,46 +281,11 @@ fun CardModeContentPreview() {
         Surface {
             Column {
                 CardModeContent(
-                    uiState = LearnWordsUiState.Success(
+                    state = LearnWordsUiState.Success(
                         embeddedWord = DefaultStorage.embeddedWord
                     )
                 )
             }
         }
     }
-}
-
-@Preview
-@Composable
-fun TypeAnswerCardModePreview() {
-    WordGalaxyTheme {
-        Surface {
-            Column {
-                TypeAnswerCardMode(
-                    textFieldValue = TextFieldValue(),
-                    amountAttempts = 3,
-                    onValueChanged = { _ -> },
-                    keyboardAction = {},
-                    revealOneLetter = {},
-                    checkAnswer = {}
-                )
-            }
-        }
-    }
-}
-
-@Preview
-@Composable
-fun DefaultCardModePreview() {
-    WordGalaxyTheme {
-        Surface {
-            Column {
-                DefaultCardMode(
-                    isWordNew = false,
-                    updateCardMode = { _ -> },
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
-        }
-    }
-}
+}*/

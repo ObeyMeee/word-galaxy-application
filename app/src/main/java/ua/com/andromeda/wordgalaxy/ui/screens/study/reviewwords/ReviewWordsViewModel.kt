@@ -1,5 +1,7 @@
 package ua.com.andromeda.wordgalaxy.ui.screens.study.reviewwords
 
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -80,16 +82,15 @@ class ReviewWordsViewModel @Inject constructor(
     }
 
     fun updateCardMode(cardMode: CardMode) {
-        updateUiState(action = {
+        updateUiState {
             it.copy(cardMode = cardMode)
-        })
+        }
     }
 
-    fun updateUserGuess(value: String) {
-        val trimmedAndLowerCaseValue = value.trim().lowercase()
-        updateUiState(action = {
-            it.copy(userGuess = trimmedAndLowerCaseValue)
-        })
+    fun updateUserGuess(value: TextFieldValue) {
+        updateUiState {
+            it.copy(userGuess = value)
+        }
     }
 
     private fun indexOfFirstDifference(str1: String, str2: String): Int {
@@ -107,13 +108,13 @@ class ReviewWordsViewModel @Inject constructor(
     }
 
     fun revealOneLetter() {
-        updateUiState { uiState ->
-            val actualValue = uiState.wordToReview.word.value
-            val userGuess = uiState.userGuess
-            val indexOfFirstDifference = indexOfFirstDifference(actualValue, userGuess)
+        updateUiState { state ->
+            val actualValue = state.wordToReview.word.value
+            val userGuess = state.userGuess
+            val indexOfFirstDifference = indexOfFirstDifference(actualValue, userGuess.text)
 
             if (indexOfFirstDifference == -1) {
-                uiState.copy(cardMode = CardMode.ShowAnswer)
+                state.copy(cardMode = CardMode.ShowAnswer)
             } else {
                 val updatedUserGuess =
                     if (indexOfFirstDifference > actualValue.lastIndex)
@@ -123,20 +124,25 @@ class ReviewWordsViewModel @Inject constructor(
                             range = (indexOfFirstDifference..actualValue.lastIndex),
                             replacement = actualValue[indexOfFirstDifference].toString()
                         )
-                uiState.copy(userGuess = updatedUserGuess)
+                state.copy(
+                    userGuess = TextFieldValue(
+                        text = updatedUserGuess,
+                        selection = TextRange(updatedUserGuess.length)
+                    )
+                )
             }
         }
     }
 
     fun checkAnswer() {
-        updateUiState(action = {
+        updateUiState {
             val actual = it.wordToReview.word.value
             val userGuess = it.userGuess
             val amountAttemptsLeft = it.amountAttempts - 1
-            if (actual == userGuess || amountAttemptsLeft == 0)
+            if (actual == userGuess.text || amountAttemptsLeft == 0)
                 it.copy(cardMode = CardMode.ShowAnswer)
             else
                 it.copy(amountAttempts = amountAttemptsLeft)
-        })
+        }
     }
 }

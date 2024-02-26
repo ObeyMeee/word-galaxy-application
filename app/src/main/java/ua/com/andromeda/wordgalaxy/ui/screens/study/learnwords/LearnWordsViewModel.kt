@@ -133,15 +133,15 @@ class LearnWordsViewModel @Inject constructor(
     }
 
     fun updateCardMode(cardMode: CardMode) {
-        updateUiState(action = {
+        updateUiState {
             it.copy(cardMode = cardMode)
-        })
+        }
     }
 
     fun updateUserGuess(value: TextFieldValue) {
-        updateUiState(action = {
+        updateUiState {
             it.copy(userGuess = value)
-        })
+        }
     }
 
     private fun indexOfFirstDifference(str1: String, str2: String): Int {
@@ -159,13 +159,13 @@ class LearnWordsViewModel @Inject constructor(
     }
 
     fun revealOneLetter() {
-        updateUiState { uiState ->
-            val actualValue = uiState.embeddedWord.word.value
-            val userGuess = uiState.userGuess
+        updateUiState { state ->
+            val actualValue = state.embeddedWord.word.value
+            val userGuess = state.userGuess
             val indexOfFirstDifference = indexOfFirstDifference(actualValue, userGuess.text)
 
             if (indexOfFirstDifference == -1) {
-                uiState.copy(cardMode = CardMode.ShowAnswer)
+                state.copy(cardMode = CardMode.ShowAnswer)
             } else {
                 val updatedUserGuess =
                     if (indexOfFirstDifference > actualValue.lastIndex)
@@ -175,7 +175,7 @@ class LearnWordsViewModel @Inject constructor(
                             range = (indexOfFirstDifference..actualValue.lastIndex),
                             replacement = actualValue[indexOfFirstDifference].toString()
                         )
-                uiState.copy(
+                state.copy(
                     userGuess = TextFieldValue(
                         text = updatedUserGuess,
                         selection = TextRange(updatedUserGuess.length)
@@ -186,7 +186,7 @@ class LearnWordsViewModel @Inject constructor(
     }
 
     fun checkAnswer() {
-        updateUiState(action = {
+        updateUiState {
             val actual = it.embeddedWord.word.value
             val userGuess = it.userGuess
             val amountAttemptsLeft = it.amountAttempts - 1
@@ -194,7 +194,7 @@ class LearnWordsViewModel @Inject constructor(
                 it.copy(cardMode = CardMode.ShowAnswer)
             else
                 it.copy(amountAttempts = amountAttemptsLeft)
-        })
+        }
     }
 
     fun memorizeWord() {
@@ -238,5 +238,11 @@ class LearnWordsViewModel @Inject constructor(
             }
         }
         moveToNextWord()
+    }
+
+    fun updateMenuExpanded(expanded: Boolean) {
+        updateUiState {
+            it.copy(menuExpanded = expanded)
+        }
     }
 }
