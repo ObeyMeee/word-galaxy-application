@@ -210,9 +210,8 @@ class LearnWordsViewModel @Inject constructor(
 
     fun resetWord() {
         viewModelScope.launch(Dispatchers.IO) {
-            val wordsUiState = _uiState.value
-            if (wordsUiState is LearnWordsUiState.Success) {
-                val currentWord = wordsUiState.embeddedWord.word
+            (_uiState.value as? LearnWordsUiState.Success)?.let {
+                val currentWord = it.embeddedWord.word
                 wordRepository.update(currentWord.reset())
             }
         }

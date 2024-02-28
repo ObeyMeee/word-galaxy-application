@@ -59,7 +59,7 @@ interface WordDao {
         SELECT COUNT(*) 
         FROM word
         WHERE status = 'Memorized' 
-        AND strftime('%Y-%m-%d', 'now', 'localtime') < strftime('%Y-%m-%d', repeated_at);
+        AND strftime('%Y-%m-%d', 'now', 'localtime') = strftime('%Y-%m-%d', repeated_at);
         """
     )
     fun countReviewedWordsToday(): Flow<Int>

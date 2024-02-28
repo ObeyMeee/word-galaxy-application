@@ -319,8 +319,7 @@ private fun WordListItem(
                 trailingContent = {
                     IconButton(
                         onClick = {
-                            val audioUrls = phonetics.map { it.audio }
-                            context.playPronunciation(audioUrls)
+                            context.playPronunciation(phonetics)
                         },
                     ) {
                         Icon(

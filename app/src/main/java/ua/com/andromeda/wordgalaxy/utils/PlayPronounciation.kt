@@ -5,14 +5,20 @@ import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.net.Uri
 import ua.com.andromeda.wordgalaxy.data.model.AudioUrl
+import ua.com.andromeda.wordgalaxy.data.model.Phonetic
 
 private var currentMediaPlayer: MediaPlayer? = null
 
-fun Context.playPronunciation(audioUrls: List<AudioUrl>) {
-    val notBlankAndUniqueAudios = audioUrls
-        .filter { it.isNotBlank() }
+
+fun Context.playPronunciation(phonetics: List<Phonetic>) {
+    val audioUrls = phonetics
+        .asSequence()
+        .map { it.audio }
         .distinct()
-    playAudioFilesSequentially(notBlankAndUniqueAudios)
+        .filter { it.isNotBlank() }
+        .toList()
+
+    playAudioFilesSequentially(audioUrls)
 }
 
 private fun Context.playAudioFilesSequentially(audioUrls: List<AudioUrl>) {

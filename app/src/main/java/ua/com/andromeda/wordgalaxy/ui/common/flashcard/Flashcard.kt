@@ -1,6 +1,7 @@
 package ua.com.andromeda.wordgalaxy.ui.common.flashcard
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ContentTransform
@@ -32,6 +33,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.IntOffset
 import kotlinx.coroutines.launch
 import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
+import ua.com.andromeda.wordgalaxy.ui.FLASHCARD_ANIMATION_DURATION_MILLIS
 import ua.com.andromeda.wordgalaxy.ui.FLASHCARD_OFFSET_X_COEFFICIENT
 import ua.com.andromeda.wordgalaxy.ui.FLASHCARD_ROTATE_COEFFICIENT
 import ua.com.andromeda.wordgalaxy.ui.FLASHCARD_SCALE_COEFFICIENT
@@ -118,8 +120,8 @@ fun Flashcard(
                     visible = cardMode != CardMode.TypeAnswer,
                 ) {
                     FlashcardActionRow(
-                        onLeftClick = flashcardState.onLeftClick,
-                        onRightClick = flashcardState.onRightClick,
+                        onLeftClick = onLeftClick,
+                        onRightClick = onRightClick,
                         actionLabelResLeft = flashcardState.actionLabelResLeft,
                         actionLabelResRight = flashcardState.actionLabelResRight,
                         cardOffset = cardXOffset.value,
@@ -132,24 +134,24 @@ fun Flashcard(
 }
 
 private fun flashcardTransitionSpec(leftActionClicked: Boolean): ContentTransform {
-    val animationDurationMillis = 700
+    Log.d("flashcardTransitionSpec", "leftActionClicked ==> $leftActionClicked")
     val enterTransition = scaleIn(
-        animationSpec = tween(animationDurationMillis),
+        animationSpec = tween(FLASHCARD_ANIMATION_DURATION_MILLIS),
         initialScale = .3f
     ) + slideInVertically(
-        animationSpec = tween(animationDurationMillis),
+        animationSpec = tween(FLASHCARD_ANIMATION_DURATION_MILLIS),
         initialOffsetY = { -it }
     )
-    val exitTransition =
-        scaleOut(
-            animationSpec = tween(animationDurationMillis),
-            targetScale = .3f
-        ) + slideOut(
-            animationSpec = tween(animationDurationMillis),
-            targetOffset = { fullSize ->
-                val width = fullSize.width
-                val xOffset = if (leftActionClicked) -width else width
-                IntOffset(xOffset, fullSize.height / FLASHCARD_SLIDE_OUT_Y_COEFFICIENT)
-            })
+
+    val exitTransition = scaleOut(
+        animationSpec = tween(FLASHCARD_ANIMATION_DURATION_MILLIS),
+        targetScale = .3f
+    ) + slideOut(
+        animationSpec = tween(FLASHCARD_ANIMATION_DURATION_MILLIS),
+        targetOffset = { fullSize ->
+            val width = fullSize.width
+            val xOffset = if (leftActionClicked) -width else width
+            IntOffset(xOffset, fullSize.height / FLASHCARD_SLIDE_OUT_Y_COEFFICIENT)
+        })
     return enterTransition togetherWith exitTransition
 }

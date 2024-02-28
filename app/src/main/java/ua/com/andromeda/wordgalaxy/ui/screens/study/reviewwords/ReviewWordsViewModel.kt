@@ -12,7 +12,10 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import ua.com.andromeda.wordgalaxy.data.model.MY_WORDS_CATEGORY
 import ua.com.andromeda.wordgalaxy.data.model.repeat
+import ua.com.andromeda.wordgalaxy.data.model.reset
+import ua.com.andromeda.wordgalaxy.data.model.toWordWithCategories
 import ua.com.andromeda.wordgalaxy.data.repository.word.WordRepository
 import ua.com.andromeda.wordgalaxy.ui.common.CardMode
 import javax.inject.Inject
@@ -144,5 +147,42 @@ class ReviewWordsViewModel @Inject constructor(
             else
                 it.copy(amountAttempts = amountAttemptsLeft)
         }
+    }
+
+    fun updateMenuExpanded(expanded: Boolean) {
+        updateUiState {
+            it.copy(menuExpanded = expanded)
+        }
+    }
+
+    fun resetWord() {
+        viewModelScope.launch(Dispatchers.IO) {
+            (_uiState.value as? ReviewWordsUiState.Success)?.let {
+                val currentWord = it.wordToReview.word
+                wordRepository.update(currentWord.reset())
+            }
+        }
+        fetchUiState()
+    }
+
+    fun copyWordToMyCategory() {
+        viewModelScope.launch(Dispatchers.IO) {
+            (_uiState.value as? ReviewWordsUiState.Success)?.let {
+                val wordWithCategories = it.wordToReview.toWordWithCategories()
+                val updatedCategories = wordWithCategories.categories + MY_WORDS_CATEGORY
+                wordRepository.updateWordWithCategories(
+                    wordWithCategories.copy(categories = updatedCategories)
+                )
+            }
+        }
+    }
+
+    fun removeWord() {
+        viewModelScope.launch(Dispatchers.IO) {
+            (_uiState.value as? ReviewWordsUiState.Success)?.let {
+                wordRepository.remove(it.wordToReview)
+            }
+        }
+        skipWord()
     }
 }

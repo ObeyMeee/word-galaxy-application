@@ -17,6 +17,7 @@ sealed interface ReviewWordsUiState {
         val amountWordsToReview: Int = 0,
         val cardMode: CardMode = CardMode.Default,
         val userGuess: TextFieldValue = TextFieldValue(),
-        val amountAttempts: Int = DEFAULT_AMOUNT_USER_ATTEMPTS_TO_GUESS
+        val amountAttempts: Int = DEFAULT_AMOUNT_USER_ATTEMPTS_TO_GUESS,
+        val menuExpanded: Boolean = false,
     ) : ReviewWordsUiState
 }

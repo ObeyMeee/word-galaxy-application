@@ -1,11 +1,5 @@
 package ua.com.andromeda.wordgalaxy.ui.screens.study.learnwords
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,6 +10,7 @@ import androidx.compose.material.icons.filled.FolderCopy
 import androidx.compose.material.icons.filled.Rectangle
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Report
+import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.Undo
 import androidx.compose.material.icons.outlined.Rectangle
 import androidx.compose.material3.Icon
@@ -35,12 +30,11 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import ua.com.andromeda.wordgalaxy.R
 import ua.com.andromeda.wordgalaxy.data.model.WordStatus
-import ua.com.andromeda.wordgalaxy.ui.common.CardMode
 import ua.com.andromeda.wordgalaxy.ui.common.CenteredLoadingSpinner
 import ua.com.andromeda.wordgalaxy.ui.common.DropdownItemState
 import ua.com.andromeda.wordgalaxy.ui.common.Message
+import ua.com.andromeda.wordgalaxy.ui.common.flashcard.CardModeContent
 import ua.com.andromeda.wordgalaxy.ui.common.flashcard.Flashcard
-import ua.com.andromeda.wordgalaxy.ui.common.flashcard.FlashcardScope
 import ua.com.andromeda.wordgalaxy.ui.common.flashcard.FlashcardState
 import ua.com.andromeda.wordgalaxy.ui.common.flashcard.FlashcardTopBar
 import ua.com.andromeda.wordgalaxy.ui.navigation.Destination
@@ -106,6 +100,7 @@ fun LearnWordsMain(
             val isWordStatusNew = status == WordStatus.New
             val amountRepetition = word.amountRepetition ?: 0
             val numberReview = amountRepetition + 1
+            val flashcardMode = state.cardMode
             val flashcardState = if (isWordStatusNew) {
                 FlashcardState.New(
                     onLeftClick = viewModel::alreadyKnowWord,
@@ -117,13 +112,21 @@ fun LearnWordsMain(
                     onRightClick = viewModel::moveToNextWord
                 )
             }
-            val menuItems = listOf(
+            val firstMenuItem = if (isWordStatusNew) {
+                DropdownItemState(
+                    labelRes = R.string.show_this_word_later,
+                    icon = rememberVectorPainter(Icons.Default.SkipNext),
+                    onClick = viewModel::moveToNextWord
+                )
+            } else {
                 DropdownItemState(
                     labelRes = R.string.reset_progress_for_this_word,
                     icon = rememberVectorPainter(Icons.Default.Undo),
                     toastMessageRes = R.string.progress_has_been_reset_successfully,
                     onClick = viewModel::resetWord
-                ),
+                )
+            }
+            val menuItems = mutableListOf(
                 DropdownItemState(
                     labelRes = R.string.copy_to_my_category,
                     icon = rememberVectorPainter(Icons.Default.FolderCopy),
@@ -153,7 +156,7 @@ fun LearnWordsMain(
                     icon = rememberVectorPainter(Icons.Default.Remove),
                 )
             )
-
+            menuItems.add(0, firstMenuItem)
             Column(modifier) {
                 Header(
                     learnedWordsToday = state.learnedWordsToday,
@@ -161,7 +164,7 @@ fun LearnWordsMain(
                 )
                 Flashcard(
                     embeddedWord = embeddedWord,
-                    cardMode = state.cardMode,
+                    cardMode = flashcardMode,
                     flashcardState = flashcardState,
                 ) {
                     Header(
@@ -182,10 +185,20 @@ fun LearnWordsMain(
                         word = word,
                         phonetics = embeddedWord.phonetics,
                         predicate = { isWordStatusNew },
+                        modifier = Modifier.padding(
+                            horizontal = dimensionResource(R.dimen.padding_largest),
+                            vertical = dimensionResource(R.dimen.padding_small)
+                        ),
                     )
                     CardModeContent(
-                        state = state,
-                        viewModel = viewModel,
+                        embeddedWord = embeddedWord,
+                        flashcardMode = flashcardMode,
+                        updateCardMode = viewModel::updateCardMode,
+                        userGuess = state.userGuess,
+                        updateUserGuess = viewModel::updateUserGuess,
+                        amountAttempts = state.amountAttempts,
+                        checkAnswer = viewModel::checkAnswer,
+                        revealOneLetter = viewModel::revealOneLetter,
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -226,66 +239,3 @@ private fun Header(
     }
 }
 
-@Composable
-private fun FlashcardScope.CardModeContent(
-    state: LearnWordsUiState.Success,
-    modifier: Modifier = Modifier,
-    viewModel: LearnWordsViewModel = hiltViewModel(),
-) {
-    val wordToLearn = state.embeddedWord
-    val isWordNew = wordToLearn.word.status == WordStatus.New
-
-    AnimatedContent(
-        targetState = state.cardMode,
-        label = "CardModeAnimation",
-        modifier = modifier,
-        transitionSpec = {
-            (fadeIn() + slideInVertically { -it }) togetherWith
-                    (fadeOut() + slideOutVertically { it })
-        },
-    ) { cardMode ->
-        val commonModifier = Modifier.fillMaxWidth()
-        when (cardMode) {
-            CardMode.ShowAnswer -> {
-                ShowAnswerMode(wordToLearn, commonModifier)
-            }
-
-            CardMode.TypeAnswer -> {
-                TypeAnswerMode(
-                    textFieldValue = state.userGuess,
-                    amountAttempts = state.amountAttempts,
-                    onValueChanged = viewModel::updateUserGuess,
-                    revealOneLetter = viewModel::revealOneLetter,
-                    checkAnswer = viewModel::checkAnswer,
-                    modifier = commonModifier,
-                )
-            }
-
-            CardMode.Default -> {
-                DefaultMode(
-                    isWordNew = isWordNew,
-                    updateCardMode = viewModel::updateCardMode,
-                    modifier = commonModifier,
-                )
-            }
-        }
-    }
-}
-
-
-/*
-@Preview(showBackground = true)
-@Composable
-fun CardModeContentPreview() {
-    WordGalaxyTheme {
-        Surface {
-            Column {
-                CardModeContent(
-                    state = LearnWordsUiState.Success(
-                        embeddedWord = DefaultStorage.embeddedWord
-                    )
-                )
-            }
-        }
-    }
-}*/

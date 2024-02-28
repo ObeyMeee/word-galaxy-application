@@ -41,5 +41,5 @@
     <dimen name="day_of_week_size_box">32dp</dimen>
     <dimen name="action_button_height">70dp</dimen>
     <dimen name="bottom_app_bar_height">70dp</dimen>
-    <dimen name="card_mode_icon">120dp</dimen>
+    <dimen name="card_mode_icon">110dp</dimen>
 </resources>
