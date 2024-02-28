@@ -1,6 +1,5 @@
 package ua.com.andromeda.wordgalaxy.ui.common.flashcard
 
-import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
@@ -52,6 +51,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -61,6 +62,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -79,6 +81,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import ua.com.andromeda.wordgalaxy.R
 import ua.com.andromeda.wordgalaxy.data.DefaultStorage
 import ua.com.andromeda.wordgalaxy.data.model.Category
@@ -100,6 +103,7 @@ internal object FlashcardScopeInstance : FlashcardScope {
         onExpandMenu: (Boolean) -> Unit,
         squareColor: Color,
         label: String,
+        snackbarHostState: SnackbarHostState,
         dropdownItemStates: List<DropdownItemState>,
         modifier: Modifier
     ) {
@@ -128,7 +132,8 @@ internal object FlashcardScopeInstance : FlashcardScope {
             Menu(
                 expanded = menuExpanded,
                 onExpand = onExpandMenu,
-                dropdownItemStates = dropdownItemStates
+                snackbarHostState = snackbarHostState,
+                dropdownItemStates = dropdownItemStates,
             )
         }
     }
@@ -138,9 +143,12 @@ internal object FlashcardScopeInstance : FlashcardScope {
         expanded: Boolean,
         onExpand: (Boolean) -> Unit,
         dropdownItemStates: List<DropdownItemState>,
+        snackbarHostState: SnackbarHostState,
         modifier: Modifier = Modifier,
     ) {
-        val context = LocalContext.current
+        val actionLabel = stringResource(R.string.undo)
+        val scope = rememberCoroutineScope()
+
         AnimatedVisibility(
             visible = expanded,
             enter = expandVertically(),
@@ -159,13 +167,14 @@ internal object FlashcardScopeInstance : FlashcardScope {
                         onClick = {
                             itemState.onClick()
                             onExpand(false)
-                            if (itemState.showToast) {
-                                // TODO: change to snackbar
-                                Toast.makeText(
-                                    context,
-                                    itemState.toastMessageRes,
-                                    Toast.LENGTH_SHORT
-                                ).show()
+                            itemState.snackbarMessage?.let { message ->
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(
+                                        message = message,
+                                        actionLabel = actionLabel,
+                                        duration = SnackbarDuration.Long
+                                    )
+                                }
                             }
                         },
                         leadingIcon = {
@@ -612,6 +621,7 @@ fun HeaderPreview() {
                 squareColor = MaterialTheme.colorScheme.primary,
                 label = stringResource(R.string.learning_new_word),
                 dropdownItemStates = emptyList(),
+                snackbarHostState = SnackbarHostState(),
                 modifier = Modifier.fillMaxWidth(),
             )
         }

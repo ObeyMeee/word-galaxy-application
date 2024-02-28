@@ -109,6 +109,7 @@ fun WordGalaxyNavHost(modifier: Modifier = Modifier) {
                 )
                 studyNavGraph(
                     navController = navController,
+                    snackbarHostState = snackbarHostState,
                     modifier = modifierWithSmallPadding
                 )
                 menuNavGraph(

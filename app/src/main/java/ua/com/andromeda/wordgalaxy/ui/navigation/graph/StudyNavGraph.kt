@@ -1,5 +1,6 @@
 package ua.com.andromeda.wordgalaxy.ui.navigation.graph
 
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
@@ -11,7 +12,8 @@ import ua.com.andromeda.wordgalaxy.ui.screens.study.reviewwords.ReviewWordsScree
 
 fun NavGraphBuilder.studyNavGraph(
     navController: NavController,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    snackbarHostState: SnackbarHostState,
 ) {
     navigation(
         startDestination = Destination.Study.LearnWordsScreen(),
@@ -20,6 +22,7 @@ fun NavGraphBuilder.studyNavGraph(
         composable(Destination.Study.LearnWordsScreen()) {
             LearnWordsScreen(
                 navController = navController,
+                snackbarHostState = snackbarHostState,
                 modifier = modifier
             )
         }
@@ -27,6 +30,7 @@ fun NavGraphBuilder.studyNavGraph(
         composable(Destination.Study.ReviewWordsScreen()) {
             ReviewWordsScreen(
                 navController = navController,
+                snackbarHostState = snackbarHostState,
                 modifier = modifier
             )
         }

@@ -16,10 +16,12 @@ import androidx.compose.material.icons.outlined.Rectangle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.res.dimensionResource
@@ -42,11 +44,12 @@ import ua.com.andromeda.wordgalaxy.ui.navigation.Destination
 @Composable
 fun LearnWordsScreen(
     modifier: Modifier = Modifier,
-    navController: NavController = rememberNavController()
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
+    navController: NavController = rememberNavController(),
 ) {
     val viewModel: LearnWordsViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsState()
-    val amountWordsToReview = getAmountWordsToReview(uiState)
+    val amountWordsToReview = (uiState as? LearnWordsUiState.Success)?.amountWordsToReview ?: 0
 
     Scaffold(
         topBar = {
@@ -69,22 +72,17 @@ fun LearnWordsScreen(
     ) { innerPadding ->
         LearnWordsMain(
             navigateTo = navController::navigate,
+            snackbarHostState = snackbarHostState,
             modifier = Modifier.padding(innerPadding)
         )
     }
 }
 
-fun getAmountWordsToReview(uiState: LearnWordsUiState) =
-    when (uiState) {
-        is LearnWordsUiState.Success -> uiState.amountWordsToReview
-        else -> 0
-    }
-
-
 @Composable
 fun LearnWordsMain(
     navigateTo: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     val viewModel: LearnWordsViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsState()
@@ -122,7 +120,7 @@ fun LearnWordsMain(
                 DropdownItemState(
                     labelRes = R.string.reset_progress_for_this_word,
                     icon = rememberVectorPainter(Icons.Default.Undo),
-                    toastMessageRes = R.string.progress_has_been_reset_successfully,
+                    snackbarMessage = stringResource(R.string.progress_has_been_reset_successfully),
                     onClick = viewModel::resetWord
                 )
             }
@@ -130,30 +128,28 @@ fun LearnWordsMain(
                 DropdownItemState(
                     labelRes = R.string.copy_to_my_category,
                     icon = rememberVectorPainter(Icons.Default.FolderCopy),
-                    toastMessageRes = R.string.word_has_been_copied_to_your_category,
+                    snackbarMessage = stringResource(R.string.word_has_been_copied_to_your_category),
                     onClick = viewModel::copyWordToMyCategory
                 ),
                 DropdownItemState(
                     labelRes = R.string.report_a_mistake,
                     icon = rememberVectorPainter(Icons.Default.Report),
-                    showToast = false,
                     onClick = {
                         navigateTo(Destination.ReportMistakeScreen(wordId))
                     },
                 ),
                 DropdownItemState(
                     labelRes = R.string.edit,
+                    icon = rememberVectorPainter(Icons.Default.EditNote),
                     onClick = {
                         navigateTo(Destination.EditWord(wordId))
                     },
-                    showToast = false,
-                    icon = rememberVectorPainter(Icons.Default.EditNote),
                 ),
                 DropdownItemState(
                     labelRes = R.string.remove,
-                    onClick = viewModel::removeWord,
-                    toastMessageRes = R.string.word_has_been_successfully_removed,
                     icon = rememberVectorPainter(Icons.Default.Remove),
+                    onClick = viewModel::removeWord,
+                    snackbarMessage = stringResource(R.string.word_has_been_successfully_removed),
                 )
             )
             menuItems.add(0, firstMenuItem)
@@ -173,6 +169,7 @@ fun LearnWordsMain(
                         squareColor = status.iconColor,
                         label = stringResource(status.labelRes, numberReview),
                         dropdownItemStates = menuItems,
+                        snackbarHostState = snackbarHostState,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(dimensionResource(R.dimen.padding_medium))

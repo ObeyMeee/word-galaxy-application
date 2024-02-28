@@ -7,6 +7,5 @@ data class DropdownItemState(
     @StringRes val labelRes: Int,
     val icon: Painter,
     val onClick: () -> Unit,
-    val showToast: Boolean = true,
-    @StringRes val toastMessageRes: Int = 0
+    val snackbarMessage: String? = null,
 )

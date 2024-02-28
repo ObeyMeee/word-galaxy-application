@@ -94,6 +94,7 @@
     <string name="type_answer">Type answer</string>
     <string name="default_mode">Default mode</string>
     <string name="show_this_word_later">Show this word later</string>
+    <string name="undo">Undo</string>
 
     <plurals name="days">
         <item quantity="one">day</item>

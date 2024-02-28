@@ -7,6 +7,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -30,6 +31,7 @@ interface FlashcardScope {
         onExpandMenu: (Boolean) -> Unit,
         squareColor: Color,
         label: String,
+        snackbarHostState: SnackbarHostState,
         dropdownItemStates: List<DropdownItemState>,
         modifier: Modifier,
     )
