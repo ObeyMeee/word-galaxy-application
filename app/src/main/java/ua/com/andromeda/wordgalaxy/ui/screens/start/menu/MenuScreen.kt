@@ -1,107 +1,145 @@
 package ua.com.andromeda.wordgalaxy.ui.screens.start.menu
 
-import androidx.annotation.StringRes
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ContactSupport
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.filled.ShortText
-import androidx.compose.material.icons.outlined.Star
-import androidx.compose.material3.Card
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.dimensionResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
+import androidx.preference.Preference
+import com.chillibits.simplesettings.core.SimpleSettings
+import com.chillibits.simplesettings.core.SimpleSettingsConfig
 import ua.com.andromeda.wordgalaxy.R
-import ua.com.andromeda.wordgalaxy.ui.common.HorizontalSpacer
-import ua.com.andromeda.wordgalaxy.ui.navigation.Destination
-
-data class MenuItemState(
-    val icon: ImageVector,
-    @StringRes val labelRes: Int,
-    val onClick: () -> Unit
-)
+import ua.com.andromeda.wordgalaxy.ui.DEFAULT_AMOUNT_WORDS_TO_LEARN_PER_DAY
+import ua.com.andromeda.wordgalaxy.ui.KEY_AMOUNT_WORDS_TO_LEARN_PER_DAY
+import ua.com.andromeda.wordgalaxy.ui.MAX_AMOUNT_WORDS_TO_LEARN_PER_DAY
+import ua.com.andromeda.wordgalaxy.ui.MIN_AMOUNT_WORDS_TO_LEARN_PER_DAY
 
 @Composable
 fun MenuScreen(
     navigateTo: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val menuItems = listOf(
-        MenuItemState(
-            icon = Icons.Filled.Settings,
-            labelRes = R.string.settings,
-            onClick = {
-                navigateTo(Destination.Start.Menu.SettingsScreen())
-            },
-        ),
-        MenuItemState(
-            icon = Icons.Filled.Share,
-            labelRes = R.string.share,
-            onClick = {},
-        ),
+    val context = LocalContext.current
+    val isDarkTheme = isSystemInDarkTheme()
+    val configuration = SimpleSettingsConfig
+        .Builder()
+        .showResetOption(true)
+        .setActivityTitle("Menu")
+        .displayHomeAsUpEnabled(true)
+        .build()
+    // TODO: add real url
+    val appUri = "https://play.google.com/store/apps/details?id=ua.com.andromeda.wordgalaxy"
 
-        MenuItemState(
-            icon = Icons.Outlined.Star,
-            labelRes = R.string.rate_us,
-            onClick = {},
-        ),
-        MenuItemState(
-            icon = Icons.Filled.ContactSupport,
-            labelRes = R.string.support,
-            onClick = {},
-        ),
-        MenuItemState(
-            icon = Icons.Default.ShortText,
-            labelRes = R.string.about_us,
-            onClick = {},
-        ),
+    SimpleSettings(context, configuration).show {
+        Section {
+            Page {
+                title = "Settings"
+                icon = R.drawable.menu_settings_icon
+                Section {
+                    Section {
+                        title = "Appearance"
 
-        )
-
-    Card(modifier) {
-        Column(
-            modifier = Modifier.padding(
-                dimensionResource(R.dimen.padding_medium)
-            ),
-        ) {
-            menuItems.forEach {
-                MenuItem(
-                    icon = it.icon,
-                    labelRes = it.labelRes,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp)
-                        .clickable(onClick = it.onClick)
-                )
+                        SwitchPref {
+                            title = "Dark theme"
+                            summary = "Tap to change theme"
+                            key = "dark_theme"
+                            defaultValue = isDarkTheme
+                            icon = R.drawable.night_mode_icon
+                        }
+                        SwitchPref {
+                            title = "Turn on animations"
+                            summary = "Tap to turn on/off animations"
+                            key = "animation_enabled"
+                            defaultValue = true
+                        }
+                    }
+                    Section {
+                        title = "General"
+                        SwitchPref {
+                            title = "Show transcriptions"
+                            key = "transcriptions_enabled"
+                            defaultValue = true
+                        }
+                        SeekBarPref {
+                            title = "How many words per day you want to learn?"
+                            key = KEY_AMOUNT_WORDS_TO_LEARN_PER_DAY
+                            min = MIN_AMOUNT_WORDS_TO_LEARN_PER_DAY
+                            max = MAX_AMOUNT_WORDS_TO_LEARN_PER_DAY
+                            defaultValue = DEFAULT_AMOUNT_WORDS_TO_LEARN_PER_DAY
+                            showValue = true
+                            icon = R.drawable.bulb_icon
+                            iconSpaceReserved = true
+                        }
+                    }
+                }
+            }
+            TextPref {
+                title = "Share"
+                summary = "Tap to share the app"
+                icon = R.drawable.menu_share_icon
+                onClick = Preference.OnPreferenceClickListener {
+                    context.shareLink(appUri)
+                    true
+                }
+            }
+            TextPref {
+                title = "Rate"
+                summary = "Tap to show our PlayStore page"
+                icon = R.drawable.menu_playstore_icon
+                onClick = GoToWebsiteClickListener(context, appUri)
+            }
+            LibsPref {
+                title = "libs"
+                edgeToEdge = true
+                aboutAppNameRes = R.string.app_name
+                aboutAppSpecial1 = "About app special 1"
+                aboutAppSpecial2 = "About app special 2"
+                aboutAppSpecial3 = "About app special 3"
+                aboutAppSpecial1Description = "About app special 1 description"
+                aboutAppSpecial2Description = "About app special 2 description"
+                aboutAppSpecial3Description = "About app special 3 description"
+                aboutShowIcon = true
+                aboutShowVersion = true
+                aboutShowVersionCode = true
+                aboutShowVersionName = true
+                aboutVersionString = "about version string"
+                showLicense = true
+                showLicenseDialog = true
+                showLoadingProgress = true
+                showVersion = true
+                sort = true
+            }
+            TextPref {
+                title = "Support"
+                summary = "Tap to go to the our support page"
+                icon = R.drawable.menu_support_icon
+                onClick = GoToWebsiteClickListener(context, appUri)
             }
         }
     }
 }
 
-@Composable
-private fun MenuItem(
-    icon: ImageVector,
-    @StringRes labelRes: Int,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(imageVector = icon, contentDescription = null)
-        HorizontalSpacer(R.dimen.padding_mediumish)
-        Text(text = stringResource(labelRes))
+fun Context.shareLink(uriString: String) {
+    val sendIntent = Intent(Intent.ACTION_SEND).apply {
+        putExtra(Intent.EXTRA_TEXT, uriString)
+        type = "text/plain"
+    }
+    val shareIntent = Intent.createChooser(sendIntent, null)
+    startActivity(shareIntent)
+}
+
+class GoToWebsiteClickListener(
+    private val context: Context,
+    private val uriString: String,
+) : Preference.OnPreferenceClickListener {
+    override fun onPreferenceClick(preference: Preference): Boolean {
+        val intent = Intent(
+            Intent.ACTION_VIEW,
+            Uri.parse(uriString)
+        )
+        context.startActivity(intent)
+        return true
     }
 }

@@ -48,7 +48,7 @@ fun StartBottomAppBar(
                 navController = navController
             )
             BottomNavigationBarItem(
-                destination = Destination.Start.Menu(),
+                destination = Destination.Start.MenuScreen(),
                 currentRoute = currentRoute,
                 icon = rememberVectorPainter(Icons.Default.Menu),
                 label = R.string.menu,
