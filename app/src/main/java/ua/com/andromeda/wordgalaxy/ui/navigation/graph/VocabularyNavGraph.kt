@@ -45,6 +45,7 @@ fun NavGraphBuilder.vocabularyGraph(
                 listState = categoriesState,
                 navigateTo = navigateTo,
                 snackbarHostState = snackbarHostState,
+                modifier = modifier,
             )
         }
 

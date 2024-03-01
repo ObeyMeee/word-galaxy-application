@@ -8,7 +8,7 @@ import javax.inject.Singleton
 class CategoryRepositoryImpl @Inject constructor(
     private val categoryDao: CategoryDao
 ) : CategoryRepository {
-    override fun findVocabularyCategories(parentCategoryId: Int?) =
+    override fun findVocabularyCategories(parentCategoryId: Long?) =
         categoryDao.findCategoriesWithWordCountAndCompletedWordsCount(parentCategoryId)
 
     override fun findAllChildCategories() =

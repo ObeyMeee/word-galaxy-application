@@ -26,7 +26,7 @@ interface CategoryDao {
         GROUP BY categories.id
         """
     )
-    fun findCategoriesWithWordCountAndCompletedWordsCount(parentCategoryId: Int?): Flow<List<VocabularyCategory>>
+    fun findCategoriesWithWordCountAndCompletedWordsCount(parentCategoryId: Long?): Flow<List<VocabularyCategory>>
 
     @Query(
         """

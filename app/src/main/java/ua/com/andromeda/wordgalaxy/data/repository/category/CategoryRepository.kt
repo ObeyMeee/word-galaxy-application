@@ -5,7 +5,7 @@ import ua.com.andromeda.wordgalaxy.data.model.Category
 import ua.com.andromeda.wordgalaxy.data.model.VocabularyCategory
 
 interface CategoryRepository {
-    fun findVocabularyCategories(parentCategoryId: Int?): Flow<List<VocabularyCategory>>
+    fun findVocabularyCategories(parentCategoryId: Long?): Flow<List<VocabularyCategory>>
     fun findAllChildCategories(): Flow<List<Category>>
     fun findAllByParentCategoryId(parentCategoryId: Int? = null): Flow<List<Category>>
     fun findById(id: Long): Flow<Category?>

@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
 import ua.com.andromeda.wordgalaxy.data.model.MY_WORDS_CATEGORY
+import ua.com.andromeda.wordgalaxy.data.model.VocabularyCategory
 import ua.com.andromeda.wordgalaxy.data.model.toWordWithCategories
 import ua.com.andromeda.wordgalaxy.data.repository.category.CategoryRepository
 import ua.com.andromeda.wordgalaxy.data.repository.word.WordRepository
@@ -30,7 +31,7 @@ class VocabularyViewModel @Inject constructor(
                     .findVocabularyCategories(null)
                     .collect { categories ->
                         _uiState.update {
-                            VocabularyUiState.Success(categories)
+                            VocabularyUiState.Success(vocabularyCategories = categories)
                         }
                     }
             }
@@ -47,24 +48,28 @@ class VocabularyViewModel @Inject constructor(
         }
     }
 
-    fun fetchSubCategories(parentCategoryId: Int) =
+    fun fetchSubCategories(parent: VocabularyCategory) {
+        if (parent.subcategories.isNotEmpty()) return
+
+        val parentCategoryId = parent.category.id
         viewModelScope.launch(Dispatchers.IO) {
             categoryRepository
                 .findVocabularyCategories(parentCategoryId)
                 .collect { subcategories ->
-                    _uiState.update { uiState ->
-                        if (uiState is VocabularyUiState.Success) {
-                            uiState.copy(
-                                uiState.vocabularyCategories.map {
-                                    it.copy(subcategories = subcategories)
-                                }
+                    updateState { state ->
+                        val updatedCategories = state.vocabularyCategories.toMutableList().apply {
+                            val index = indexOf(parent)
+                            this[index] = parent.copy(
+                                subcategories = subcategories
                             )
-                        } else {
-                            throw IllegalStateException("Unexpected state")
                         }
+                        state.copy(
+                            vocabularyCategories = updatedCategories
+                        )
                     }
                 }
         }
+    }
 
     fun updateSearchQuery(value: String) {
         updateState {
