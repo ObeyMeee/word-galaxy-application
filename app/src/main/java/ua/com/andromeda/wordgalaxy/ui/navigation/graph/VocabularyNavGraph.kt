@@ -67,8 +67,10 @@ fun NavGraphBuilder.vocabularyGraph(
                 val viewModel = it.sharedViewModel<NewWordViewModel>(navController)
                 ExamplesScreen(
                     navigateUp = navigateUp,
+                    navigateTo = navigateTo,
+                    snackbarHostState = snackbarHostState,
                     viewModel = viewModel,
-                    modifier = modifier
+                    modifier = modifier,
                 )
             }
         }

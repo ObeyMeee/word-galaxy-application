@@ -138,7 +138,7 @@ class EditWordViewModel @Inject constructor(
     }
 
     private fun buildEmptyExample() = Example(
-        id = RANDOM.nextLong(),
+        id = -RANDOM.nextLong(),
         text = "",
         translation = "",
         wordId = 0
@@ -183,8 +183,14 @@ class EditWordViewModel @Inject constructor(
                     translation = state.translation,
                 ),
                 categories = state.selectedCategories.map { it.first },
-                examples = state.examples,
-                phonetics = editableWord.phonetics
+                examples = state.examples.map {
+                    val id = if (it.id < 0) 0 else it.id
+                    it.copy(
+                        id = id,
+                        wordId = editableWord.word.id
+                    )
+                },
+                phonetics = editableWord.phonetics,
             )
             wordRepository.update(updatedWord)
         }

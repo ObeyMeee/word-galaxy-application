@@ -177,10 +177,20 @@ interface WordDao {
     suspend fun updateEmbeddedWord(embeddedWord: EmbeddedWord) {
         val (word, categories, phonetics, examples) = embeddedWord
         updateWord(word)
-        updateCategory(*categories.toTypedArray())
-        updatePhonetic(*phonetics.toTypedArray())
-        updateExample(*examples.toTypedArray())
+        insertAllCategories(categories)
+        insertPhonetics(phonetics)
+        insertExamples(examples)
+        deleteExamplesWhereIdsNotIn(examples.map { it.id }, word.id)
     }
+
+    @Transaction
+    @Query(
+        """
+        DELETE FROM examples
+        WHERE id NOT IN (:ids) AND word_id = :wordId
+        """
+    )
+    suspend fun deleteExamplesWhereIdsNotIn(ids: List<Long>, wordId: Long)
 
     @Transaction
     suspend fun updateWordWithCategories(wordWithCategories: WordWithCategories) {
@@ -228,11 +238,15 @@ interface WordDao {
     suspend fun insertAllWords(wordsWithCategories: List<WordWithCategories>) =
         wordsWithCategories.map { insertWordWithCategories(it) }
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertPhonetics(phonetics: List<Phonetic>): List<Long>
 
-    @Insert
-    suspend fun insertExamples(examples: List<Example>): List<Long>
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertExample(vararg example: Example): List<Long>
+
+    suspend fun insertExamples(examples: List<Example>) {
+        insertExample(*examples.toTypedArray())
+    }
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertAllCategories(categories: List<Category>): List<Long>

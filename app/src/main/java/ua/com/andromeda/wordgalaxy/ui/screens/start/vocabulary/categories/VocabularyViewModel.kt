@@ -59,9 +59,11 @@ class VocabularyViewModel @Inject constructor(
                     updateState { state ->
                         val updatedCategories = state.vocabularyCategories.toMutableList().apply {
                             val index = indexOf(parent)
-                            this[index] = parent.copy(
-                                subcategories = subcategories
-                            )
+                            if (index != -1) {
+                                this[index] = parent.copy(
+                                    subcategories = subcategories
+                                )
+                            }
                         }
                         state.copy(
                             vocabularyCategories = updatedCategories

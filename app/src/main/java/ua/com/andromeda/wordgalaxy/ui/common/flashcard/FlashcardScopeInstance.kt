@@ -81,6 +81,9 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.asFlow
+import com.chillibits.simplesettings.tool.getPrefBooleanValue
+import com.chillibits.simplesettings.tool.getPreferenceLiveData
 import kotlinx.coroutines.launch
 import ua.com.andromeda.wordgalaxy.R
 import ua.com.andromeda.wordgalaxy.data.DefaultStorage
@@ -279,9 +282,10 @@ internal object FlashcardScopeInstance : FlashcardScope {
             WordWithTranscription(
                 value = word.value,
                 transcription = phonetics.joinToString { it.text },
-                modifier = modifier.clickable {
+                playPronunciation = {
                     context.playPronunciation(phonetics)
                 },
+                modifier = modifier,
             )
         } else {
             Text(
@@ -298,10 +302,23 @@ internal object FlashcardScopeInstance : FlashcardScope {
     private fun WordWithTranscription(
         value: String,
         transcription: String,
-        modifier: Modifier = Modifier
+        playPronunciation: () -> Unit,
+        modifier: Modifier = Modifier,
     ) {
+        val context = LocalContext.current
+        val isAutomaticallyPronounceEnglishWords =
+            getPreferenceLiveData(context, "automatically_pronounce_english_words", true).asFlow()
+        LaunchedEffect(Unit) {
+            isAutomaticallyPronounceEnglishWords.collect {
+                if (it) {
+                    playPronunciation()
+                }
+            }
+        }
+
+        val transcriptionEnabled = context.getPrefBooleanValue("transcriptions_enabled")
         Row(
-            modifier = modifier,
+            modifier = modifier.clickable(onClick = playPronunciation),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -310,11 +327,13 @@ internal object FlashcardScopeInstance : FlashcardScope {
                     text = value,
                     style = MaterialTheme.typography.titleLarge
                 )
-                Text(
-                    text = transcription,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer,
-                    style = MaterialTheme.typography.bodyMedium
-                )
+                if (transcriptionEnabled) {
+                    Text(
+                        text = transcription,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
             }
             Icon(
                 imageVector = Icons.Default.PlayCircleFilled,

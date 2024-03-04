@@ -50,6 +50,7 @@ fun MenuScreen(
                         }
                         SwitchPref {
                             title = "Turn on animations"
+                            icon = R.drawable.menu_animation_icon
                             summary = "Tap to turn on/off animations"
                             key = "animation_enabled"
                             defaultValue = true
@@ -60,6 +61,13 @@ fun MenuScreen(
                         SwitchPref {
                             title = "Show transcriptions"
                             key = "transcriptions_enabled"
+                            icon = R.drawable.menu_transcription_icon
+                            defaultValue = true
+                        }
+                        SwitchPref {
+                            title = "Automatically pronounce English words"
+                            key = "automatically_pronounce_english_words"
+                            icon = R.drawable.menu_pronounce_english_words_icon
                             defaultValue = true
                         }
                         SeekBarPref {

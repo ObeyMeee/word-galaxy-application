@@ -37,13 +37,18 @@ fun EditWordScreen(
         fabEnabled = uiState.isFormValid,
         modifier = modifier,
     ) { innerPadding ->
-        EditWordMain(modifier = Modifier.padding(innerPadding))
+        EditWordMain(
+            viewModel = viewModel,
+            modifier = Modifier.padding(innerPadding),
+        )
     }
 }
 
 @Composable
-private fun EditWordMain(modifier: Modifier = Modifier) {
-    val viewModel: EditWordViewModel = hiltViewModel()
+private fun EditWordMain(
+    modifier: Modifier = Modifier,
+    viewModel: EditWordViewModel = hiltViewModel(),
+) {
     val uiState by viewModel.uiState.collectAsState()
 
     when (val state = uiState) {

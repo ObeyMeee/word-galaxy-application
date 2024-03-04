@@ -134,6 +134,7 @@ fun WordGalaxyNavHost(modifier: Modifier = Modifier) {
                 }
                 editNavGraph(
                     navController = navController,
+                    snackbarHostState = snackbarHostState,
                     modifier = modifierWithSmallPadding,
                 )
             }

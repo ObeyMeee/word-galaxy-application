@@ -28,8 +28,9 @@ data class Word(
     val nextRepeatAt: LocalDateTime? = null,
 )
 
-private const val FIRST_HOURS_INTERVAL: Int = 4
+private const val FIRST_HOURS_INTERVAL: Int = 12
 private const val INTERVAL_MULTIPLIER: Double = 2.0
+private const val MASTERED_BOUND = 8
 
 fun Word.memorize(): Word {
     val newAmountRepetition = 0
@@ -43,9 +44,20 @@ fun Word.memorize(): Word {
 
 fun Word.repeat(): Word {
     val amountRepetition = amountRepetition ?: throw WordNotMemorized(value)
+    val now = LocalDateTime.now()
+    val newAmountRepetition = amountRepetition + 1
+    if (amountRepetition == MASTERED_BOUND) {
+        return copy(
+            amountRepetition = newAmountRepetition,
+            repeatedAt = now,
+            nextRepeatAt = null,
+            status = WordStatus.Mastered,
+            statusChangedAt = now,
+        )
+    }
     return copy(
-        amountRepetition = amountRepetition + 1,
-        repeatedAt = LocalDateTime.now(),
+        amountRepetition = newAmountRepetition,
+        repeatedAt = now,
         nextRepeatAt = calculateNextRepeatAt(amountRepetition)
     )
 }

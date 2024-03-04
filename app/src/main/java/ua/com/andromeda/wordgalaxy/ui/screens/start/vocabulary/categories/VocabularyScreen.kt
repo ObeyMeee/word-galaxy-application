@@ -5,9 +5,9 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -40,6 +40,7 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import ua.com.andromeda.wordgalaxy.R
 import ua.com.andromeda.wordgalaxy.data.model.Category
@@ -214,15 +215,14 @@ fun CategoryItem(
             Text(text = "$roundedPercentage%")
         }
     )
-    AnimatedVisibility(
-        visible = expanded
-    ) {
+    AnimatedVisibility(visible = expanded) {
         NestedCategories(
             items = vocabularyCategory.subcategories,
             navigateTo = navigateTo,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = dimensionResource(R.dimen.padding_medium))
+                .heightIn(0.dp, 5000.dp)
         )
     }
 }
@@ -253,8 +253,8 @@ fun NestedCategories(
     modifier: Modifier = Modifier,
     navigateTo: (String) -> Unit,
 ) {
-    Column(modifier) {
-        items.forEach {
+    LazyColumn(modifier) {
+        items(items, key = { it.category.id }) {
             val category = it.category
             ListItem(
                 headlineContent = {

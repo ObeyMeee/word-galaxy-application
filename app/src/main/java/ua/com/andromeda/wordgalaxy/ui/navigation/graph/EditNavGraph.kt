@@ -1,5 +1,6 @@
 package ua.com.andromeda.wordgalaxy.ui.navigation.graph
 
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
@@ -15,6 +16,7 @@ import ua.com.andromeda.wordgalaxy.ui.screens.editword.ExamplesScreen
 
 fun NavGraphBuilder.editNavGraph(
     navController: NavHostController,
+    snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier,
 ) {
     val navigateUp: () -> Unit = { navController.navigateUp() }
@@ -39,7 +41,8 @@ fun NavGraphBuilder.editNavGraph(
         composable(route = Destination.EditWord.ExamplesScreen()) {
             val viewModel = it.sharedViewModel<EditWordViewModel>(navController)
             ExamplesScreen(
-                navigateUp = navigateUp,
+                navController = navController,
+                snackbarHostState = snackbarHostState,
                 modifier = modifier,
                 viewModel = viewModel
             )
