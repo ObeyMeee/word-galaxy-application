@@ -9,7 +9,7 @@ sealed interface LearnWordsUiState {
     data object Default : LearnWordsUiState
     data class Error(val message: String = "Unexpected error occurred") : LearnWordsUiState
     data class Success(
-        val embeddedWord: EmbeddedWord,
+        val learningWordsQueue: List<EmbeddedWord> = emptyList(),
         val cardMode: CardMode = CardMode.Default,
         val learnedWordsToday: Int = 0,
         val amountWordsLearnPerDay: Int = 0,
@@ -17,5 +17,6 @@ sealed interface LearnWordsUiState {
         val userGuess: TextFieldValue = TextFieldValue(),
         val amountAttempts: Int = DEFAULT_AMOUNT_USER_ATTEMPTS_TO_GUESS,
         val menuExpanded: Boolean = false,
+        val wordsInProcessQueue: List<EmbeddedWord> = emptyList(),
     ) : LearnWordsUiState
 }

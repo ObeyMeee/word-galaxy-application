@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
+import kotlinx.coroutines.CoroutineScope
 import ua.com.andromeda.wordgalaxy.data.DefaultStorage
 import ua.com.andromeda.wordgalaxy.data.model.Category
 import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
@@ -34,6 +35,7 @@ interface FlashcardScope {
         snackbarHostState: SnackbarHostState,
         dropdownItemStates: List<DropdownItemState>,
         modifier: Modifier,
+        scope: CoroutineScope,
     )
 
     @Composable

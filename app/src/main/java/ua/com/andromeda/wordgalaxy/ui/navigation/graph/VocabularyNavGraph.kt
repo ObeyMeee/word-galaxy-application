@@ -1,5 +1,6 @@
 package ua.com.andromeda.wordgalaxy.ui.navigation.graph
 
+import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.ui.Modifier
@@ -38,7 +39,13 @@ fun NavGraphBuilder.vocabularyGraph(
 
     navigation(
         startDestination = categoriesScreenRoute,
-        route = Destination.Start.VocabularyScreen()
+        route = Destination.Start.VocabularyScreen(),
+        enterTransition = {
+            slideIntoContainer(towards = AnimatedContentTransitionScope.SlideDirection.Left)
+        },
+        exitTransition = {
+            slideOutOfContainer(towards = AnimatedContentTransitionScope.SlideDirection.Right)
+        }
     ) {
         composable(categoriesScreenRoute) {
             VocabularyScreen(

@@ -8,4 +8,6 @@ data class DropdownItemState(
     val icon: Painter,
     val onClick: () -> Unit,
     val snackbarMessage: String? = null,
+    val onActionPerformed: () -> Unit = {},
+    val onDismissAction: () -> Unit = {},
 )

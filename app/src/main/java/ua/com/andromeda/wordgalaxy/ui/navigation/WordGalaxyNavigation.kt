@@ -1,5 +1,6 @@
 package ua.com.andromeda.wordgalaxy.ui.navigation
 
+import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -94,7 +95,12 @@ fun WordGalaxyNavHost(modifier: Modifier = Modifier) {
                 startDestination = startScreenRoute,
                 route = start
             ) {
-                composable(startScreenRoute) {
+                composable(
+                    startScreenRoute,
+                    enterTransition = {
+                        slideIntoContainer(towards = AnimatedContentTransitionScope.SlideDirection.Right)
+                    },
+                ) {
                     HomeScreen(
                         modifier = modifierWithSmallPadding,
                         navController = navController
@@ -125,7 +131,13 @@ fun WordGalaxyNavHost(modifier: Modifier = Modifier) {
                         navArgument(Destination.ReportMistakeScreen.WORD_ID_KEY) {
                             type = NavType.LongType
                         }
-                    )
+                    ),
+                    enterTransition = {
+                        slideIntoContainer(towards = AnimatedContentTransitionScope.SlideDirection.Right)
+                    },
+                    exitTransition = {
+                        slideOutOfContainer(towards = AnimatedContentTransitionScope.SlideDirection.Left)
+                    },
                 ) {
                     ReportMistakeScreen(
                         modifier = modifierWithSmallPadding,

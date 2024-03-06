@@ -47,6 +47,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -164,7 +165,8 @@ private fun WordList(
     listState: LazyListState = rememberLazyListState(),
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val removeMessage = stringResource(R.string.word_has_been_successfully_removed)
+    // SnackbarDuration.Long == 10 seconds
+    val removeMessage = stringResource(R.string.word_will_be_removed_in_seconds, 10)
 
     LazyColumn(
         modifier = modifier,
@@ -217,7 +219,7 @@ private fun WordListItem(
     val amountRepetition = word.amountRepetition ?: 0
     val numberReview = amountRepetition + 1
     val label = stringResource(status.labelRes, numberReview)
-    val dismissState = rememberDismissState()
+    val dismissState = rememberDismissState(positionalThreshold = { _ -> 86.dp.toPx() })
 
     // check if the user swiped
     if (dismissState.isDismissed(direction = DismissDirection.EndToStart)) {

@@ -230,7 +230,7 @@ fun WordActionDialog(
                     icon = Icons.Default.Remove,
                     coroutineScope = coroutineScope,
                     snackbarHostState = snackbarHostState,
-                    messageRes = R.string.word_has_been_successfully_removed,
+                    messageRes = R.string.word_will_be_removed_in_seconds,
                     action = { viewModel.removeWord() }
                 )
             }

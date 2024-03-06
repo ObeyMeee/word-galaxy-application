@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.res.dimensionResource
@@ -113,6 +114,7 @@ fun ReviewWordsMain(
             val isWordStatusNew = status == WordStatus.New
             val amountRepetition = word.amountRepetition ?: 0
             val numberReview = amountRepetition + 1
+            val scope = rememberCoroutineScope()
             val flashcardMode = state.cardMode
             val flashcardState = FlashcardState.Review(
                 onLeftClick = viewModel::repeatWord,
@@ -148,7 +150,8 @@ fun ReviewWordsMain(
                 DropdownItemState(
                     labelRes = R.string.remove,
                     onClick = viewModel::removeWord,
-                    snackbarMessage = stringResource(R.string.word_has_been_successfully_removed),
+                    // SnackbarDuration.Long == 10 seconds
+                    snackbarMessage = stringResource(R.string.word_will_be_removed_in_seconds, 10),
                     icon = rememberVectorPainter(Icons.Default.Remove),
                 )
             )
@@ -171,7 +174,8 @@ fun ReviewWordsMain(
                         snackbarHostState = snackbarHostState,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(dimensionResource(R.dimen.padding_medium))
+                            .padding(dimensionResource(R.dimen.padding_medium)),
+                        scope = scope,
                     )
                     CategoriesText(
                         categories = embeddedWord.categories,

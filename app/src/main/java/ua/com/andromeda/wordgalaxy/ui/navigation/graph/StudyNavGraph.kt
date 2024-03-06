@@ -1,5 +1,6 @@
 package ua.com.andromeda.wordgalaxy.ui.navigation.graph
 
+import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
@@ -17,7 +18,13 @@ fun NavGraphBuilder.studyNavGraph(
 ) {
     navigation(
         startDestination = Destination.Study.LearnWordsScreen(),
-        route = Destination.Study()
+        route = Destination.Study(),
+        enterTransition = {
+            slideIntoContainer(towards = AnimatedContentTransitionScope.SlideDirection.Left)
+        },
+        exitTransition = {
+            slideOutOfContainer(towards = AnimatedContentTransitionScope.SlideDirection.Right)
+        }
     ) {
         composable(Destination.Study.LearnWordsScreen()) {
             LearnWordsScreen(

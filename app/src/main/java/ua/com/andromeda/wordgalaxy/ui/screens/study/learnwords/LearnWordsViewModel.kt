@@ -1,6 +1,7 @@
 package ua.com.andromeda.wordgalaxy.ui.screens.study.learnwords
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
@@ -19,6 +20,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
 import ua.com.andromeda.wordgalaxy.data.model.MY_WORDS_CATEGORY
@@ -40,13 +42,15 @@ class LearnWordsViewModel @Inject constructor(
 ) : ViewModel() {
     private val _uiState = MutableStateFlow<LearnWordsUiState>(LearnWordsUiState.Default)
     val uiState: StateFlow<LearnWordsUiState> = _uiState
+    private val coroutineDispatcher = Dispatchers.IO
 
     init {
         fetchUiState()
     }
 
+
     private fun fetchUiState() {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(coroutineDispatcher) {
             var amountWordsToLearnPerDayFlow: Flow<Int>
             withContext(Dispatchers.Main) {
                 amountWordsToLearnPerDayFlow = getPreferenceLiveData(
@@ -62,10 +66,11 @@ class LearnWordsViewModel @Inject constructor(
                 wordRepository.countWordsToReview(),
                 wordRepository.countWordsWhereStatusEquals(WordStatus.InProgress),
             ) { amountWordsToLearnPerDay, amountLearnedWordsToday, amountWordsToReview, amountWordsInProgress ->
-                val randomWord = getRandomWord(amountWordsInProgress, amountWordsToLearnPerDay)
+                val words = buildWordsQueue(amountWordsInProgress, amountWordsToLearnPerDay).first()
+                Log.d("LearnWordsViewModel", "What the hell is going on here?")
                 _uiState.update {
                     LearnWordsUiState.Success(
-                        embeddedWord = randomWord,
+                        learningWordsQueue = words,
                         learnedWordsToday = amountLearnedWordsToday,
                         amountWordsToReview = amountWordsToReview,
                         amountWordsLearnPerDay = amountWordsToLearnPerDay
@@ -79,21 +84,25 @@ class LearnWordsViewModel @Inject constructor(
         }
     }
 
-    private suspend fun getRandomWord(
+    private fun buildWordsQueue(
         amountWordsInProgress: Int,
         amountWordsToLearnPerDay: Int
-    ): EmbeddedWord {
+    ): Flow<List<EmbeddedWord>> {
         val wordStatus =
             if (amountWordsInProgress < amountWordsToLearnPerDay)
                 WordStatus.New
             else
                 WordStatus.InProgress
-        return wordRepository.findOneRandomWordWhereStatusEquals(wordStatus).first()
+        val limit = if (amountWordsInProgress < amountWordsToLearnPerDay)
+            amountWordsToLearnPerDay - amountWordsInProgress
+        else
+            amountWordsInProgress
+        return wordRepository.findRandomWordsWhereStatusEquals(wordStatus, limit)
     }
 
     private fun updateUiState(
         errorMessage: String = "Something went wrong",
-        action: (LearnWordsUiState.Success) -> LearnWordsUiState.Success
+        action: (LearnWordsUiState.Success) -> LearnWordsUiState,
     ) {
         _uiState.update { uiState ->
             if (uiState is LearnWordsUiState.Success) {
@@ -104,13 +113,14 @@ class LearnWordsViewModel @Inject constructor(
         }
     }
 
-    private fun errorUiState(message: String) =
+    private fun errorUiState(message: String = "Something went wrong") =
         LearnWordsUiState.Error(message)
 
     private fun updateWordStatus(status: WordStatus) {
         (_uiState.value as? LearnWordsUiState.Success)?.let { state ->
-            viewModelScope.launch(Dispatchers.IO) {
-                val word = state.embeddedWord.word
+            viewModelScope.launch(coroutineDispatcher) {
+                val word = state.learningWordsQueue.firstOrNull()?.word
+                    ?: throw IllegalStateException("Word is null")
                 wordRepository.update(
                     word.updateStatus(status)
                 )
@@ -119,7 +129,33 @@ class LearnWordsViewModel @Inject constructor(
     }
 
     fun moveToNextWord() {
-        fetchUiState()
+        viewModelScope.launch(coroutineDispatcher) {
+            updateUiState { state ->
+                val updatedQueue = state.learningWordsQueue.toMutableList()
+                val cardMode = CardMode.Default
+                if (updatedQueue.size == 1) {
+                    val newLearningQueue = runBlocking {
+                        val amountWordsInProgress =
+                            wordRepository.countWordsWhereStatusEquals(WordStatus.InProgress)
+                                .first()
+                        buildWordsQueue(
+                            amountWordsInProgress,
+                            state.amountWordsLearnPerDay
+                        ).first()
+                    }
+                    state.copy(
+                        learningWordsQueue = newLearningQueue,
+                        cardMode = cardMode,
+                    )
+                } else {
+                    updatedQueue.removeFirst()
+                    state.copy(
+                        learningWordsQueue = updatedQueue,
+                        cardMode = cardMode,
+                    )
+                }
+            }
+        }
     }
 
     fun startLearningWord() {
@@ -160,7 +196,9 @@ class LearnWordsViewModel @Inject constructor(
 
     fun revealOneLetter() {
         updateUiState { state ->
-            val actualValue = state.embeddedWord.word.value
+            val currentWord =
+                state.learningWordsQueue.firstOrNull() ?: return@updateUiState errorUiState()
+            val actualValue = currentWord.word.value
             val userGuess = state.userGuess
             val indexOfFirstDifference = indexOfFirstDifference(actualValue, userGuess.text)
 
@@ -187,7 +225,9 @@ class LearnWordsViewModel @Inject constructor(
 
     fun checkAnswer() {
         updateUiState {
-            val actual = it.embeddedWord.word.value
+            val currentEmbeddedWord =
+                it.learningWordsQueue.firstOrNull() ?: return@updateUiState errorUiState()
+            val actual = currentEmbeddedWord.word.value
             val userGuess = it.userGuess
             val amountAttemptsLeft = it.amountAttempts - 1
             if (actual == userGuess.text || amountAttemptsLeft == 0)
@@ -198,10 +238,10 @@ class LearnWordsViewModel @Inject constructor(
     }
 
     fun memorizeWord() {
-        viewModelScope.launch(Dispatchers.IO) {
-            val uiStateValue = _uiState.value
-            if (uiStateValue is LearnWordsUiState.Success) {
-                val currentWord = uiStateValue.embeddedWord.word
+        viewModelScope.launch(coroutineDispatcher) {
+            (_uiState.value as? LearnWordsUiState.Success)?.let { state ->
+                val currentWord = state.learningWordsQueue.firstOrNull()?.word
+                    ?: throw IllegalStateException("Word is null")
                 wordRepository.update(currentWord.memorize())
                 moveToNextWord()
             }
@@ -209,39 +249,95 @@ class LearnWordsViewModel @Inject constructor(
     }
 
     fun resetWord() {
-        viewModelScope.launch(Dispatchers.IO) {
+        addWordToQueue()
+        viewModelScope.launch(coroutineDispatcher) {
             (_uiState.value as? LearnWordsUiState.Success)?.let {
-                val currentWord = it.embeddedWord.word
+                val currentWord = it.learningWordsQueue.firstOrNull()?.word
+                    ?: throw IllegalStateException("Word is null")
                 wordRepository.update(currentWord.reset())
             }
         }
-        fetchUiState()
     }
 
     fun copyWordToMyCategory() {
-        viewModelScope.launch(Dispatchers.IO) {
-            (_uiState.value as? LearnWordsUiState.Success)?.let {
-                val wordWithCategories = it.embeddedWord.toWordWithCategories()
+        addWordToQueue()
+        viewModelScope.launch(coroutineDispatcher) {
+            (_uiState.value as? LearnWordsUiState.Success)?.let { state ->
+                val wordWithCategories =
+                    state.learningWordsQueue.firstOrNull()?.toWordWithCategories()
+                        ?: throw IllegalStateException("Word is null")
                 val updatedCategories = wordWithCategories.categories + MY_WORDS_CATEGORY
                 wordRepository.updateWordWithCategories(
-                    wordWithCategories.copy(categories = updatedCategories)
+                    wordWithCategories.copy(
+                        categories = updatedCategories
+                    )
                 )
             }
         }
     }
 
+    fun addWordToQueue() {
+        updateUiState { state ->
+            val processedWord = state.learningWordsQueue.firstOrNull()
+                ?: return@updateUiState errorUiState("Word is null")
+            state.copy(
+                wordsInProcessQueue = state.wordsInProcessQueue + processedWord
+            )
+        }
+    }
+
     fun removeWord() {
-        viewModelScope.launch(Dispatchers.IO) {
-            (_uiState.value as? LearnWordsUiState.Success)?.let {
-                wordRepository.remove(it.embeddedWord)
+        viewModelScope.launch(coroutineDispatcher) {
+            updateUiState {
+                val updatedWordsToRemove = it.wordsInProcessQueue.toMutableList()
+                val removedWord = updatedWordsToRemove.removeFirst()
+
+                launch {
+                    wordRepository.remove(removedWord)
+                }
+
+                it.copy(
+                    wordsInProcessQueue = updatedWordsToRemove,
+                )
             }
         }
-        moveToNextWord()
     }
 
     fun updateMenuExpanded(expanded: Boolean) {
         updateUiState {
             it.copy(menuExpanded = expanded)
+        }
+    }
+
+    fun removeWordFromQueue() {
+        updateUiState {
+            val updatedQueue = it.wordsInProcessQueue.toMutableList()
+            updatedQueue.removeFirst()
+            it.copy(wordsInProcessQueue = updatedQueue)
+        }
+    }
+
+    fun removeWordFromMyCategory() {
+        viewModelScope.launch(coroutineDispatcher) {
+            (_uiState.value as? LearnWordsUiState.Success)?.let {
+                Log.d("LearnWordsViewModel", "queue ==> ${it.wordsInProcessQueue.size}")
+                val wordWithCategories = it.wordsInProcessQueue.first().toWordWithCategories()
+                val updatedCategories = wordWithCategories.categories - MY_WORDS_CATEGORY
+                wordRepository.updateWordWithCategories(
+                    wordWithCategories.copy(
+                        categories = updatedCategories,
+                    )
+                )
+            }
+        }
+    }
+
+    fun recoverWord() {
+        viewModelScope.launch(coroutineDispatcher) {
+            (_uiState.value as? LearnWordsUiState.Success)?.let { state ->
+                val recoveredWord = state.wordsInProcessQueue.first()
+                wordRepository.update(recoveredWord)
+            }
         }
     }
 }

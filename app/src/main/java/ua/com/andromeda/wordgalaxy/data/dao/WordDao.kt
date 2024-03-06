@@ -27,10 +27,10 @@ interface WordDao {
         FROM word
         WHERE status = :status
         ORDER BY RANDOM() 
-        LIMIT 1
+        LIMIT :limit
         """
     )
-    fun findOneRandomWordWhereStatusEquals(status: WordStatus): Flow<List<EmbeddedWord>>
+    fun findRandomWordsWhereStatusEquals(status: WordStatus, limit: Int): Flow<List<EmbeddedWord>>
 
     @Transaction
     @Query(

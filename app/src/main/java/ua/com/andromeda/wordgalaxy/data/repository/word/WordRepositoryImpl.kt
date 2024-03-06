@@ -24,9 +24,8 @@ import javax.inject.Singleton
 class WordRepositoryImpl @Inject constructor(
     private val wordDao: WordDao
 ) : WordRepository {
-    override fun findOneRandomWordWhereStatusEquals(status: WordStatus) =
-        wordDao.findOneRandomWordWhereStatusEquals(status)
-            .map { it.first() }
+    override fun findRandomWordsWhereStatusEquals(status: WordStatus, limit: Int) =
+        wordDao.findRandomWordsWhereStatusEquals(status, limit)
 
     override fun findWordToReview() =
         wordDao.findRandomWordToReview().map { it.firstOrNull() }

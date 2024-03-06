@@ -53,6 +53,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -84,6 +85,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.asFlow
 import com.chillibits.simplesettings.tool.getPrefBooleanValue
 import com.chillibits.simplesettings.tool.getPreferenceLiveData
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import ua.com.andromeda.wordgalaxy.R
 import ua.com.andromeda.wordgalaxy.data.DefaultStorage
@@ -108,7 +110,8 @@ internal object FlashcardScopeInstance : FlashcardScope {
         label: String,
         snackbarHostState: SnackbarHostState,
         dropdownItemStates: List<DropdownItemState>,
-        modifier: Modifier
+        modifier: Modifier,
+        scope: CoroutineScope,
     ) {
         Row(
             modifier = modifier,
@@ -137,6 +140,7 @@ internal object FlashcardScopeInstance : FlashcardScope {
                 onExpand = onExpandMenu,
                 snackbarHostState = snackbarHostState,
                 dropdownItemStates = dropdownItemStates,
+                scope = scope,
             )
         }
     }
@@ -148,9 +152,9 @@ internal object FlashcardScopeInstance : FlashcardScope {
         dropdownItemStates: List<DropdownItemState>,
         snackbarHostState: SnackbarHostState,
         modifier: Modifier = Modifier,
+        scope: CoroutineScope = rememberCoroutineScope(),
     ) {
         val actionLabel = stringResource(R.string.undo)
-        val scope = rememberCoroutineScope()
 
         AnimatedVisibility(
             visible = expanded,
@@ -172,11 +176,16 @@ internal object FlashcardScopeInstance : FlashcardScope {
                             onExpand(false)
                             itemState.snackbarMessage?.let { message ->
                                 scope.launch {
-                                    snackbarHostState.showSnackbar(
+                                    val snackbarResult = snackbarHostState.showSnackbar(
                                         message = message,
                                         actionLabel = actionLabel,
-                                        duration = SnackbarDuration.Long
+                                        duration = SnackbarDuration.Long,
+                                        withDismissAction = true,
                                     )
+                                    when (snackbarResult) {
+                                        SnackbarResult.Dismissed -> itemState.onDismissAction()
+                                        SnackbarResult.ActionPerformed -> itemState.onActionPerformed()
+                                    }
                                 }
                             }
                         },
@@ -642,6 +651,7 @@ fun HeaderPreview() {
                 dropdownItemStates = emptyList(),
                 snackbarHostState = SnackbarHostState(),
                 modifier = Modifier.fillMaxWidth(),
+                scope = rememberCoroutineScope(),
             )
         }
     }

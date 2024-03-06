@@ -1,5 +1,6 @@
 package ua.com.andromeda.wordgalaxy.ui.navigation.graph
 
+import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavGraphBuilder
@@ -27,7 +28,13 @@ fun NavGraphBuilder.editNavGraph(
             navArgument(Destination.EditWord.ID_KEY) {
                 type = NavType.LongType
             }
-        )
+        ),
+        enterTransition = {
+            slideIntoContainer(towards = AnimatedContentTransitionScope.SlideDirection.Left)
+        },
+        exitTransition = {
+            slideOutOfContainer(towards = AnimatedContentTransitionScope.SlideDirection.Right)
+        },
     ) {
         composable(route = Destination.EditWord.Screen()) {
             val viewModel = it.sharedViewModel<EditWordViewModel>(navController)

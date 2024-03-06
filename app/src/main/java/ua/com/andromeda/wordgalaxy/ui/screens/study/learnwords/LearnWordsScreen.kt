@@ -1,5 +1,6 @@
 package ua.com.andromeda.wordgalaxy.ui.screens.study.learnwords
 
+import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.res.dimensionResource
@@ -91,13 +93,14 @@ fun LearnWordsMain(
         is LearnWordsUiState.Default -> CenteredLoadingSpinner()
         is LearnWordsUiState.Error -> Message(state.message, modifier)
         is LearnWordsUiState.Success -> {
-            val embeddedWord = state.embeddedWord
+            val embeddedWord = state.learningWordsQueue.first()
             val word = embeddedWord.word
             val wordId = word.id
             val status = word.status
             val isWordStatusNew = status == WordStatus.New
             val amountRepetition = word.amountRepetition ?: 0
             val numberReview = amountRepetition + 1
+            val scope = rememberCoroutineScope()
             val flashcardMode = state.cardMode
             val flashcardState = if (isWordStatusNew) {
                 FlashcardState.New(
@@ -121,15 +124,20 @@ fun LearnWordsMain(
                     labelRes = R.string.reset_progress_for_this_word,
                     icon = rememberVectorPainter(Icons.Default.Undo),
                     snackbarMessage = stringResource(R.string.progress_has_been_reset_successfully),
-                    onClick = viewModel::resetWord
+                    onClick = viewModel::resetWord,
+                    onActionPerformed = viewModel::recoverWord,
+                    onDismissAction = viewModel::removeWordFromQueue,
                 )
             }
+            Log.d("LearnWordsScreen", state.wordsInProcessQueue.size.toString())
             val menuItems = mutableListOf(
                 DropdownItemState(
                     labelRes = R.string.copy_to_my_category,
                     icon = rememberVectorPainter(Icons.Default.FolderCopy),
                     snackbarMessage = stringResource(R.string.word_has_been_copied_to_your_category),
-                    onClick = viewModel::copyWordToMyCategory
+                    onClick = viewModel::copyWordToMyCategory,
+                    onActionPerformed = viewModel::removeWordFromMyCategory,
+                    onDismissAction = viewModel::removeWordFromQueue,
                 ),
                 DropdownItemState(
                     labelRes = R.string.report_a_mistake,
@@ -148,8 +156,11 @@ fun LearnWordsMain(
                 DropdownItemState(
                     labelRes = R.string.remove,
                     icon = rememberVectorPainter(Icons.Default.Remove),
-                    onClick = viewModel::removeWord,
-                    snackbarMessage = stringResource(R.string.word_has_been_successfully_removed),
+                    onClick = viewModel::addWordToQueue,
+                    // SnackbarDuration.Long == 10 seconds
+                    snackbarMessage = stringResource(R.string.word_will_be_removed_in_seconds, 10),
+                    onActionPerformed = viewModel::removeWordFromQueue,
+                    onDismissAction = viewModel::removeWord,
                 )
             )
             menuItems.add(0, firstMenuItem)
@@ -172,7 +183,8 @@ fun LearnWordsMain(
                         snackbarHostState = snackbarHostState,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(dimensionResource(R.dimen.padding_medium))
+                            .padding(dimensionResource(R.dimen.padding_medium)),
+                        scope = scope,
                     )
                     CategoriesText(
                         categories = embeddedWord.categories,

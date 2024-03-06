@@ -9,7 +9,7 @@ import ua.com.andromeda.wordgalaxy.ui.common.wordform.ExistingWord
 import java.time.temporal.TemporalUnit
 
 interface WordRepository {
-    fun findOneRandomWordWhereStatusEquals(status: WordStatus): Flow<EmbeddedWord>
+    fun findRandomWordsWhereStatusEquals(status: WordStatus, limit: Int): Flow<List<EmbeddedWord>>
     fun findWordToReview(): Flow<EmbeddedWord?>
     fun findWordById(id: Long): Flow<Word>
     fun findEmbeddedWordById(id: Long): Flow<EmbeddedWord>
