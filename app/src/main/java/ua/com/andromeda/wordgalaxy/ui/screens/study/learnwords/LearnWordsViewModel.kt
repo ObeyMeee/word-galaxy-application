@@ -1,7 +1,6 @@
 package ua.com.andromeda.wordgalaxy.ui.screens.study.learnwords
 
 import android.content.Context
-import android.util.Log
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
@@ -67,14 +66,23 @@ class LearnWordsViewModel @Inject constructor(
                 wordRepository.countWordsWhereStatusEquals(WordStatus.InProgress),
             ) { amountWordsToLearnPerDay, amountLearnedWordsToday, amountWordsToReview, amountWordsInProgress ->
                 val words = buildWordsQueue(amountWordsInProgress, amountWordsToLearnPerDay).first()
-                Log.d("LearnWordsViewModel", "What the hell is going on here?")
-                _uiState.update {
-                    LearnWordsUiState.Success(
-                        learningWordsQueue = words,
-                        learnedWordsToday = amountLearnedWordsToday,
-                        amountWordsToReview = amountWordsToReview,
-                        amountWordsLearnPerDay = amountWordsToLearnPerDay
-                    )
+                _uiState.update { state ->
+                    if (state is LearnWordsUiState.Success) {
+                        state.copy(
+                            learningWordsQueue = words,
+                            cardMode = CardMode.Default,
+                            learnedWordsToday = amountLearnedWordsToday,
+                            amountWordsToReview = amountWordsToReview,
+                            amountWordsLearnPerDay = amountWordsToLearnPerDay,
+                        )
+                    } else {
+                        LearnWordsUiState.Success(
+                            learningWordsQueue = words,
+                            learnedWordsToday = amountLearnedWordsToday,
+                            amountWordsToReview = amountWordsToReview,
+                            amountWordsLearnPerDay = amountWordsToLearnPerDay
+                        )
+                    }
                 }
             }.catch { error ->
                 _uiState.update {
@@ -257,6 +265,11 @@ class LearnWordsViewModel @Inject constructor(
                 wordRepository.update(currentWord.reset())
             }
         }
+        updateUiState { state ->
+            state.copy(
+                cardMode = CardMode.Default,
+            )
+        }
     }
 
     fun copyWordToMyCategory() {
@@ -312,7 +325,6 @@ class LearnWordsViewModel @Inject constructor(
     fun removeWordFromQueue() {
         updateUiState {
             val updatedQueue = it.wordsInProcessQueue.toMutableList()
-            updatedQueue.removeFirst()
             it.copy(wordsInProcessQueue = updatedQueue)
         }
     }
@@ -320,7 +332,6 @@ class LearnWordsViewModel @Inject constructor(
     fun removeWordFromMyCategory() {
         viewModelScope.launch(coroutineDispatcher) {
             (_uiState.value as? LearnWordsUiState.Success)?.let {
-                Log.d("LearnWordsViewModel", "queue ==> ${it.wordsInProcessQueue.size}")
                 val wordWithCategories = it.wordsInProcessQueue.first().toWordWithCategories()
                 val updatedCategories = wordWithCategories.categories - MY_WORDS_CATEGORY
                 wordRepository.updateWordWithCategories(
@@ -328,6 +339,7 @@ class LearnWordsViewModel @Inject constructor(
                         categories = updatedCategories,
                     )
                 )
+                removeWordFromQueue()
             }
         }
     }
@@ -337,6 +349,7 @@ class LearnWordsViewModel @Inject constructor(
             (_uiState.value as? LearnWordsUiState.Success)?.let { state ->
                 val recoveredWord = state.wordsInProcessQueue.first()
                 wordRepository.update(recoveredWord)
+                removeWordFromQueue()
             }
         }
     }

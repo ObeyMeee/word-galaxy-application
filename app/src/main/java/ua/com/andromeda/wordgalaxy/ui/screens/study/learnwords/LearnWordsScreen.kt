@@ -1,6 +1,5 @@
 package ua.com.andromeda.wordgalaxy.ui.screens.study.learnwords
 
-import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -129,7 +128,6 @@ fun LearnWordsMain(
                     onDismissAction = viewModel::removeWordFromQueue,
                 )
             }
-            Log.d("LearnWordsScreen", state.wordsInProcessQueue.size.toString())
             val menuItems = mutableListOf(
                 DropdownItemState(
                     labelRes = R.string.copy_to_my_category,
