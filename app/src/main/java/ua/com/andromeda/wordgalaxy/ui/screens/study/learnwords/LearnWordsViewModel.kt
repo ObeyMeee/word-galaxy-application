@@ -1,7 +1,6 @@
 package ua.com.andromeda.wordgalaxy.ui.screens.study.learnwords
 
 import android.content.Context
-import android.util.Log
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
@@ -54,7 +53,6 @@ class LearnWordsViewModel @Inject constructor(
         val amountWordsInProgress =
             wordRepository.countWordsWhereStatusEquals(WordStatus.InProgress).first()
         val words = buildWordsQueue(amountWordsInProgress, amountWordsToLearnPerDay).first()
-        Log.d("LearnWordsViewModel", "learningWordsQueue ==> ${words.map { it.word.value }}")
         updateUiState {
             it.copy(
                 learningWordsQueue = words,
@@ -117,7 +115,6 @@ class LearnWordsViewModel @Inject constructor(
         amountWordsInProgress: Int,
         amountWordsToLearnPerDay: Int
     ): Flow<List<EmbeddedWord>> {
-        Log.d("LearnWordsViewModel", "amountWordsInProgress ==> $amountWordsInProgress")
         val wordStatus =
             if (amountWordsInProgress < amountWordsToLearnPerDay)
                 WordStatus.New
@@ -150,10 +147,6 @@ class LearnWordsViewModel @Inject constructor(
                         wordRepository.countWordsWhereStatusEquals(WordStatus.InProgress).first()
                     buildWordsQueue(amountWordsInProgress, state.amountWordsLearnPerDay).first()
                 }
-                Log.d(
-                    "LearnWordsViewModel",
-                    "moveToNextWord ==> ${newLearningQueue.map { it.word.value }}"
-                )
                 state.copy(
                     learningWordsQueue = newLearningQueue,
                     cardMode = cardMode,
