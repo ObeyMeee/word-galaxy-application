@@ -22,3 +22,10 @@ sealed interface LearnWordsUiState {
         val wordsInProcessQueue: List<EmbeddedWord> = emptyList(),
     ) : LearnWordsUiState
 }
+
+fun LearnWordsUiState.Success.correctAnswer() =
+    this.copy(
+        cardMode = CardMode.ShowAnswer,
+        amountAttempts = DEFAULT_AMOUNT_USER_ATTEMPTS_TO_GUESS,
+        userGuess = TextFieldValue(),
+    )

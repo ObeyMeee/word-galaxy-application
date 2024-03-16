@@ -180,8 +180,8 @@ class LearnWordsViewModel @Inject constructor(
             }
         }
 
-        // If the loop completes without finding a difference in the common prefix,
-        // return the length of the shorter string (or -1 if the strings are identical).
+//         If the loop completes without finding a difference in the common prefix,
+//         return the length of the shorter string (or -1 if the strings are identical).
         return if (str1.length != str2.length) minLength else -1
     }
 
@@ -190,20 +190,14 @@ class LearnWordsViewModel @Inject constructor(
             val currentWord =
                 state.learningWordsQueue.firstOrNull() ?: return@updateUiState errorUiState()
             val actualValue = currentWord.word.value
-            val userGuess = state.userGuess
-            val indexOfFirstDifference = indexOfFirstDifference(actualValue, userGuess.text)
+            val userGuess = state.userGuess.text
+            val indexOfFirstDifference = indexOfFirstDifference(actualValue, userGuess)
 
             if (indexOfFirstDifference == -1) {
-                state.copy(cardMode = CardMode.ShowAnswer)
+                state.correctAnswer()
             } else {
-                val updatedUserGuess =
-                    if (indexOfFirstDifference > actualValue.lastIndex)
-                        actualValue
-                    else
-                        actualValue.replaceRange(
-                            range = (indexOfFirstDifference..actualValue.lastIndex),
-                            replacement = actualValue[indexOfFirstDifference].toString()
-                        )
+                val revealedChar = actualValue[indexOfFirstDifference]
+                val updatedUserGuess = userGuess.substring(0, indexOfFirstDifference) + revealedChar
                 state.copy(
                     userGuess = TextFieldValue(
                         text = updatedUserGuess,
@@ -215,16 +209,16 @@ class LearnWordsViewModel @Inject constructor(
     }
 
     fun checkAnswer() {
-        updateUiState {
+        updateUiState { state ->
             val currentEmbeddedWord =
-                it.learningWordsQueue.firstOrNull() ?: return@updateUiState errorUiState()
+                state.learningWordsQueue.firstOrNull() ?: return@updateUiState errorUiState()
             val actual = currentEmbeddedWord.word.value
-            val userGuess = it.userGuess
-            val amountAttemptsLeft = it.amountAttempts - 1
+            val userGuess = state.userGuess
+            val amountAttemptsLeft = state.amountAttempts - 1
             if (actual == userGuess.text || amountAttemptsLeft == 0)
-                it.copy(cardMode = CardMode.ShowAnswer)
+                state.correctAnswer()
             else
-                it.copy(amountAttempts = amountAttemptsLeft)
+                state.copy(amountAttempts = amountAttemptsLeft)
         }
     }
 
@@ -311,8 +305,9 @@ class LearnWordsViewModel @Inject constructor(
     }
 
     fun removeWordFromMyCategory() = viewModelScope.launch(coroutineDispatcher) {
-        (_uiState.value as? LearnWordsUiState.Success)?.let {
-            val wordWithCategories = it.wordsInProcessQueue.first().toWordWithCategories()
+        (_uiState.value as? LearnWordsUiState.Success)?.let { state ->
+            val wordWithCategories = state.wordsInProcessQueue.firstOrNull()?.toWordWithCategories()
+                ?: throw IllegalStateException("Word is null")
             val updatedCategories = wordWithCategories.categories - MY_WORDS_CATEGORY
             wordRepository.updateWordWithCategories(
                 wordWithCategories.copy(
