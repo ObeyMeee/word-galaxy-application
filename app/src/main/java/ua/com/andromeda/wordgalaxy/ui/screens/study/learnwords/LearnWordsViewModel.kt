@@ -4,14 +4,12 @@ import android.content.Context
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
-import com.chillibits.simplesettings.tool.getPreferenceLiveData
+import com.chillibits.simplesettings.tool.getPrefIntValue
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,7 +18,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
 import ua.com.andromeda.wordgalaxy.data.model.MY_WORDS_CATEGORY
 import ua.com.andromeda.wordgalaxy.data.model.WordStatus
@@ -49,7 +46,10 @@ class LearnWordsViewModel @Inject constructor(
 
     private fun fetchUiState() = viewModelScope.launch(coroutineDispatcher) {
         observeCountWordsToReviewAndLearnedWordsToday()
-        val amountWordsToLearnPerDay = getAmountWordsToLearnPerDay().await()
+        val amountWordsToLearnPerDay = context.getPrefIntValue(
+            name = KEY_AMOUNT_WORDS_TO_LEARN_PER_DAY,
+            default = DEFAULT_AMOUNT_WORDS_TO_LEARN_PER_DAY
+        )
         val amountWordsInProgress =
             wordRepository.countWordsWhereStatusEquals(WordStatus.InProgress).first()
         val words = buildWordsQueue(amountWordsInProgress, amountWordsToLearnPerDay).first()
@@ -84,15 +84,6 @@ class LearnWordsViewModel @Inject constructor(
                     }
                 }
             }.collect()
-        }
-
-    private fun CoroutineScope.getAmountWordsToLearnPerDay() =
-        async(Dispatchers.Main) {
-            getPreferenceLiveData(
-                context = context,
-                name = KEY_AMOUNT_WORDS_TO_LEARN_PER_DAY,
-                default = DEFAULT_AMOUNT_WORDS_TO_LEARN_PER_DAY
-            ).asFlow().first()
         }
 
     private inline fun updateUiState(
@@ -139,25 +130,22 @@ class LearnWordsViewModel @Inject constructor(
 
     fun moveToNextWord() = viewModelScope.launch(coroutineDispatcher) {
         updateUiState { state ->
-            val updatedQueue = state.learningWordsQueue.toMutableList()
-            val cardMode = CardMode.Default
-            if (updatedQueue.size == 1) {
-                val newLearningQueue = runBlocking {
-                    val amountWordsInProgress =
-                        wordRepository.countWordsWhereStatusEquals(WordStatus.InProgress).first()
-                    buildWordsQueue(amountWordsInProgress, state.amountWordsLearnPerDay).first()
-                }
-                state.copy(
-                    learningWordsQueue = newLearningQueue,
-                    cardMode = cardMode,
-                )
+            var updatedLearningQueue = state.learningWordsQueue
+            if (updatedLearningQueue.size == 1) {
+                val amountWordsInProgress =
+                    wordRepository.countWordsWhereStatusEquals(WordStatus.InProgress).first()
+                updatedLearningQueue = buildWordsQueue(
+                    amountWordsInProgress,
+                    state.amountWordsLearnPerDay
+                ).first()
             } else {
-                updatedQueue.removeFirst()
-                state.copy(
-                    learningWordsQueue = updatedQueue,
-                    cardMode = cardMode,
-                )
+                updatedLearningQueue = updatedLearningQueue.toMutableList()
+                updatedLearningQueue.removeFirst()
             }
+            state.copy(
+                learningWordsQueue = updatedLearningQueue,
+                cardMode = CardMode.Default,
+            )
         }
     }
 
