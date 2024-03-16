@@ -7,7 +7,9 @@ import ua.com.andromeda.wordgalaxy.ui.common.CardMode
 
 sealed interface LearnWordsUiState {
     data object Default : LearnWordsUiState
-    data class Error(val message: String = "Unexpected error occurred") : LearnWordsUiState
+    data class Error(
+        val message: String = "Unexpected error occurred"
+    ) : LearnWordsUiState
     data class Success(
         val learningWordsQueue: List<EmbeddedWord> = emptyList(),
         val cardMode: CardMode = CardMode.Default,

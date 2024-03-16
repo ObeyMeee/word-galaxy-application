@@ -92,7 +92,7 @@ fun LearnWordsMain(
         is LearnWordsUiState.Default -> CenteredLoadingSpinner()
         is LearnWordsUiState.Error -> Message(state.message, modifier)
         is LearnWordsUiState.Success -> {
-            val embeddedWord = state.learningWordsQueue.first()
+            val embeddedWord = state.learningWordsQueue.firstOrNull() ?: return
             val word = embeddedWord.word
             val wordId = word.id
             val status = word.status
