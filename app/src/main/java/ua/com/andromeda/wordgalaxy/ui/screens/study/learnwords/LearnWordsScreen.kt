@@ -168,7 +168,7 @@ fun LearnWordsMain(
                     amountWordsLearnPerDay = state.amountWordsLearnPerDay
                 )
                 Flashcard(
-                    embeddedWord = embeddedWord,
+                    targetState = wordId,
                     cardMode = flashcardMode,
                     flashcardState = flashcardState,
                 ) {

@@ -213,9 +213,9 @@ class LearnWordsViewModel @Inject constructor(
             val currentEmbeddedWord =
                 state.learningWordsQueue.firstOrNull() ?: return@updateUiState errorUiState()
             val actual = currentEmbeddedWord.word.value
-            val userGuess = state.userGuess
+            val userGuess = state.userGuess.text
             val amountAttemptsLeft = state.amountAttempts - 1
-            if (actual == userGuess.text || amountAttemptsLeft == 0)
+            if (actual == userGuess || amountAttemptsLeft == 0)
                 state.correctAnswer()
             else
                 state.copy(amountAttempts = amountAttemptsLeft)

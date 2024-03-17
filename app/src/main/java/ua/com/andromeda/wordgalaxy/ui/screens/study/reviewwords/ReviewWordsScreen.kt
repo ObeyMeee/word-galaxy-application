@@ -161,7 +161,7 @@ fun ReviewWordsMain(
                     amountWordsToReview = state.amountWordsToReview
                 )
                 Flashcard(
-                    embeddedWord = embeddedWord,
+                    targetState = wordId,
                     cardMode = flashcardMode,
                     flashcardState = flashcardState,
                 ) {
