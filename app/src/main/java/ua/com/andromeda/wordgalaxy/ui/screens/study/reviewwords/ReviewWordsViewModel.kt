@@ -18,12 +18,13 @@ import ua.com.andromeda.wordgalaxy.data.model.reset
 import ua.com.andromeda.wordgalaxy.data.model.toWordWithCategories
 import ua.com.andromeda.wordgalaxy.data.repository.word.WordRepository
 import ua.com.andromeda.wordgalaxy.ui.common.CardMode
+import ua.com.andromeda.wordgalaxy.ui.common.FlashcardViewModel
 import javax.inject.Inject
 
 @HiltViewModel
 class ReviewWordsViewModel @Inject constructor(
     private val wordRepository: WordRepository
-) : ViewModel() {
+) : ViewModel(), FlashcardViewModel {
     private var _uiState: MutableStateFlow<ReviewWordsUiState> =
         MutableStateFlow(ReviewWordsUiState.Default)
     val uiState: StateFlow<ReviewWordsUiState> = _uiState
@@ -165,7 +166,7 @@ class ReviewWordsViewModel @Inject constructor(
         fetchUiState()
     }
 
-    fun copyWordToMyCategory() {
+    override fun copyWordToMyCategory() {
         viewModelScope.launch(Dispatchers.IO) {
             (_uiState.value as? ReviewWordsUiState.Success)?.let {
                 val wordWithCategories = it.wordToReview.toWordWithCategories()
@@ -177,7 +178,19 @@ class ReviewWordsViewModel @Inject constructor(
         }
     }
 
-    fun removeWord() {
+    override fun removeWordFromMyCategory() {
+        TODO("Not yet implemented")
+    }
+
+    override fun removeWordFromQueue() {
+        TODO("Not yet implemented")
+    }
+
+    override fun addWordToQueue() {
+        TODO("Not yet implemented")
+    }
+
+    override fun removeWord() {
         viewModelScope.launch(Dispatchers.IO) {
             (_uiState.value as? ReviewWordsUiState.Success)?.let {
                 wordRepository.remove(it.wordToReview)

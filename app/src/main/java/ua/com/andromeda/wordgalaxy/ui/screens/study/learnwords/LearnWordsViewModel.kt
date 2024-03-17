@@ -29,13 +29,14 @@ import ua.com.andromeda.wordgalaxy.data.repository.word.WordRepository
 import ua.com.andromeda.wordgalaxy.ui.DEFAULT_AMOUNT_WORDS_TO_LEARN_PER_DAY
 import ua.com.andromeda.wordgalaxy.ui.KEY_AMOUNT_WORDS_TO_LEARN_PER_DAY
 import ua.com.andromeda.wordgalaxy.ui.common.CardMode
+import ua.com.andromeda.wordgalaxy.ui.common.FlashcardViewModel
 import javax.inject.Inject
 
 @HiltViewModel
 class LearnWordsViewModel @Inject constructor(
     private val wordRepository: WordRepository,
     @ApplicationContext private val context: Context,
-) : ViewModel() {
+) : ViewModel(), FlashcardViewModel {
     private val _uiState = MutableStateFlow<LearnWordsUiState>(LearnWordsUiState.Default)
     val uiState: StateFlow<LearnWordsUiState> = _uiState
     private val coroutineDispatcher = Dispatchers.IO
@@ -247,7 +248,7 @@ class LearnWordsViewModel @Inject constructor(
         }
     }
 
-    fun copyWordToMyCategory() {
+    override fun copyWordToMyCategory() {
         addWordToQueue()
         viewModelScope.launch(coroutineDispatcher) {
             (_uiState.value as? LearnWordsUiState.Success)?.let { state ->
@@ -264,7 +265,7 @@ class LearnWordsViewModel @Inject constructor(
         }
     }
 
-    fun addWordToQueue() {
+    override fun addWordToQueue() {
         updateUiState { state ->
             val processedWord = state.learningWordsQueue.firstOrNull()
                 ?: return@updateUiState errorUiState("Word is null")
@@ -274,20 +275,22 @@ class LearnWordsViewModel @Inject constructor(
         }
     }
 
-    fun removeWord() = viewModelScope.launch(coroutineDispatcher) {
-        updateUiState {
-            val updatedWordsToRemove = it.wordsInProcessQueue.toMutableList()
-            val removedWord = updatedWordsToRemove.removeFirst()
+    override fun removeWord() {
+        viewModelScope.launch(coroutineDispatcher) {
+            updateUiState {
+                val updatedWordsToRemove = it.wordsInProcessQueue.toMutableList()
+                val removedWord = updatedWordsToRemove.removeFirst()
 
-            launch {
-                wordRepository.remove(removedWord)
+                launch {
+                    wordRepository.remove(removedWord)
+                }
+
+                it.copy(
+                    wordsInProcessQueue = updatedWordsToRemove,
+                )
             }
-
-            it.copy(
-                wordsInProcessQueue = updatedWordsToRemove,
-            )
+            moveToNextWord()
         }
-        moveToNextWord()
     }
 
     fun updateMenuExpanded(expanded: Boolean) {
@@ -296,7 +299,7 @@ class LearnWordsViewModel @Inject constructor(
         }
     }
 
-    fun removeWordFromQueue() {
+    override fun removeWordFromQueue() {
         updateUiState {
             val updatedQueue = it.wordsInProcessQueue.toMutableList()
             updatedQueue.removeFirst()
@@ -304,17 +307,20 @@ class LearnWordsViewModel @Inject constructor(
         }
     }
 
-    fun removeWordFromMyCategory() = viewModelScope.launch(coroutineDispatcher) {
-        (_uiState.value as? LearnWordsUiState.Success)?.let { state ->
-            val wordWithCategories = state.wordsInProcessQueue.firstOrNull()?.toWordWithCategories()
-                ?: throw IllegalStateException("Word is null")
-            val updatedCategories = wordWithCategories.categories - MY_WORDS_CATEGORY
-            wordRepository.updateWordWithCategories(
-                wordWithCategories.copy(
-                    categories = updatedCategories,
+    override fun removeWordFromMyCategory() {
+        viewModelScope.launch(coroutineDispatcher) {
+            (_uiState.value as? LearnWordsUiState.Success)?.let { state ->
+                val wordWithCategories =
+                    state.wordsInProcessQueue.firstOrNull()?.toWordWithCategories()
+                        ?: throw IllegalStateException("Word is null")
+                val updatedCategories = wordWithCategories.categories - MY_WORDS_CATEGORY
+                wordRepository.updateWordWithCategories(
+                    wordWithCategories.copy(
+                        categories = updatedCategories,
+                    )
                 )
-            )
-            removeWordFromQueue()
+                removeWordFromQueue()
+            }
         }
     }
 
