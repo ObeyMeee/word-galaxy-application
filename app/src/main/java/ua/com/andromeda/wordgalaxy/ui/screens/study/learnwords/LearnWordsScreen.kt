@@ -41,6 +41,7 @@ import ua.com.andromeda.wordgalaxy.ui.common.flashcard.CardModeContent
 import ua.com.andromeda.wordgalaxy.ui.common.flashcard.Flashcard
 import ua.com.andromeda.wordgalaxy.ui.common.flashcard.FlashcardState
 import ua.com.andromeda.wordgalaxy.ui.common.flashcard.FlashcardTopBar
+import ua.com.andromeda.wordgalaxy.ui.common.flashcard.FlashcardUiState
 import ua.com.andromeda.wordgalaxy.ui.common.flashcard.SwipeDirection
 import ua.com.andromeda.wordgalaxy.ui.common.flashcard.flashcardTransitionSpec
 import ua.com.andromeda.wordgalaxy.ui.common.getCommonMenuItems
@@ -54,7 +55,7 @@ fun LearnWordsScreen(
 ) {
     val viewModel: LearnWordsViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsState()
-    val amountWordsToReview = (uiState as? LearnWordsUiState.Success)?.amountWordsToReview ?: 0
+    val amountWordsToReview = (uiState as? FlashcardUiState.Success)?.amountWordsToReview ?: 0
 
     Scaffold(
         topBar = {
@@ -93,10 +94,10 @@ fun LearnWordsMain(
     val uiState by viewModel.uiState.collectAsState()
 
     when (val state = uiState) {
-        is LearnWordsUiState.Default -> CenteredLoadingSpinner()
-        is LearnWordsUiState.Error -> Message(state.message, modifier)
-        is LearnWordsUiState.Success -> {
-            val embeddedWord = state.learningWordsQueue.firstOrNull() ?: return
+        is FlashcardUiState.Default -> CenteredLoadingSpinner()
+        is FlashcardUiState.Error -> Message(state.message, modifier)
+        is FlashcardUiState.Success -> {
+            val embeddedWord = state.memorizingWordsQueue.firstOrNull() ?: return
             val scope = rememberCoroutineScope()
             var swipeDirection by remember { mutableStateOf(SwipeDirection.None) }
 
@@ -114,9 +115,9 @@ fun LearnWordsMain(
                     label = "FlashcardAnimation",
                     transitionSpec = { flashcardTransitionSpec(swipeDirection) },
                 ) {
-                    val word = embeddedWord.word
+                    val word = it.word
                     val flashcardMode = state.cardMode
-                    val status = it.word.status
+                    val status = word.status
                     val isWordStatusNew = status == WordStatus.New
                     val amountRepetition = word.amountRepetition ?: 0
                     val numberReview = amountRepetition + 1
@@ -133,8 +134,14 @@ fun LearnWordsMain(
                         )
                     } else {
                         FlashcardState.InProgress(
-                            onLeftClick = viewModel::memorizeWord,
-                            onRightClick = viewModel::moveToNextWord
+                            onLeftClick = {
+                                viewModel.memorizeWord()
+                                swipeDirection = SwipeDirection.Left
+                            },
+                            onRightClick = {
+                                viewModel.moveToNextWord()
+                                swipeDirection = SwipeDirection.Right
+                            }
                         )
                     }
                     val menuItems = getMenuItems(
@@ -163,8 +170,8 @@ fun LearnWordsMain(
                             modifier = Modifier.padding(start = dimensionResource(R.dimen.padding_largest))
                         )
                         WordWithTranscriptionOrTranslation(
-                            word = it.word,
-                            phonetics = embeddedWord.phonetics,
+                            word = word,
+                            phonetics = it.phonetics,
                             predicate = { isWordStatusNew },
                             modifier = Modifier.padding(
                                 horizontal = dimensionResource(R.dimen.padding_largest),

@@ -40,6 +40,7 @@ import ua.com.andromeda.wordgalaxy.ui.common.flashcard.CardModeContent
 import ua.com.andromeda.wordgalaxy.ui.common.flashcard.Flashcard
 import ua.com.andromeda.wordgalaxy.ui.common.flashcard.FlashcardState
 import ua.com.andromeda.wordgalaxy.ui.common.flashcard.FlashcardTopBar
+import ua.com.andromeda.wordgalaxy.ui.common.flashcard.FlashcardUiState
 import ua.com.andromeda.wordgalaxy.ui.common.flashcard.SwipeDirection
 import ua.com.andromeda.wordgalaxy.ui.common.flashcard.flashcardTransitionSpec
 import ua.com.andromeda.wordgalaxy.ui.common.getCommonMenuItems
@@ -60,7 +61,7 @@ fun ReviewWordsScreen(
         topBar = {
             val homeRoute = Destination.Start.HomeScreen()
             FlashcardTopBar(
-                amountWordsToReview = (uiState as? ReviewWordsUiState.Success)?.amountWordsToReview
+                amountWordsToReview = (uiState as? FlashcardUiState.Success)?.amountWordsToReview
                     ?: 0,
                 currentRoute = Destination.Study.ReviewWordsScreen(),
                 navigateUp = {
@@ -94,8 +95,8 @@ fun ReviewWordsMain(
     val uiState by viewModel.uiState.collectAsState()
 
     when (val state = uiState) {
-        is ReviewWordsUiState.Default -> CenteredLoadingSpinner(modifier)
-        is ReviewWordsUiState.Error -> {
+        is FlashcardUiState.Default -> CenteredLoadingSpinner(modifier)
+        is FlashcardUiState.Error -> {
             Message(
                 message = state.message,
                 backgroundColor = MaterialTheme.colorScheme.primaryContainer,
@@ -109,9 +110,8 @@ fun ReviewWordsMain(
             }
         }
 
-        is ReviewWordsUiState.Success -> {
-            // TODO:
-            val embeddedWord = state.wordToReview
+        is FlashcardUiState.Success -> {
+            val embeddedWord = state.memorizingWordsQueue.firstOrNull() ?: return
             val scope = rememberCoroutineScope()
             var swipeDirection by remember { mutableStateOf(SwipeDirection.None) }
 
@@ -119,10 +119,10 @@ fun ReviewWordsMain(
                 swipeDirection = SwipeDirection.None
                 onDispose { }
             }
-
+            val amountReviewedWordsToday = viewModel.amountReviewedWordsToday.collectAsState()
             Column(modifier) {
                 Header(
-                    reviewedWordsToday = state.reviewedToday,
+                    reviewedWordsToday = amountReviewedWordsToday.value,
                     amountWordsToReview = state.amountWordsToReview
                 )
                 AnimatedContent(
@@ -142,7 +142,7 @@ fun ReviewWordsMain(
                             swipeDirection = SwipeDirection.Left
                         },
                         onRightClick = {
-                            viewModel.skipWord()
+                            viewModel.moveToNextWord()
                             swipeDirection = SwipeDirection.Right
                         }
                     )
