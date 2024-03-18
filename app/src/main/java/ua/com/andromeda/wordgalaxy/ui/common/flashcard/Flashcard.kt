@@ -12,20 +12,29 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import ua.com.andromeda.wordgalaxy.R
+import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
+import ua.com.andromeda.wordgalaxy.data.model.isNew
 import ua.com.andromeda.wordgalaxy.ui.FLASHCARD_ANIMATION_DURATION_MILLIS
 import ua.com.andromeda.wordgalaxy.ui.FLASHCARD_ROTATE_COEFFICIENT
 import ua.com.andromeda.wordgalaxy.ui.FLASHCARD_SCALE_COEFFICIENT
@@ -33,6 +42,7 @@ import ua.com.andromeda.wordgalaxy.ui.FLASHCARD_SLIDE_OUT_Y_COEFFICIENT
 import ua.com.andromeda.wordgalaxy.ui.RETURN_CARD_ANIMATION_DURATION_MILLIS
 import ua.com.andromeda.wordgalaxy.ui.SWIPE_CARD_BOUND
 import ua.com.andromeda.wordgalaxy.ui.common.CardMode
+import ua.com.andromeda.wordgalaxy.ui.common.DropdownItemState
 import ua.com.andromeda.wordgalaxy.ui.common.flashcard.FlashcardScopeInstance.FlashcardActionRow
 import kotlin.math.abs
 
@@ -41,7 +51,7 @@ fun Flashcard(
     flashcardState: FlashcardState,
     cardMode: CardMode,
     modifier: Modifier = Modifier,
-    content: @Composable (FlashcardScope.() -> Unit),
+    content: @Composable (FlashcardScope.(ColumnScope) -> Unit),
 ) {
     val scope = rememberCoroutineScope()
     val cardXOffset = remember { Animatable(0f) }
@@ -86,7 +96,7 @@ fun Flashcard(
             containerColor = MaterialTheme.colorScheme.secondaryContainer
         )
     ) {
-        content(FlashcardScopeInstance)
+        content(FlashcardScopeInstance, this)
         AnimatedVisibility(
             visible = cardMode != CardMode.TypeAnswer,
         ) {
@@ -100,6 +110,60 @@ fun Flashcard(
             )
         }
 
+    }
+}
+
+@Composable
+fun FlashcardScope.FlashcardContent(
+    state: FlashcardUiState.Success,
+    viewModel: FlashcardViewModel,
+    menuItems: List<DropdownItemState>,
+    embeddedWord: EmbeddedWord,
+    columnScope: ColumnScope,
+    coroutineScope: CoroutineScope = rememberCoroutineScope(),
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
+) {
+    val (word, categories, phonetics) = embeddedWord
+    val status = word.status
+    val amountRepetition = word.amountRepetition ?: 0
+    val numberReview = amountRepetition + 1
+    with(columnScope) {
+        Header(
+            menuExpanded = state.menuExpanded,
+            onExpandMenu = viewModel::updateMenuExpanded,
+            squareColor = status.iconColor,
+            label = stringResource(status.labelRes, numberReview),
+            dropdownItemStates = menuItems,
+            snackbarHostState = snackbarHostState,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(dimensionResource(R.dimen.padding_medium)),
+            scope = coroutineScope,
+        )
+        CategoriesText(
+            categories = categories,
+            modifier = Modifier.padding(start = dimensionResource(R.dimen.padding_largest))
+        )
+        WordWithTranscriptionOrTranslation(
+            word = word,
+            phonetics = phonetics,
+            predicate = { word.isNew },
+            modifier = Modifier.padding(
+                horizontal = dimensionResource(R.dimen.padding_largest),
+                vertical = dimensionResource(R.dimen.padding_small)
+            ),
+        )
+        CardModeContent(
+            embeddedWord = embeddedWord,
+            flashcardMode = state.cardMode,
+            updateCardMode = viewModel::updateCardMode,
+            userGuess = state.userGuess,
+            updateUserGuess = viewModel::updateUserGuess,
+            amountAttempts = state.amountAttempts,
+            checkAnswer = viewModel::checkAnswer,
+            revealOneLetter = viewModel::revealOneLetter,
+            modifier = Modifier.weight(1f)
+        )
     }
 }
 

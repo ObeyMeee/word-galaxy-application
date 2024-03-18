@@ -95,8 +95,9 @@ fun FlashcardScope.CardModeContent(
         label = "CardModeAnimation",
         modifier = modifier,
         transitionSpec = {
-            (fadeIn() + slideInVertically { -it }) togetherWith
-                    (fadeOut() + slideOutVertically { it })
+            val enterTransition = fadeIn() + slideInVertically { -it }
+            val exitTransition = fadeOut() + slideOutVertically { it }
+            enterTransition togetherWith exitTransition
         },
     ) { cardMode ->
         val commonModifier = Modifier.fillMaxWidth()

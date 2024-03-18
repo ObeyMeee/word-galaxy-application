@@ -11,6 +11,7 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.res.stringResource
 import ua.com.andromeda.wordgalaxy.R
+import ua.com.andromeda.wordgalaxy.ui.common.flashcard.FlashcardViewModel
 import ua.com.andromeda.wordgalaxy.ui.navigation.Destination
 
 data class DropdownItemState(

@@ -34,13 +34,15 @@ import androidx.navigation.compose.rememberNavController
 import ua.com.andromeda.wordgalaxy.R
 import ua.com.andromeda.wordgalaxy.data.model.Word
 import ua.com.andromeda.wordgalaxy.data.model.WordStatus
+import ua.com.andromeda.wordgalaxy.data.model.isNew
 import ua.com.andromeda.wordgalaxy.ui.common.CenteredLoadingSpinner
 import ua.com.andromeda.wordgalaxy.ui.common.DropdownItemState
 import ua.com.andromeda.wordgalaxy.ui.common.Message
-import ua.com.andromeda.wordgalaxy.ui.common.flashcard.CardModeContent
 import ua.com.andromeda.wordgalaxy.ui.common.flashcard.Flashcard
+import ua.com.andromeda.wordgalaxy.ui.common.flashcard.FlashcardContent
 import ua.com.andromeda.wordgalaxy.ui.common.flashcard.FlashcardState
 import ua.com.andromeda.wordgalaxy.ui.common.flashcard.FlashcardTopBar
+import ua.com.andromeda.wordgalaxy.ui.common.flashcard.FlashcardUiState
 import ua.com.andromeda.wordgalaxy.ui.common.flashcard.SwipeDirection
 import ua.com.andromeda.wordgalaxy.ui.common.flashcard.flashcardTransitionSpec
 import ua.com.andromeda.wordgalaxy.ui.common.getCommonMenuItems
@@ -54,7 +56,7 @@ fun LearnWordsScreen(
 ) {
     val viewModel: LearnWordsViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsState()
-    val amountWordsToReview = (uiState as? LearnWordsUiState.Success)?.amountWordsToReview ?: 0
+    val amountWordsToReview = (uiState as? FlashcardUiState.Success)?.amountWordsToReview ?: 0
 
     Scaffold(
         topBar = {
@@ -93,14 +95,14 @@ fun LearnWordsMain(
     val uiState by viewModel.uiState.collectAsState()
 
     when (val state = uiState) {
-        is LearnWordsUiState.Default -> CenteredLoadingSpinner()
-        is LearnWordsUiState.Error -> Message(state.message, modifier)
-        is LearnWordsUiState.Success -> {
-            val embeddedWord = state.learningWordsQueue.firstOrNull() ?: return
-            val scope = rememberCoroutineScope()
+        is FlashcardUiState.Default -> CenteredLoadingSpinner()
+        is FlashcardUiState.Error -> Message(state.message, modifier)
+        is FlashcardUiState.Success -> {
+            val learningWord = state.memorizingWordsQueue.firstOrNull() ?: return
+            val coroutineScope = rememberCoroutineScope()
             var swipeDirection by remember { mutableStateOf(SwipeDirection.None) }
 
-            DisposableEffect(embeddedWord) {
+            DisposableEffect(learningWord) {
                 swipeDirection = SwipeDirection.None
                 onDispose { }
             }
@@ -110,31 +112,32 @@ fun LearnWordsMain(
                     amountWordsLearnPerDay = state.amountWordsLearnPerDay
                 )
                 AnimatedContent(
-                    targetState = embeddedWord,
+                    targetState = learningWord,
                     label = "FlashcardAnimation",
                     transitionSpec = { flashcardTransitionSpec(swipeDirection) },
-                ) {
-                    val word = embeddedWord.word
-                    val flashcardMode = state.cardMode
-                    val status = it.word.status
-                    val isWordStatusNew = status == WordStatus.New
-                    val amountRepetition = word.amountRepetition ?: 0
-                    val numberReview = amountRepetition + 1
-                    val flashcardState = if (isWordStatusNew) {
+                ) { targetState ->
+                    val word = targetState.word
+                    val flashcardState = if (word.isNew) {
                         FlashcardState.New(
                             onLeftClick = {
-                                viewModel.alreadyKnowWord()
+                                viewModel.updateWordStatus(WordStatus.AlreadyKnown)
                                 swipeDirection = SwipeDirection.Left
                             },
                             onRightClick = {
-                                viewModel.startLearningWord()
+                                viewModel.updateWordStatus(WordStatus.InProgress)
                                 swipeDirection = SwipeDirection.Right
                             }
                         )
                     } else {
                         FlashcardState.InProgress(
-                            onLeftClick = viewModel::memorizeWord,
-                            onRightClick = viewModel::moveToNextWord
+                            onLeftClick = {
+                                viewModel.memorizeWord()
+                                swipeDirection = SwipeDirection.Left
+                            },
+                            onRightClick = {
+                                viewModel.moveToNextWord()
+                                swipeDirection = SwipeDirection.Right
+                            }
                         )
                     }
                     val menuItems = getMenuItems(
@@ -143,44 +146,17 @@ fun LearnWordsMain(
                         viewModel = viewModel,
                     )
                     Flashcard(
-                        cardMode = flashcardMode,
+                        cardMode = state.cardMode,
                         flashcardState = flashcardState,
-                    ) {
-                        Header(
-                            menuExpanded = state.menuExpanded,
-                            onExpandMenu = viewModel::updateMenuExpanded,
-                            squareColor = status.iconColor,
-                            label = stringResource(status.labelRes, numberReview),
-                            dropdownItemStates = menuItems,
+                    ) { columnScope ->
+                        FlashcardContent(
+                            state = state,
+                            viewModel = viewModel,
+                            menuItems = menuItems,
                             snackbarHostState = snackbarHostState,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(dimensionResource(R.dimen.padding_medium)),
-                            scope = scope,
-                        )
-                        CategoriesText(
-                            categories = it.categories,
-                            modifier = Modifier.padding(start = dimensionResource(R.dimen.padding_largest))
-                        )
-                        WordWithTranscriptionOrTranslation(
-                            word = it.word,
-                            phonetics = embeddedWord.phonetics,
-                            predicate = { isWordStatusNew },
-                            modifier = Modifier.padding(
-                                horizontal = dimensionResource(R.dimen.padding_largest),
-                                vertical = dimensionResource(R.dimen.padding_small)
-                            ),
-                        )
-                        CardModeContent(
-                            embeddedWord = it,
-                            flashcardMode = flashcardMode,
-                            updateCardMode = viewModel::updateCardMode,
-                            userGuess = state.userGuess,
-                            updateUserGuess = viewModel::updateUserGuess,
-                            amountAttempts = state.amountAttempts,
-                            checkAnswer = viewModel::checkAnswer,
-                            revealOneLetter = viewModel::revealOneLetter,
-                            modifier = Modifier.weight(1f)
+                            coroutineScope = coroutineScope,
+                            columnScope = columnScope,
+                            embeddedWord = targetState,
                         )
                     }
                 }
@@ -195,7 +171,7 @@ private fun getMenuItems(
     navigateTo: (String) -> Unit,
     viewModel: LearnWordsViewModel,
 ): List<DropdownItemState> {
-    val firstMenuItem = if (word.status == WordStatus.New) {
+    val firstMenuItem = if (word.isNew) {
         DropdownItemState(
             labelRes = R.string.show_this_word_later,
             icon = rememberVectorPainter(Icons.Default.SkipNext),

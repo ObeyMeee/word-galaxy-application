@@ -32,14 +32,14 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import ua.com.andromeda.wordgalaxy.R
-import ua.com.andromeda.wordgalaxy.data.model.WordStatus
 import ua.com.andromeda.wordgalaxy.ui.common.CenteredLoadingSpinner
 import ua.com.andromeda.wordgalaxy.ui.common.DropdownItemState
 import ua.com.andromeda.wordgalaxy.ui.common.Message
-import ua.com.andromeda.wordgalaxy.ui.common.flashcard.CardModeContent
 import ua.com.andromeda.wordgalaxy.ui.common.flashcard.Flashcard
+import ua.com.andromeda.wordgalaxy.ui.common.flashcard.FlashcardContent
 import ua.com.andromeda.wordgalaxy.ui.common.flashcard.FlashcardState
 import ua.com.andromeda.wordgalaxy.ui.common.flashcard.FlashcardTopBar
+import ua.com.andromeda.wordgalaxy.ui.common.flashcard.FlashcardUiState
 import ua.com.andromeda.wordgalaxy.ui.common.flashcard.SwipeDirection
 import ua.com.andromeda.wordgalaxy.ui.common.flashcard.flashcardTransitionSpec
 import ua.com.andromeda.wordgalaxy.ui.common.getCommonMenuItems
@@ -60,7 +60,7 @@ fun ReviewWordsScreen(
         topBar = {
             val homeRoute = Destination.Start.HomeScreen()
             FlashcardTopBar(
-                amountWordsToReview = (uiState as? ReviewWordsUiState.Success)?.amountWordsToReview
+                amountWordsToReview = (uiState as? FlashcardUiState.Success)?.amountWordsToReview
                     ?: 0,
                 currentRoute = Destination.Study.ReviewWordsScreen(),
                 navigateUp = {
@@ -94,8 +94,8 @@ fun ReviewWordsMain(
     val uiState by viewModel.uiState.collectAsState()
 
     when (val state = uiState) {
-        is ReviewWordsUiState.Default -> CenteredLoadingSpinner(modifier)
-        is ReviewWordsUiState.Error -> {
+        is FlashcardUiState.Default -> CenteredLoadingSpinner(modifier)
+        is FlashcardUiState.Error -> {
             Message(
                 message = state.message,
                 backgroundColor = MaterialTheme.colorScheme.primaryContainer,
@@ -109,40 +109,33 @@ fun ReviewWordsMain(
             }
         }
 
-        is ReviewWordsUiState.Success -> {
-            // TODO:
-            val embeddedWord = state.wordToReview
-            val scope = rememberCoroutineScope()
+        is FlashcardUiState.Success -> {
+            val reviewedWord = state.memorizingWordsQueue.firstOrNull() ?: return
+            val coroutineScope = rememberCoroutineScope()
+            val amountReviewedWordsToday = viewModel.amountReviewedWordsToday.collectAsState()
             var swipeDirection by remember { mutableStateOf(SwipeDirection.None) }
 
-            DisposableEffect(embeddedWord) {
+            DisposableEffect(reviewedWord) {
                 swipeDirection = SwipeDirection.None
                 onDispose { }
             }
-
             Column(modifier) {
                 Header(
-                    reviewedWordsToday = state.reviewedToday,
+                    reviewedWordsToday = amountReviewedWordsToday.value,
                     amountWordsToReview = state.amountWordsToReview
                 )
                 AnimatedContent(
-                    targetState = embeddedWord,
+                    targetState = reviewedWord,
                     label = "FlashcardAnimation",
                     transitionSpec = { flashcardTransitionSpec(swipeDirection) },
                 ) {
-                    val word = it.word
-                    val flashcardMode = state.cardMode
-                    val status = word.status
-                    val isWordStatusNew = status == WordStatus.New
-                    val amountRepetition = word.amountRepetition ?: 0
-                    val numberReview = amountRepetition + 1
                     val flashcardState = FlashcardState.Review(
                         onLeftClick = {
                             viewModel.repeatWord()
                             swipeDirection = SwipeDirection.Left
                         },
                         onRightClick = {
-                            viewModel.skipWord()
+                            viewModel.moveToNextWord()
                             swipeDirection = SwipeDirection.Right
                         }
                     )
@@ -155,51 +148,24 @@ fun ReviewWordsMain(
                             onClick = viewModel::resetWord
                         ),
                         *getCommonMenuItems(
-                            wordId = word.id,
+                            wordId = it.word.id,
                             navigateTo = navigateTo,
                             viewModel = viewModel,
                         ).toTypedArray()
                     )
 
                     Flashcard(
-                        cardMode = flashcardMode,
+                        cardMode = state.cardMode,
                         flashcardState = flashcardState,
-                    ) {
-                        Header(
-                            menuExpanded = state.menuExpanded,
-                            onExpandMenu = viewModel::updateMenuExpanded,
-                            squareColor = status.iconColor,
-                            label = stringResource(status.labelRes, numberReview),
-                            dropdownItemStates = menuItems,
+                    ) { columnScope ->
+                        FlashcardContent(
+                            state = state,
+                            viewModel = viewModel,
+                            menuItems = menuItems,
+                            columnScope = columnScope,
+                            coroutineScope = coroutineScope,
                             snackbarHostState = snackbarHostState,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(dimensionResource(R.dimen.padding_medium)),
-                            scope = scope,
-                        )
-                        CategoriesText(
-                            categories = it.categories,
-                            modifier = Modifier.padding(start = dimensionResource(R.dimen.padding_largest))
-                        )
-                        WordWithTranscriptionOrTranslation(
-                            word = word,
-                            phonetics = it.phonetics,
-                            predicate = { isWordStatusNew },
-                            modifier = Modifier.padding(
-                                horizontal = dimensionResource(R.dimen.padding_largest),
-                                vertical = dimensionResource(R.dimen.padding_small)
-                            ),
-                        )
-                        CardModeContent(
                             embeddedWord = it,
-                            flashcardMode = flashcardMode,
-                            updateCardMode = viewModel::updateCardMode,
-                            userGuess = state.userGuess,
-                            updateUserGuess = viewModel::updateUserGuess,
-                            amountAttempts = state.amountAttempts,
-                            checkAnswer = viewModel::checkAnswer,
-                            revealOneLetter = viewModel::revealOneLetter,
-                            modifier = Modifier.weight(1f),
                         )
                     }
                 }

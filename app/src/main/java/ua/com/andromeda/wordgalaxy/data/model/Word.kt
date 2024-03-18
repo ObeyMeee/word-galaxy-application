@@ -28,6 +28,10 @@ data class Word(
     val nextRepeatAt: LocalDateTime? = null,
 )
 
+val Word.isNew: Boolean
+    get() = this.status == WordStatus.New
+
+
 private const val FIRST_HOURS_INTERVAL: Int = 12
 private const val INTERVAL_MULTIPLIER: Double = 2.0
 private const val MASTERED_BOUND = 8
