@@ -24,16 +24,18 @@ class LearnWordsViewModel @Inject constructor(
         val amountWordsInProgress =
             wordRepository.countWordsWhereStatusEquals(WordStatus.InProgress).first()
         val amountWordsToLearnPerDay = getAmountWordsToLearnPerDay()
-        if (amountWordsInProgress < amountWordsToLearnPerDay) {
-            return wordRepository.findRandomWordsWhereStatusEquals(
+        val wordsQueue = if (amountWordsInProgress < amountWordsToLearnPerDay) {
+            wordRepository.findRandomWordsWhereStatusEquals(
                 status = WordStatus.New,
                 limit = amountWordsToLearnPerDay - amountWordsInProgress
-            ).first()
+            )
+        } else {
+            wordRepository.findRandomWordsWhereStatusEquals(
+                status = WordStatus.InProgress,
+                limit = amountWordsInProgress
+            )
         }
-        return wordRepository.findRandomWordsWhereStatusEquals(
-            status = WordStatus.InProgress,
-            limit = amountWordsInProgress
-        ).first()
+        return wordsQueue.first()
     }
 
     fun updateWordStatus(status: WordStatus) = viewModelScope.launch(coroutineDispatcher) {
