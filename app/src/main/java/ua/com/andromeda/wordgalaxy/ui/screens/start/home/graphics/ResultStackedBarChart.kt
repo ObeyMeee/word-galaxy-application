@@ -32,14 +32,13 @@ import java.util.Locale
 
 private typealias ArgbColor = Int
 
-private const val TAG = "ResultBarChart"
-
 @Composable
 fun ResultBarChart(
     data: List<Map<WordStatus, Int>>,
     days: Int,
     modifier: Modifier = Modifier
 ) {
+    if (data.isEmpty()) return
     val labelColorArgb = MaterialTheme.colorScheme.secondary.toArgb()
     val lastTimePeriodDays = getLastNDates(days, ChronoUnit.DAYS)
     val lastTimePeriodDaysFormatted = formatXAxisLabels(lastTimePeriodDays)
