@@ -100,6 +100,7 @@
     <string name="tap_to_go_to_our_support_page">Tap to go to our support page</string>
     <string name="appearance">Appearance</string>
     <string name="general">General</string>
+    <string name="notifications">Notifications</string>
 
     <plurals name="days">
         <item quantity="one">day</item>

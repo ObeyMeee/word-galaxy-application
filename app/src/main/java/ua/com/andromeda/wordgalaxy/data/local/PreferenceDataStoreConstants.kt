@@ -26,6 +26,12 @@ object PreferenceDataStoreConstants {
     const val MIN_AMOUNT_WORDS_TO_LEARN_PER_DAY = 1
     const val MAX_AMOUNT_WORDS_TO_LEARN_PER_DAY = 50
 
+    const val NOTIFICATIONS_FREQUENCY = "notifications_frequency"
+    val KEY_NOTIFICATIONS_FREQUENCY = stringPreferencesKey(NOTIFICATIONS_FREQUENCY)
+    const val DEFAULT_NOTIFICATIONS_FREQUENCY = 6
+    const val MIN_DEFAULT_NOTIFICATIONS_FREQUENCY = 2
+    const val MAX_DEFAULT_NOTIFICATIONS_FREQUENCY = 12
+
     const val TIME_PERIOD_DAYS = "time_period_days"
     val KEY_TIME_PERIOD_DAYS = intPreferencesKey(TIME_PERIOD_DAYS)
     val DEFAULT_TIME_PERIOD_DAYS = TimePeriodChartOptions.WEEK.days

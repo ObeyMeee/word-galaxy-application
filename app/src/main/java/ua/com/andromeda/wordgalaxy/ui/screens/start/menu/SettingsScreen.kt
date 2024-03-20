@@ -29,8 +29,12 @@ import ua.com.andromeda.wordgalaxy.data.local.PreferenceDataStoreConstants.AMOUN
 import ua.com.andromeda.wordgalaxy.data.local.PreferenceDataStoreConstants.ANIMATION_ENABLED
 import ua.com.andromeda.wordgalaxy.data.local.PreferenceDataStoreConstants.DARK_THEME
 import ua.com.andromeda.wordgalaxy.data.local.PreferenceDataStoreConstants.DEFAULT_AMOUNT_WORDS_TO_LEARN_PER_DAY
+import ua.com.andromeda.wordgalaxy.data.local.PreferenceDataStoreConstants.DEFAULT_NOTIFICATIONS_FREQUENCY
 import ua.com.andromeda.wordgalaxy.data.local.PreferenceDataStoreConstants.MAX_AMOUNT_WORDS_TO_LEARN_PER_DAY
+import ua.com.andromeda.wordgalaxy.data.local.PreferenceDataStoreConstants.MAX_DEFAULT_NOTIFICATIONS_FREQUENCY
 import ua.com.andromeda.wordgalaxy.data.local.PreferenceDataStoreConstants.MIN_AMOUNT_WORDS_TO_LEARN_PER_DAY
+import ua.com.andromeda.wordgalaxy.data.local.PreferenceDataStoreConstants.MIN_DEFAULT_NOTIFICATIONS_FREQUENCY
+import ua.com.andromeda.wordgalaxy.data.local.PreferenceDataStoreConstants.NOTIFICATIONS_FREQUENCY
 import ua.com.andromeda.wordgalaxy.data.local.PreferenceDataStoreConstants.PRONOUNCE_ENGLISH_WORDS
 import ua.com.andromeda.wordgalaxy.data.local.PreferenceDataStoreConstants.TRANSCRIPTIONS_ENABLED
 import ua.com.andromeda.wordgalaxy.data.local.dataStore
@@ -71,6 +75,7 @@ fun SettingsMain(modifier: Modifier = Modifier) {
     ) {
         appearanceGroup()
         generalGroup()
+        notificationsGroup()
     }
 }
 
@@ -159,6 +164,29 @@ private fun PrefsScope.generalGroup() {
                     val valueStr = value.toString()
                     valueStr to valueStr
                 }
+            )
+        }
+    }
+}
+
+
+@OptIn(ExperimentalComposeUiApi::class)
+private fun PrefsScope.notificationsGroup() {
+    prefsGroup({
+        GroupHeader(
+            title = stringResource(R.string.notifications),
+        )
+    }) {
+        prefsItem {
+            ListPref(
+                key = NOTIFICATIONS_FREQUENCY,
+                title = "How often you want to receive notifications?",
+                useSelectedAsSummary = true,
+                defaultValue = DEFAULT_NOTIFICATIONS_FREQUENCY.toString(),
+                entries = (MIN_DEFAULT_NOTIFICATIONS_FREQUENCY..MAX_DEFAULT_NOTIFICATIONS_FREQUENCY)
+                    .associate {
+                        it.toString() to "Once in $it hours"
+                    }
             )
         }
     }
