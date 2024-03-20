@@ -32,6 +32,7 @@ sealed class Destination(protected val route: String, vararg params: String) {
         }
 
         data object MenuScreen : NoArgumentsDestination("menu")
+        data object SettingsScreen : NoArgumentsDestination("settings")
     }
 
     data object Study : NoArgumentsDestination("study") {

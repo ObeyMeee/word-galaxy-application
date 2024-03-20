@@ -82,13 +82,16 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.asFlow
-import com.chillibits.simplesettings.tool.getPrefBooleanValue
-import com.chillibits.simplesettings.tool.getPreferenceLiveData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import ua.com.andromeda.wordgalaxy.R
 import ua.com.andromeda.wordgalaxy.data.DefaultStorage
+import ua.com.andromeda.wordgalaxy.data.local.PreferenceDataStoreConstants.DEFAULT_PRONOUNCE_ENGLISH_WORDS
+import ua.com.andromeda.wordgalaxy.data.local.PreferenceDataStoreConstants.DEFAULT_TRANSCRIPTIONS_ENABLED
+import ua.com.andromeda.wordgalaxy.data.local.PreferenceDataStoreConstants.KEY_PRONOUNCE_ENGLISH_WORDS
+import ua.com.andromeda.wordgalaxy.data.local.PreferenceDataStoreConstants.KEY_TRANSCRIPTIONS_ENABLED
+import ua.com.andromeda.wordgalaxy.data.local.PreferenceDataStoreHelper
+import ua.com.andromeda.wordgalaxy.data.local.dataStore
 import ua.com.andromeda.wordgalaxy.data.model.Category
 import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
 import ua.com.andromeda.wordgalaxy.data.model.Example
@@ -102,6 +105,7 @@ import ua.com.andromeda.wordgalaxy.ui.common.HorizontalSpacer
 import ua.com.andromeda.wordgalaxy.utils.playPronunciation
 
 internal object FlashcardScopeInstance : FlashcardScope {
+
     @Composable
     override fun Header(
         menuExpanded: Boolean,
@@ -315,17 +319,25 @@ internal object FlashcardScopeInstance : FlashcardScope {
         modifier: Modifier = Modifier,
     ) {
         val context = LocalContext.current
-        val isAutomaticallyPronounceEnglishWords =
-            getPreferenceLiveData(context, "automatically_pronounce_english_words", true).asFlow()
+        val dataStoreHelper = remember { PreferenceDataStoreHelper(context.dataStore) }
         LaunchedEffect(Unit) {
-            isAutomaticallyPronounceEnglishWords.collect {
-                if (it) {
+            dataStoreHelper.get(
+                key = KEY_PRONOUNCE_ENGLISH_WORDS,
+                defaultValue = DEFAULT_PRONOUNCE_ENGLISH_WORDS,
+            ).collect { enabled ->
+                if (enabled) {
                     playPronunciation()
                 }
             }
         }
+        var transcriptionEnabled by remember { mutableStateOf(false) }
+        LaunchedEffect(Unit) {
+            transcriptionEnabled = dataStoreHelper.first(
+                KEY_TRANSCRIPTIONS_ENABLED,
+                DEFAULT_TRANSCRIPTIONS_ENABLED
+            )
 
-        val transcriptionEnabled = context.getPrefBooleanValue("transcriptions_enabled")
+        }
         Row(
             modifier = modifier.clickable(onClick = playPronunciation),
             verticalAlignment = Alignment.CenterVertically,

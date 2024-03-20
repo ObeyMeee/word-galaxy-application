@@ -95,6 +95,11 @@
     <string name="default_mode">Default mode</string>
     <string name="show_this_word_later">Show this word later</string>
     <string name="undo">Undo</string>
+    <string name="tap_to_share_the_app">Tap to share the app</string>
+    <string name="tap_to_show_our_playstore_page">Tap to show our PlayStore page</string>
+    <string name="tap_to_go_to_our_support_page">Tap to go to our support page</string>
+    <string name="appearance">Appearance</string>
+    <string name="general">General</string>
 
     <plurals name="days">
         <item quantity="one">day</item>

@@ -45,6 +45,7 @@ import ua.com.andromeda.wordgalaxy.ui.navigation.graph.vocabularyGraph
 import ua.com.andromeda.wordgalaxy.ui.screens.reportmistake.ReportMistakeScreen
 import ua.com.andromeda.wordgalaxy.ui.screens.start.home.HomeScreen
 import ua.com.andromeda.wordgalaxy.ui.screens.start.menu.MenuScreen
+import ua.com.andromeda.wordgalaxy.ui.screens.start.menu.SettingsScreen
 
 @Composable
 fun WordGalaxyNavHost(modifier: Modifier = Modifier) {
@@ -118,11 +119,38 @@ fun WordGalaxyNavHost(modifier: Modifier = Modifier) {
                     snackbarHostState = snackbarHostState,
                     modifier = modifierWithSmallPadding
                 )
-                composable(Destination.Start.MenuScreen()) {
+                composable(
+                    route = Destination.Start.MenuScreen(),
+                    enterTransition = {
+                        slideIntoContainer(
+                            towards = AnimatedContentTransitionScope.SlideDirection.Left
+                        )
+                    },
+                    exitTransition = {
+                        slideOutOfContainer(
+                            towards = AnimatedContentTransitionScope.SlideDirection.Right
+                        )
+                    },
+                ) {
                     MenuScreen(
                         navigateTo = navController::navigate,
                         modifier = modifierWithSmallPadding,
                     )
+                }
+                composable(
+                    route = Destination.Start.SettingsScreen(),
+                    enterTransition = {
+                        slideIntoContainer(
+                            towards = AnimatedContentTransitionScope.SlideDirection.Left
+                        )
+                    },
+                    exitTransition = {
+                        slideOutOfContainer(
+                            towards = AnimatedContentTransitionScope.SlideDirection.Right
+                        )
+                    },
+                ) {
+                    SettingsScreen(navigateUp = navigateUp)
                 }
 
                 composable(

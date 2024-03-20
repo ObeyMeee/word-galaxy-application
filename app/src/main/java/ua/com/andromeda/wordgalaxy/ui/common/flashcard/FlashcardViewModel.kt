@@ -1,11 +1,9 @@
 package ua.com.andromeda.wordgalaxy.ui.common.flashcard
 
-import android.content.Context
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.chillibits.simplesettings.tool.getPrefIntValue
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,18 +13,19 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import ua.com.andromeda.wordgalaxy.data.local.PreferenceDataStoreConstants.DEFAULT_AMOUNT_WORDS_TO_LEARN_PER_DAY
+import ua.com.andromeda.wordgalaxy.data.local.PreferenceDataStoreConstants.KEY_AMOUNT_WORDS_TO_LEARN_PER_DAY
+import ua.com.andromeda.wordgalaxy.data.local.PreferenceDataStoreHelper
 import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
 import ua.com.andromeda.wordgalaxy.data.model.MY_WORDS_CATEGORY
 import ua.com.andromeda.wordgalaxy.data.model.reset
 import ua.com.andromeda.wordgalaxy.data.model.toWordWithCategories
 import ua.com.andromeda.wordgalaxy.data.repository.word.WordRepository
-import ua.com.andromeda.wordgalaxy.ui.DEFAULT_AMOUNT_WORDS_TO_LEARN_PER_DAY
-import ua.com.andromeda.wordgalaxy.ui.KEY_AMOUNT_WORDS_TO_LEARN_PER_DAY
 import ua.com.andromeda.wordgalaxy.ui.common.CardMode
 
 abstract class FlashcardViewModel(
     protected val wordRepository: WordRepository,
-    private val context: Context,
+    private val dataStoreHelper: PreferenceDataStoreHelper,
 ) : ViewModel() {
     protected var _uiState = MutableStateFlow<FlashcardUiState>(FlashcardUiState.Default)
     val uiState: StateFlow<FlashcardUiState> = _uiState.asStateFlow()
@@ -48,10 +47,10 @@ abstract class FlashcardViewModel(
         }
     }
 
-    protected fun getAmountWordsToLearnPerDay() = context.getPrefIntValue(
-        name = KEY_AMOUNT_WORDS_TO_LEARN_PER_DAY,
-        default = DEFAULT_AMOUNT_WORDS_TO_LEARN_PER_DAY
-    )
+    protected suspend fun getAmountWordsToLearnPerDay() = dataStoreHelper.first(
+        KEY_AMOUNT_WORDS_TO_LEARN_PER_DAY,
+        DEFAULT_AMOUNT_WORDS_TO_LEARN_PER_DAY.toString()
+    ).toInt()
 
     abstract suspend fun buildWordsQueue(): List<EmbeddedWord>
 

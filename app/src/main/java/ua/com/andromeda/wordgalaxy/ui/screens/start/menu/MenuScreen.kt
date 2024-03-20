@@ -3,129 +3,174 @@ package ua.com.andromeda.wordgalaxy.ui.screens.start.menu
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.HelpCenter
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.preference.Preference
-import com.chillibits.simplesettings.core.SimpleSettings
-import com.chillibits.simplesettings.core.SimpleSettingsConfig
+import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import com.jamal.composeprefs3.ui.PrefsScope
+import com.jamal.composeprefs3.ui.PrefsScreen
+import com.jamal.composeprefs3.ui.prefs.TextPref
 import ua.com.andromeda.wordgalaxy.R
-import ua.com.andromeda.wordgalaxy.ui.DEFAULT_AMOUNT_WORDS_TO_LEARN_PER_DAY
-import ua.com.andromeda.wordgalaxy.ui.KEY_AMOUNT_WORDS_TO_LEARN_PER_DAY
-import ua.com.andromeda.wordgalaxy.ui.MAX_AMOUNT_WORDS_TO_LEARN_PER_DAY
-import ua.com.andromeda.wordgalaxy.ui.MIN_AMOUNT_WORDS_TO_LEARN_PER_DAY
+import ua.com.andromeda.wordgalaxy.data.local.dataStore
+import ua.com.andromeda.wordgalaxy.ui.navigation.Destination
 
 @Composable
 fun MenuScreen(
     navigateTo: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
-    val isDarkTheme = isSystemInDarkTheme()
-    val configuration = SimpleSettingsConfig
-        .Builder()
-        .showResetOption(true)
-        .setActivityTitle("Menu")
-        .displayHomeAsUpEnabled(true)
-        .build()
-    // TODO: add real url
     val appUri = "https://play.google.com/store/apps/details?id=ua.com.andromeda.wordgalaxy"
+    val iconModifier = Modifier.size(dimensionResource(R.dimen.icon_size_default))
 
-    SimpleSettings(context, configuration).show {
-        Section {
-            Page {
-                title = "Settings"
-                icon = R.drawable.menu_settings_icon
-                Section {
-                    Section {
-                        title = "Appearance"
+    PrefsScreen(dataStore = context.dataStore, modifier = modifier) {
+        settingsItem(
+            onClick = { navigateTo(Destination.Start.SettingsScreen()) },
+            iconModifier = iconModifier,
+        )
+        shareItem(
+            onClick = { context.shareLink(appUri) },
+            iconModifier = iconModifier,
+        )
+        rateItem(
+            onClick = { context.openLink(appUri) },
+            iconModifier = iconModifier,
+        )
+        aboutItem(
+            onClick = { /* TODO: */ },
+            iconModifier = iconModifier,
+        )
+        supportItem(
+            onClick = {
+                context.openLink("https://github.com/ObeyMeee/word-galaxy-application")
+            },
+            iconModifier = iconModifier,
+        )
+    }
+}
 
-                        SwitchPref {
-                            title = "Dark theme"
-                            summary = "Tap to change theme"
-                            key = "dark_theme"
-                            defaultValue = isDarkTheme
-                            icon = R.drawable.night_mode_icon
-                        }
-                        SwitchPref {
-                            title = "Turn on animations"
-                            icon = R.drawable.menu_animation_icon
-                            summary = "Tap to turn on/off animations"
-                            key = "animation_enabled"
-                            defaultValue = true
-                        }
-                    }
-                    Section {
-                        title = "General"
-                        SwitchPref {
-                            title = "Show transcriptions"
-                            key = "transcriptions_enabled"
-                            icon = R.drawable.menu_transcription_icon
-                            defaultValue = true
-                        }
-                        SwitchPref {
-                            title = "Automatically pronounce English words"
-                            key = "automatically_pronounce_english_words"
-                            icon = R.drawable.menu_pronounce_english_words_icon
-                            defaultValue = true
-                        }
-                        SeekBarPref {
-                            title = "How many words per day you want to learn?"
-                            key = KEY_AMOUNT_WORDS_TO_LEARN_PER_DAY
-                            min = MIN_AMOUNT_WORDS_TO_LEARN_PER_DAY
-                            max = MAX_AMOUNT_WORDS_TO_LEARN_PER_DAY
-                            defaultValue = DEFAULT_AMOUNT_WORDS_TO_LEARN_PER_DAY
-                            showValue = true
-                            icon = R.drawable.bulb_icon
-                            iconSpaceReserved = true
-                        }
-                    }
-                }
-            }
-            TextPref {
-                title = "Share"
-                summary = "Tap to share the app"
-                icon = R.drawable.menu_share_icon
-                onClick = Preference.OnPreferenceClickListener {
-                    context.shareLink(appUri)
-                    true
-                }
-            }
-            TextPref {
-                title = "Rate"
-                summary = "Tap to show our PlayStore page"
-                icon = R.drawable.menu_playstore_icon
-                onClick = GoToWebsiteClickListener(context, appUri)
-            }
-            LibsPref {
-                title = "libs"
-                edgeToEdge = true
-                aboutAppNameRes = R.string.app_name
-                aboutAppSpecial1 = "About app special 1"
-                aboutAppSpecial2 = "About app special 2"
-                aboutAppSpecial3 = "About app special 3"
-                aboutAppSpecial1Description = "About app special 1 description"
-                aboutAppSpecial2Description = "About app special 2 description"
-                aboutAppSpecial3Description = "About app special 3 description"
-                aboutShowIcon = true
-                aboutShowVersion = true
-                aboutShowVersionCode = true
-                aboutShowVersionName = true
-                aboutVersionString = "about version string"
-                showLicense = true
-                showLicenseDialog = true
-                showLoadingProgress = true
-                showVersion = true
-                sort = true
-            }
-            TextPref {
-                title = "Support"
-                summary = "Tap to go to the our support page"
-                icon = R.drawable.menu_support_icon
-                onClick = GoToWebsiteClickListener(context, appUri)
-            }
-        }
+
+private fun PrefsScope.settingsItem(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    iconModifier: Modifier = Modifier,
+) {
+    prefsItem {
+        TextPref(
+            title = stringResource(R.string.settings),
+            onClick = onClick,
+            leadingIcon = {
+                Icon(
+                    painter = painterResource(R.drawable.menu_settings_icon),
+                    contentDescription = null,
+                    tint = Color.Unspecified,
+                    modifier = iconModifier,
+                )
+            },
+            modifier = modifier,
+            enabled = true,
+        )
+    }
+}
+
+private fun PrefsScope.shareItem(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    iconModifier: Modifier = Modifier,
+) {
+    prefsItem {
+        TextPref(
+            title = stringResource(R.string.share),
+            summary = stringResource(R.string.tap_to_share_the_app),
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Default.Share,
+                    contentDescription = null,
+                    modifier = iconModifier,
+                )
+            },
+            modifier = modifier,
+            enabled = true,
+            onClick = onClick,
+        )
+    }
+}
+
+private fun PrefsScope.rateItem(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    iconModifier: Modifier = Modifier,
+) {
+    prefsItem {
+        TextPref(
+            title = stringResource(R.string.rate_us),
+            summary = stringResource(R.string.tap_to_show_our_playstore_page),
+            leadingIcon = {
+                Icon(
+                    painter = painterResource(R.drawable.menu_playstore_icon),
+                    contentDescription = null,
+                    tint = Color.Unspecified,
+                    modifier = iconModifier,
+                )
+            },
+            modifier = modifier,
+            enabled = true,
+            onClick = onClick,
+        )
+    }
+}
+
+private fun PrefsScope.aboutItem(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    iconModifier: Modifier = Modifier,
+) {
+    prefsItem {
+        TextPref(
+            title = stringResource(R.string.about_us),
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Default.Info,
+                    contentDescription = null,
+                    modifier = iconModifier,
+                )
+            },
+            enabled = true,
+            modifier = modifier,
+            onClick = onClick,
+        )
+    }
+}
+
+private fun PrefsScope.supportItem(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    iconModifier: Modifier = Modifier
+) {
+    prefsItem {
+        TextPref(
+            title = stringResource(R.string.support),
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Default.HelpCenter,
+                    contentDescription = null,
+                    modifier = iconModifier,
+                )
+            },
+            modifier = modifier,
+            summary = stringResource(R.string.tap_to_go_to_our_support_page),
+            enabled = true,
+            onClick = onClick,
+        )
     }
 }
 
@@ -138,16 +183,10 @@ fun Context.shareLink(uriString: String) {
     startActivity(shareIntent)
 }
 
-class GoToWebsiteClickListener(
-    private val context: Context,
-    private val uriString: String,
-) : Preference.OnPreferenceClickListener {
-    override fun onPreferenceClick(preference: Preference): Boolean {
-        val intent = Intent(
-            Intent.ACTION_VIEW,
-            Uri.parse(uriString)
-        )
-        context.startActivity(intent)
-        return true
-    }
+fun Context.openLink(uriString: String) {
+    val intent = Intent(
+        Intent.ACTION_VIEW,
+        Uri.parse(uriString)
+    )
+    startActivity(intent)
 }

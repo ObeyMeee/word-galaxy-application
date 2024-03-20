@@ -93,9 +93,6 @@ dependencies {
     implementation("androidx.room:room-ktx:$room_version")
     ksp("androidx.room:room-compiler:$room_version")
 
-    // Preferences datastore
-    implementation("androidx.datastore:datastore-preferences:1.0.0")
-
     // Work manager
     implementation("androidx.work:work-runtime-ktx:2.9.0")
 
@@ -113,11 +110,11 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:32.7.2"))
     implementation("com.google.firebase:firebase-database")
 
-    // Simple settings
-    implementation("com.chillibits:simplesettings:1.3.4")
+    // Preferences
+    implementation("com.github.JamalMulla:ComposePrefs3:1.0.4")
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
 
     // Additional dependencies for simple settings
-    implementation("com.google.android.material:material:1.11.0")
     implementation("androidx.preference:preference-ktx:1.2.1")
 
     // For backward compatibility to use java.time package
