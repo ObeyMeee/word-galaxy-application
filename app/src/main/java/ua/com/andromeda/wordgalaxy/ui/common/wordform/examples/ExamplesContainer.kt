@@ -75,7 +75,7 @@ private fun NoExamplesMessage(
         modifier = modifier
     ) {
         Message(
-            message = stringResource(R.string.clikc_button_to_add_some_examples),
+            message = stringResource(R.string.click_button_to_add_some_examples),
             backgroundColor = MaterialTheme.colorScheme.primaryContainer,
             icon = {
                 Icon(imageVector = Icons.Default.Info, contentDescription = null)

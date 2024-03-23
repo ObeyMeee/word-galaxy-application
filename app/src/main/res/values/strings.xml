@@ -79,7 +79,7 @@
     <string name="send">Send</string>
     <string name="comment_optional">Comment(optional)</string>
     <string name="report_on_word_has_been_sent_successfully">Report on word \'%s\' has been sent successfully</string>
-    <string name="clikc_button_to_add_some_examples">Click button to add some examples</string>
+    <string name="click_button_to_add_some_examples">Click button to add some examples</string>
     <string name="next">Next</string>
     <string name="select_categories">Select categories</string>
     <string name="add_examples">Add examples</string>
@@ -101,6 +101,34 @@
     <string name="appearance">Appearance</string>
     <string name="general">General</string>
     <string name="notifications">Notifications</string>
+    <string name="version">Version %s</string>
+    <string name="telegram_link">https://t.me/blackpresident</string>
+    <string name="instagram_link">https://www.instagram.com/andrrromeda88/</string>
+    <string name="buy_me_a_coffee_link">https://www.buymeacoffee.com/Andrrromeda</string>
+    <string name="spaced_repetition_description">Spaced repetition is a method of reviewing material at systematic intervals. At the beginning of the learning process, the intervals are spaced closely together. As the material is reviewed, the intervals become systematically longer. An ideal system of spaced repetition allows you to review the material before it is forgotten, helping you to retain it in your long term memory.</string>
+    <string name="about_this_app_description">👋Hi! I am the only developer of this app. I\'ve been developing this app for myself in my spare time but if you are using it too then I\'m happy to hear it!</string>
+    <string name="spaced_repetition_benefit1">
+        Repeatedly encountering material at a spaced interval is more effective than reviewing the material multiple times in the same study session.
+    </string>
+    <string name="spaced_repetition_benefit2">
+        Spaced repetition reduces the forgetting that occurs when material is not encountered for a significant time period.
+    </string>
+    <string name="spaced_repetition_benefit3">
+        Spaced repetition involves actively recalling learned material, which supports learning. Also, if an item is forgotten, you are prompted to use a more effective learning strategy to retain the information for later reviews.
+    </string>
+    <string name="how_is_spaced_repetition_effective"><b>How is spaced repetition effective?</b></string>
+    <string name="flaticon_link">https://www.flaticon.com</string>
+    <string name="dictionaryapi_link">https://dictionaryapi.dev</string>
+    <string name="detect_language_link">https://detectlanguage.com</string>
+    <string name="dict_link">https://www.dict.com</string>
+    <string name="cambridge_dictionary_link">https://dictionary.cambridge.org</string>
+    <string name="issues_with_app">🛠️If you have any issues, bugs with the app don\'t rush to uninstall it. Please, contact me by any way you like, I\'ll respond ASAP. All my contacts are on the bottom of the screen👇</string>
+    <string name="rate_this_app">"⭐Rate this app on the Play Store. It gives me extra energy to improve it"</string>
+    <string name="support_app">💸If you find this app useful you can buy me a coffee https://www.buymeacoffee.com/Andrrromeda. This definitely helps me work on this project harder😉</string>
+    <string name="about_this_app">About this app</string>
+    <string name="freepik_link">https://www.flaticon.com/authors/freepik</string>
+    <string name="playstore_link">https://play.google.com/store/apps/details?id=ua.com.andromeda.wordgalaxy</string>
+    <string name="support_email">andrrromeda88@gmail.com</string>
 
     <plurals name="days">
         <item quantity="one">day</item>

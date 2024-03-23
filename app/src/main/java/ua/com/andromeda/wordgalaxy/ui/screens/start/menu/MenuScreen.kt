@@ -1,8 +1,5 @@
 package ua.com.andromeda.wordgalaxy.ui.screens.start.menu
 
-import android.content.Context
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.HelpCenter
@@ -22,6 +19,8 @@ import com.jamal.composeprefs3.ui.prefs.TextPref
 import ua.com.andromeda.wordgalaxy.R
 import ua.com.andromeda.wordgalaxy.data.local.dataStore
 import ua.com.andromeda.wordgalaxy.ui.navigation.Destination
+import ua.com.andromeda.wordgalaxy.utils.openLink
+import ua.com.andromeda.wordgalaxy.utils.shareLink
 
 @Composable
 fun MenuScreen(
@@ -29,12 +28,12 @@ fun MenuScreen(
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
-    val appUri = "https://play.google.com/store/apps/details?id=ua.com.andromeda.wordgalaxy"
+    val appUri = stringResource(R.string.playstore_link)
     val iconModifier = Modifier.size(dimensionResource(R.dimen.icon_size_default))
 
     PrefsScreen(dataStore = context.dataStore, modifier = modifier) {
         settingsItem(
-            onClick = { navigateTo(Destination.Start.SettingsScreen()) },
+            onClick = { navigateTo(Destination.Start.MenuScreen.SettingsScreen()) },
             iconModifier = iconModifier,
         )
         shareItem(
@@ -46,7 +45,7 @@ fun MenuScreen(
             iconModifier = iconModifier,
         )
         aboutItem(
-            onClick = { /* TODO: */ },
+            onClick = { navigateTo(Destination.Start.MenuScreen.AboutScreen()) },
             iconModifier = iconModifier,
         )
         supportItem(
@@ -172,21 +171,4 @@ private fun PrefsScope.supportItem(
             onClick = onClick,
         )
     }
-}
-
-fun Context.shareLink(uriString: String) {
-    val sendIntent = Intent(Intent.ACTION_SEND).apply {
-        putExtra(Intent.EXTRA_TEXT, uriString)
-        type = "text/plain"
-    }
-    val shareIntent = Intent.createChooser(sendIntent, null)
-    startActivity(shareIntent)
-}
-
-fun Context.openLink(uriString: String) {
-    val intent = Intent(
-        Intent.ACTION_VIEW,
-        Uri.parse(uriString)
-    )
-    startActivity(intent)
 }
