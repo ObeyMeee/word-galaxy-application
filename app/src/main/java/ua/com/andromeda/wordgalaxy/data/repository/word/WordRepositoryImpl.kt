@@ -117,45 +117,24 @@ class WordRepositoryImpl @Inject constructor(
     private fun calculateStreak(
         getLocalDates: List<Word>.() -> List<LocalDate>,
         transform: (List<LocalDate>) -> Int
-    ): Flow<Int> {
-        return wordDao.findAllWhereStatusNotIn(listOf(WordStatus.New))
+    ): Flow<Int> =
+        wordDao.findAllWhereStatusNotIn(listOf(WordStatus.New))
             .map { wordsWithoutNew ->
                 val learningDates = wordsWithoutNew.getLocalDates()
                 transform(learningDates)
             }
-    }
 
-    override fun countCurrentStreak(): Flow<Int> {
-        return calculateStreak(
+    override fun countCurrentStreak(): Flow<Int> =
+        calculateStreak(
             getLocalDates = List<Word>::getDistinctLocalDates,
-            transform = { learningDates ->
-                generateSequence(LocalDate.now()) { it.minusDays(1) }
-                    .takeWhile { it in learningDates }
-                    .count()
-            }
+            transform = ::calculateCurrentStreak
         )
-    }
 
-    override fun countBestStreak(): Flow<Int> {
-        return calculateStreak(
-            getLocalDates = {
-                getDistinctLocalDates().sorted()
-            },
-            transform = { learningDates ->
-                var currentDate = learningDates.firstOrNull() ?: return@calculateStreak 0
-                var currentStreak = 0
-                var longestStreak = 0
-                learningDates.forEach {
-                    currentStreak = if (currentDate == it) currentStreak + 1 else 1
-                    currentDate = it.plusDays(1)
-                    if (currentStreak > longestStreak) {
-                        longestStreak = currentStreak
-                    }
-                }
-                longestStreak
-            }
+    override fun countBestStreak(): Flow<Int> =
+        calculateStreak(
+            getLocalDates = { getDistinctLocalDates().sorted() },
+            transform = ::calculateBestStreak
         )
-    }
 
     override suspend fun update(vararg words: Word) =
         wordDao.updateWord(*words)
@@ -220,3 +199,26 @@ private fun List<Word>.getDistinctLocalDates(): List<LocalDate> =
         .filterNotNull()
         .distinct()
 
+private fun calculateCurrentStreak(learningDates: List<LocalDate>): Int {
+    val today = LocalDate.now()
+    val seed = if (today in learningDates) today else today.minusDays(1)
+
+    return generateSequence(seed) { it.minusDays(1) }
+        .takeWhile { it in learningDates }
+        .count()
+}
+
+private fun calculateBestStreak(learningDates: List<LocalDate>): Int {
+    if (learningDates.isEmpty()) return 0
+    var currentDate = learningDates.first()
+    var currentStreak = 0
+    var longestStreak = 0
+    learningDates.forEach {
+        currentStreak = if (currentDate == it) currentStreak + 1 else 1
+        currentDate = it.plusDays(1)
+        if (currentStreak > longestStreak) {
+            longestStreak = currentStreak
+        }
+    }
+    return longestStreak
+}
