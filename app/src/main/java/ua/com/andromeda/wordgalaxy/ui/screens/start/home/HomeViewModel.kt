@@ -37,7 +37,9 @@ class HomeViewModel @Inject constructor(
             launch {
                 fetchLatestData()
             }
-            fetchChartData()
+            launch {
+                fetchChartData()
+            }
         }
     }
 
@@ -78,22 +80,23 @@ class HomeViewModel @Inject constructor(
     }
 
     private suspend fun fetchChartData() = withContext(Dispatchers.Default) {
-        val timePeriodDays = dataStoreHelper.get(
+        dataStoreHelper.get(
             KEY_TIME_PERIOD_DAYS,
             DEFAULT_TIME_PERIOD_DAYS
-        ).first()
-        val timePeriod = TimePeriodChartOptions
-            .entries
-            .find { timePeriodDays == it.days } ?: TimePeriodChartOptions.WEEK
-        val listOfWordsCountByStatus = wordRepository.countWordsByStatusLast(
-            timePeriodDays,
-            ChronoUnit.DAYS
-        )
-        updateUiState { state ->
-            state.copy(
-                timePeriod = timePeriod,
-                listOfWordsCountOfStatus = listOfWordsCountByStatus,
+        ).collect { timePeriodDays ->
+            val timePeriod = TimePeriodChartOptions
+                .entries
+                .find { timePeriodDays == it.days } ?: TimePeriodChartOptions.WEEK
+            val listOfWordsCountByStatus = wordRepository.countWordsByStatusLast(
+                timePeriodDays,
+                ChronoUnit.DAYS
             )
+            updateUiState { state ->
+                state.copy(
+                    timePeriod = timePeriod,
+                    listOfWordsCountOfStatus = listOfWordsCountByStatus,
+                )
+            }
         }
     }
 
