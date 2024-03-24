@@ -125,11 +125,10 @@ private fun SortIconButton(
         modifier = modifier,
         label = "OrderIconAnimation"
     ) {
-        val sortIcon =
-            if (it == Direction.ASC)
-                R.drawable.sort_ascending_icon
-            else
-                R.drawable.sort_descending_icon
+        val sortIcon = if (it == Direction.ASC)
+            R.drawable.sort_ascending_icon
+        else
+            R.drawable.sort_descending_icon
         IconButton(onClick = onClick) {
             Icon(
                 painter = painterResource(sortIcon),

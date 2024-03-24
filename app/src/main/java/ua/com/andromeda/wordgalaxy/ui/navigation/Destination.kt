@@ -20,13 +20,13 @@ sealed class Destination(protected val route: String, vararg params: String) {
             }
 
             data object NewCategoryScreen : NoArgumentsDestination("new_category")
-            data object CategoryDetailsScreen : Destination("categories/{id}?word={word}") {
+            data object CategoryDetailsScreen : Destination("categories/{id}?word={word_id}") {
                 const val ID_KEY = "id"
-                const val WORD_KEY = "word"
-                operator fun invoke(id: Long, word: String? = null): String =
+                const val WORD_ID_KEY = "word_id"
+                operator fun invoke(id: Long, wordId: Long? = null): String =
                     route.appendParams(
                         ID_KEY to id,
-                        WORD_KEY to word
+                        WORD_ID_KEY to wordId
                     )
             }
         }

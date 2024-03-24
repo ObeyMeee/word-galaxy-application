@@ -4,10 +4,11 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
@@ -18,6 +19,7 @@ import ua.com.andromeda.wordgalaxy.data.repository.category.CategoryRepository
 import ua.com.andromeda.wordgalaxy.data.repository.word.WordRepository
 import ua.com.andromeda.wordgalaxy.data.repository.word.copyWordToMyCategories
 import ua.com.andromeda.wordgalaxy.ui.navigation.Destination.Start.VocabularyScreen.CategoryDetailsScreen.ID_KEY
+import ua.com.andromeda.wordgalaxy.ui.navigation.Destination.Start.VocabularyScreen.CategoryDetailsScreen.WORD_ID_KEY
 import ua.com.andromeda.wordgalaxy.utils.Direction
 import javax.inject.Inject
 
@@ -35,18 +37,44 @@ class CategoryDetailsViewModel @Inject constructor(
 
     init {
         val categoryId = savedStateHandle.get<Long>(ID_KEY)
-            ?: throw IllegalStateException("category id not found")
-        viewModelScope.launch(coroutineDispatcher) {
-            combine(
-                wordRepository.findWordsByCategoryId(categoryId),
-                categoryRepository.findById(categoryId)
-            ) { words, category ->
-                CategoryDetailsUiState.Success(
-                    embeddedWords = words,
-                    title = category?.name ?: "Category"
-                )
-            }.collect { state ->
-                _uiState.update { state }
+        if (categoryId == null) {
+            _uiState.update { CategoryDetailsUiState.Error("Could not get category id") }
+        } else {
+            viewModelScope.launch(coroutineDispatcher) {
+                val firstShownItem = savedStateHandle.get<Long>(WORD_ID_KEY)
+                fetchTitle(categoryId)
+                observeWordList(categoryId, firstShownItem)
+            }
+        }
+    }
+
+    private fun CoroutineScope.fetchTitle(categoryId: Long) = launch {
+        val category = categoryRepository.findById(categoryId).first()
+        val title = category?.name ?: "Category"
+        _uiState.update { state ->
+            if (state is CategoryDetailsUiState.Success) {
+                state.copy(title = title)
+            } else {
+                CategoryDetailsUiState.Success(title = title)
+            }
+        }
+    }
+
+    private fun CoroutineScope.observeWordList(
+        categoryId: Long,
+        firstShownItem: Long?
+    ) = launch {
+        wordRepository.findWordsByCategoryId(categoryId).collect { words ->
+            _uiState.update { state ->
+                if (state is CategoryDetailsUiState.Success) {
+                    state.copy(embeddedWords = words)
+                } else {
+                    val indexToScroll = words.indexOfFirst { it.word.id == firstShownItem }
+                    CategoryDetailsUiState.Success(
+                        embeddedWords = words,
+                        indexToScroll = indexToScroll,
+                    )
+                }
             }
         }
     }
@@ -79,9 +107,10 @@ class CategoryDetailsViewModel @Inject constructor(
         }
     }
 
-    fun resetWordProgress(embeddedWord: EmbeddedWord) = viewModelScope.launch(coroutineDispatcher) {
-        wordRepository.update(embeddedWord.word.reset())
-    }
+    fun resetWordProgress(embeddedWord: EmbeddedWord) =
+        viewModelScope.launch(coroutineDispatcher) {
+            wordRepository.update(embeddedWord.word.reset())
+        }
 
     fun copyWordToMyCategory() {
         (_uiState.value as? CategoryDetailsUiState.Success)?.let { state ->

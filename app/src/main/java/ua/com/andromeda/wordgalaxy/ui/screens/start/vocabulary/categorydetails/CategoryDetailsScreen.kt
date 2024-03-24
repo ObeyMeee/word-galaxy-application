@@ -39,7 +39,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,15 +49,14 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import ua.com.andromeda.wordgalaxy.R
 import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
 import ua.com.andromeda.wordgalaxy.data.model.WordStatus
+import ua.com.andromeda.wordgalaxy.data.model.isNew
 import ua.com.andromeda.wordgalaxy.ui.common.CenteredLoadingSpinner
 import ua.com.andromeda.wordgalaxy.ui.common.Message
 import ua.com.andromeda.wordgalaxy.ui.common.ScrollToTop
-import ua.com.andromeda.wordgalaxy.ui.common.isScrollingUp
 import ua.com.andromeda.wordgalaxy.utils.playPronunciation
 
 @Composable
@@ -67,7 +65,6 @@ fun CategoryDetailsScreen(
     navigateTo: (String) -> Unit,
     snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier,
-    firstShownWord: String? = null,
 ) {
     val viewModel: CategoryDetailsViewModel = hiltViewModel()
     val state by viewModel.uiState.collectAsState()
@@ -90,7 +87,6 @@ fun CategoryDetailsScreen(
         CategoryDetailsMain(
             viewModel = viewModel,
             snackbarHostState = snackbarHostState,
-            firstShownWord = firstShownWord,
             navigateTo = navigateTo,
             modifier = Modifier.padding(innerPadding),
         )
@@ -103,18 +99,21 @@ private fun CategoryDetailsMain(
     navigateTo: (String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: CategoryDetailsViewModel = hiltViewModel(),
-    firstShownWord: String? = null,
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val listState = rememberLazyListState()
-    val scope = rememberCoroutineScope()
 
     when (val state = uiState) {
-        is CategoryDetailsUiState.Default -> CenteredLoadingSpinner()
-        is CategoryDetailsUiState.Error -> Message(message = state.message)
+        is CategoryDetailsUiState.Default -> CenteredLoadingSpinner(modifier)
+        is CategoryDetailsUiState.Error ->
+            Message(
+                message = state.message,
+                modifier = modifier
+            )
 
         is CategoryDetailsUiState.Success -> {
-            val items = state.embeddedWords
+            val listState = rememberLazyListState()
+            val scope = rememberCoroutineScope()
+
             Dialogs(
                 state = state,
                 viewModel = viewModel,
@@ -122,32 +121,20 @@ private fun CategoryDetailsMain(
                 navigateTo = navigateTo,
             )
             WordList(
-                items = items,
+                items = state.embeddedWords,
                 listState = listState,
                 snackbarHostState = snackbarHostState,
-                selectItem = viewModel::selectWord,
-                removeItem = viewModel::removeWord,
-                updateWordStatus = viewModel::updateWordStatus,
-                resetWordProgress = viewModel::resetWordProgress,
+                viewModel = viewModel,
                 modifier = modifier,
             )
-            val indexToScroll = remember {
-                firstShownWord?.let { word ->
-                    items.indexOfFirst { it.word.value == word }
-                }
-            }
+            ScrollToTop(listState = listState)
 
-            if (indexToScroll != null && indexToScroll != -1) {
-                LaunchedEffect(Unit) {
+            LaunchedEffect(Unit) {
+                val indexToScroll = state.indexToScroll
+                if (indexToScroll != -1) {
                     scope.launch {
                         listState.scrollToItem(indexToScroll)
                     }
-                }
-            }
-
-            ScrollToTop(visible = !listState.isScrollingUp()) {
-                scope.launch {
-                    listState.animateScrollToItem(0)
                 }
             }
         }
@@ -158,15 +145,12 @@ private fun CategoryDetailsMain(
 @Composable
 private fun WordList(
     items: List<EmbeddedWord>,
-    selectItem: (EmbeddedWord) -> Unit,
-    removeItem: (EmbeddedWord) -> Unit,
-    updateWordStatus: (EmbeddedWord, WordStatus) -> Unit,
-    resetWordProgress: (EmbeddedWord) -> Unit,
     snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier,
+    viewModel: CategoryDetailsViewModel = hiltViewModel(),
     listState: LazyListState = rememberLazyListState(),
 ) {
-    val coroutineScope = rememberCoroutineScope()
+    val scope = rememberCoroutineScope()
     // SnackbarDuration.Long == 10 seconds
     val removeMessage = stringResource(R.string.word_will_be_removed_in_seconds, 10)
 
@@ -179,9 +163,9 @@ private fun WordList(
             WordListItem(
                 embeddedWord = it,
                 onSwipeLeft = {
-                    removeItem(it)
+                    viewModel.removeWord(it)
                     LaunchedEffect(it.word) {
-                        coroutineScope.launch(Dispatchers.IO) {
+                        scope.launch {
                             snackbarHostState.showSnackbar(
                                 message = removeMessage,
                                 actionLabel = "Undo",
@@ -191,16 +175,16 @@ private fun WordList(
                     }
                 },
                 onSwipeRight = {
-                    if (it.word.status == WordStatus.New) {
-                        updateWordStatus(it, WordStatus.InProgress)
+                    if (it.word.isNew) {
+                        viewModel.updateWordStatus(it, WordStatus.InProgress)
                     } else {
-                        resetWordProgress(it)
+                        viewModel.resetWordProgress(it)
                     }
                 },
                 modifier = Modifier
                     .animateItemPlacement(tween(500))
                     .clickable {
-                        selectItem(it)
+                        viewModel.selectWord(it)
                     }
             )
         }
@@ -223,7 +207,7 @@ private fun WordListItem(
     val label = stringResource(status.labelRes, numberReview)
     val dismissState = rememberDismissState(positionalThreshold = { _ -> 86.dp.toPx() })
 
-    // check if the user swiped
+    // check if the user swipes
     if (dismissState.isDismissed(direction = DismissDirection.EndToStart)) {
         onSwipeLeft()
     } else if (dismissState.isDismissed(direction = DismissDirection.StartToEnd)) {
@@ -247,9 +231,8 @@ private fun WordListItem(
                 when (dismissState.targetValue) {
                     DismissValue.DismissedToStart -> Color.Red.copy(alpha = 0.8f)
                     DismissValue.DismissedToEnd -> {
-                        val new = WordStatus.New
-                        if (status == new) WordStatus.InProgress.iconColor
-                        else new.iconColor
+                        if (word.isNew) WordStatus.InProgress.iconColor
+                        else WordStatus.New.iconColor
                     }
 
                     else -> Color.Transparent
@@ -260,8 +243,7 @@ private fun WordListItem(
             // icon
             val iconImageVector = when (dismissState.targetValue) {
                 DismissValue.DismissedToEnd -> {
-                    val new = WordStatus.New
-                    if (status == new) Icons.Outlined.Lightbulb
+                    if (word.isNew) Icons.Outlined.Lightbulb
                     else Icons.Outlined.HourglassEmpty
                 }
 

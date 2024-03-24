@@ -129,6 +129,7 @@
     <string name="freepik_link">https://www.flaticon.com/authors/freepik</string>
     <string name="playstore_link">https://play.google.com/store/apps/details?id=ua.com.andromeda.wordgalaxy</string>
     <string name="support_email">andrrromeda88@gmail.com</string>
+    <string name="scroll_to_the_top">Scroll to the top</string>
 
     <plurals name="days">
         <item quantity="one">day</item>

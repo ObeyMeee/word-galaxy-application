@@ -20,6 +20,7 @@ sealed class CategoryDetailsUiState(
         override val title: String = "Category",
         val embeddedWords: List<EmbeddedWord> = emptyList(),
         val selectedWord: EmbeddedWord? = null,
+        val indexToScroll: Int = -1,
         override val topAppBarMenuExpanded: Boolean = false,
         override val orderDialogVisible: Boolean = false,
         override val resetProgressDialogVisible: Boolean = false,

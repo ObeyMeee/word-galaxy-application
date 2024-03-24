@@ -78,8 +78,8 @@ fun VocabularyScreen(
                 jumpToWord = {
                     navigateTo(
                         CategoryDetailsScreen(
-                            selectedWord!!.categories[0].id,
-                            selectedWord.word.value
+                            id = selectedWord!!.categories[0].id,
+                            wordId = selectedWord.word.id
                         )
                     )
                 },
