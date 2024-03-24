@@ -63,7 +63,7 @@
     <string name="this_word_already_exists">This word already exists</string>
     <string name="new_category">New Category</string>
     <string name="title">Title</string>
-    <string name="search_for_words">Search for words</string>
+    <string name="type_at_least_two_letters">Type at least 2 letters</string>
     <string name="play_pronunciation">Play pronunciation</string>
     <string name="no_words_found">No words found</string>
     <string name="word_actions">Word actions</string>

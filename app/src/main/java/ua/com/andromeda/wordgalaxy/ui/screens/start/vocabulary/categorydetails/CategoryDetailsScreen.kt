@@ -39,6 +39,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -70,7 +71,6 @@ fun CategoryDetailsScreen(
 ) {
     val viewModel: CategoryDetailsViewModel = hiltViewModel()
     val state by viewModel.uiState.collectAsState()
-
     Scaffold(
         topBar = {
             CategoryDetailsTopAppBar(
@@ -107,7 +107,7 @@ private fun CategoryDetailsMain(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val listState = rememberLazyListState()
-    val coroutineScope = rememberCoroutineScope()
+    val scope = rememberCoroutineScope()
 
     when (val state = uiState) {
         is CategoryDetailsUiState.Default -> CenteredLoadingSpinner()
@@ -131,21 +131,23 @@ private fun CategoryDetailsMain(
                 resetWordProgress = viewModel::resetWordProgress,
                 modifier = modifier,
             )
-            val indexToScroll = firstShownWord?.let { word ->
-                items.indexOfFirst { it.word.value == word }
+            val indexToScroll = remember {
+                firstShownWord?.let { word ->
+                    items.indexOfFirst { it.word.value == word }
+                }
             }
 
             if (indexToScroll != null && indexToScroll != -1) {
                 LaunchedEffect(Unit) {
-                    coroutineScope.launch(Dispatchers.IO) {
+                    scope.launch {
                         listState.scrollToItem(indexToScroll)
                     }
                 }
             }
 
             ScrollToTop(visible = !listState.isScrollingUp()) {
-                coroutineScope.launch {
-                    listState.scrollToItem(0)
+                scope.launch {
+                    listState.animateScrollToItem(0)
                 }
             }
         }

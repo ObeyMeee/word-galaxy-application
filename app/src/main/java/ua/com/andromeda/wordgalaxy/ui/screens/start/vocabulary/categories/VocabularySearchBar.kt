@@ -48,27 +48,16 @@ fun VocabularySearchBar(
         onActiveChange = viewModel::updateActive,
         modifier = modifier,
         placeholder = {
-            Text(text = stringResource(R.string.search_for_words))
+            Text(text = stringResource(R.string.type_at_least_two_letters))
         },
         leadingIcon = {
-            AnimatedContent(
-                targetState = state.activeSearch,
-                label = "SearchIconAnimation"
-            ) { active ->
-                if (active) {
-                    IconButton(onClick = {
-                        viewModel.updateActive()
-                        viewModel.clearSearch()
-                    }) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = null
-                        )
-                    }
-                } else {
-                    Icon(imageVector = Icons.Default.Search, contentDescription = null)
+            LeadingIcon(
+                activeSearch = state.activeSearch,
+                onBackClicked = {
+                    viewModel.updateActive()
+                    viewModel.clearSearch()
                 }
-            }
+            )
         },
         trailingIcon = {
             AnimatedVisibility(visible = state.activeSearch) {
@@ -86,6 +75,30 @@ fun VocabularySearchBar(
             query = state.searchQuery,
             selectSuggestion = viewModel::selectSuggestedWord,
         )
+    }
+}
+
+@Composable
+private fun LeadingIcon(
+    activeSearch: Boolean,
+    onBackClicked: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    AnimatedContent(
+        targetState = activeSearch,
+        label = "SearchIconAnimation",
+        modifier = modifier,
+    ) { active ->
+        if (active) {
+            IconButton(onClick = onBackClicked) {
+                Icon(
+                    imageVector = Icons.Default.ArrowBack,
+                    contentDescription = "Back to category list",
+                )
+            }
+        } else {
+            Icon(imageVector = Icons.Default.Search, contentDescription = null)
+        }
     }
 }
 

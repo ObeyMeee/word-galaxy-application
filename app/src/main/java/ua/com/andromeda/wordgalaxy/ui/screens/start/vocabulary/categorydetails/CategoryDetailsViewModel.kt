@@ -11,13 +11,12 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
-import ua.com.andromeda.wordgalaxy.data.model.MY_WORDS_CATEGORY
 import ua.com.andromeda.wordgalaxy.data.model.WordStatus
 import ua.com.andromeda.wordgalaxy.data.model.reset
-import ua.com.andromeda.wordgalaxy.data.model.toWordWithCategories
 import ua.com.andromeda.wordgalaxy.data.model.updateStatus
 import ua.com.andromeda.wordgalaxy.data.repository.category.CategoryRepository
 import ua.com.andromeda.wordgalaxy.data.repository.word.WordRepository
+import ua.com.andromeda.wordgalaxy.data.repository.word.copyWordToMyCategories
 import ua.com.andromeda.wordgalaxy.ui.navigation.Destination.Start.VocabularyScreen.CategoryDetailsScreen.ID_KEY
 import ua.com.andromeda.wordgalaxy.utils.Direction
 import javax.inject.Inject
@@ -32,10 +31,12 @@ class CategoryDetailsViewModel @Inject constructor(
         MutableStateFlow(CategoryDetailsUiState.Default)
     val uiState: StateFlow<CategoryDetailsUiState> = _uiState
 
+    private val coroutineDispatcher = Dispatchers.IO
+
     init {
         val categoryId = savedStateHandle.get<Long>(ID_KEY)
             ?: throw IllegalStateException("category id not found")
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(coroutineDispatcher) {
             combine(
                 wordRepository.findWordsByCategoryId(categoryId),
                 categoryRepository.findById(categoryId)
@@ -78,20 +79,15 @@ class CategoryDetailsViewModel @Inject constructor(
         }
     }
 
-    fun resetWordProgress(embeddedWord: EmbeddedWord) = viewModelScope.launch(Dispatchers.IO) {
+    fun resetWordProgress(embeddedWord: EmbeddedWord) = viewModelScope.launch(coroutineDispatcher) {
         wordRepository.update(embeddedWord.word.reset())
     }
 
     fun copyWordToMyCategory() {
         (_uiState.value as? CategoryDetailsUiState.Success)?.let { state ->
-            viewModelScope.launch(Dispatchers.IO) {
-                state.selectedWord?.let { embeddedWord ->
-                    val wordWithCategories = embeddedWord.toWordWithCategories()
-                    wordRepository.updateWordWithCategories(
-                        wordWithCategories.copy(
-                            categories = wordWithCategories.categories + MY_WORDS_CATEGORY
-                        )
-                    )
+            state.selectedWord?.let { embeddedWord ->
+                viewModelScope.launch(coroutineDispatcher) {
+                    wordRepository.copyWordToMyCategories(embeddedWord)
                 }
             }
         }
@@ -100,14 +96,14 @@ class CategoryDetailsViewModel @Inject constructor(
     fun removeWord() {
         (_uiState.value as? CategoryDetailsUiState.Success)?.let { state ->
             state.selectedWord?.let {
-                viewModelScope.launch(Dispatchers.IO) {
+                viewModelScope.launch(coroutineDispatcher) {
                     wordRepository.remove(it)
                 }
             }
         }
     }
 
-    fun removeWord(embeddedWord: EmbeddedWord) = viewModelScope.launch(Dispatchers.IO) {
+    fun removeWord(embeddedWord: EmbeddedWord) = viewModelScope.launch(coroutineDispatcher) {
         wordRepository.remove(embeddedWord)
     }
 
@@ -122,7 +118,7 @@ class CategoryDetailsViewModel @Inject constructor(
     fun updateWordStatus(
         embeddedWord: EmbeddedWord,
         status: WordStatus
-    ) = viewModelScope.launch(Dispatchers.IO) {
+    ) = viewModelScope.launch(coroutineDispatcher) {
         wordRepository.update(
             embeddedWord.word.updateStatus(status)
         )
@@ -166,7 +162,7 @@ class CategoryDetailsViewModel @Inject constructor(
 
     fun resetCategoryProgress() {
         (_uiState.value as? CategoryDetailsUiState.Success)?.let { state ->
-            viewModelScope.launch(Dispatchers.IO) {
+            viewModelScope.launch(coroutineDispatcher) {
                 val resetWords = state.embeddedWords.map { it.word.reset() }
                 wordRepository.update(*resetWords.toTypedArray())
             }

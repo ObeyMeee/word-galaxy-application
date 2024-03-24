@@ -21,7 +21,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import ua.com.andromeda.wordgalaxy.R
 import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
@@ -35,8 +34,9 @@ fun WordActionsDialog(
     jumpToWord: () -> Unit,
     snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier,
-    coroutineScope: CoroutineScope = rememberCoroutineScope(),
 ) {
+    val scope = rememberCoroutineScope()
+
     AnimatedVisibility(
         visible = selectedWord != null,
         modifier = modifier
@@ -57,7 +57,7 @@ fun WordActionsDialog(
                     ActionButton(
                         onClick = {
                             copyWordToMyCategory()
-                            coroutineScope.launch {
+                            scope.launch {
                                 snackbarHostState.showSnackbar(
                                     message = "You have successfully copied '${selectedWord!!.word.value}' word to your category",
                                     withDismissAction = true,

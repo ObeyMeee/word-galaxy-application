@@ -21,6 +21,7 @@ import ua.com.andromeda.wordgalaxy.data.model.MY_WORDS_CATEGORY
 import ua.com.andromeda.wordgalaxy.data.model.reset
 import ua.com.andromeda.wordgalaxy.data.model.toWordWithCategories
 import ua.com.andromeda.wordgalaxy.data.repository.word.WordRepository
+import ua.com.andromeda.wordgalaxy.data.repository.word.copyWordToMyCategories
 import ua.com.andromeda.wordgalaxy.ui.common.CardMode
 
 abstract class FlashcardViewModel(
@@ -180,15 +181,8 @@ abstract class FlashcardViewModel(
         addWordToQueue()
         viewModelScope.launch(coroutineDispatcher) {
             (_uiState.value as? FlashcardUiState.Success)?.let { state ->
-                val wordWithCategories =
-                    state.memorizingWordsQueue.firstOrNull()?.toWordWithCategories()
-                        ?: throw IllegalStateException("Word is null")
-                val updatedCategories = wordWithCategories.categories + MY_WORDS_CATEGORY
-                wordRepository.updateWordWithCategories(
-                    wordWithCategories.copy(
-                        categories = updatedCategories
-                    )
-                )
+                val currentWord = state.memorizingWordsQueue.first()
+                wordRepository.copyWordToMyCategories(currentWord)
             }
         }
     }

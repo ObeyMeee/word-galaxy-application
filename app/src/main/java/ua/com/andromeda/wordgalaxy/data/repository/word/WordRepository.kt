@@ -2,9 +2,11 @@ package ua.com.andromeda.wordgalaxy.data.repository.word
 
 import kotlinx.coroutines.flow.Flow
 import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
+import ua.com.andromeda.wordgalaxy.data.model.MY_WORDS_CATEGORY
 import ua.com.andromeda.wordgalaxy.data.model.Word
 import ua.com.andromeda.wordgalaxy.data.model.WordStatus
 import ua.com.andromeda.wordgalaxy.data.model.WordWithCategories
+import ua.com.andromeda.wordgalaxy.data.model.toWordWithCategories
 import ua.com.andromeda.wordgalaxy.ui.common.wordform.ExistingWord
 import java.time.temporal.TemporalUnit
 
@@ -26,10 +28,18 @@ interface WordRepository {
     suspend fun update(vararg words: Word)
     suspend fun update(embeddedWord: EmbeddedWord)
     suspend fun updateWordWithCategories(wordWithCategories: WordWithCategories)
-
     suspend fun insert(embeddedWord: EmbeddedWord)
-
     suspend fun remove(embeddedWord: EmbeddedWord)
-
     suspend fun insertAll(embeddedWords: List<EmbeddedWord>)
+}
+
+suspend fun WordRepository.copyWordToMyCategories(wordWithCategories: WordWithCategories) {
+    val updatedCategories = wordWithCategories.categories + MY_WORDS_CATEGORY
+    updateWordWithCategories(
+        wordWithCategories.copy(categories = updatedCategories)
+    )
+}
+
+suspend fun WordRepository.copyWordToMyCategories(embeddedWord: EmbeddedWord) {
+    copyWordToMyCategories(embeddedWord.toWordWithCategories())
 }
