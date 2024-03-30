@@ -27,10 +27,11 @@ object DatabaseModule {
     @Singleton
     fun provideDatabase(@ApplicationContext appContext: Context): AppDatabase =
         Room.databaseBuilder(
-            appContext, AppDatabase::class.java,
-            "word-galaxy.db"
+            appContext,
+            AppDatabase::class.java,
+            AppDatabase.DATABASE_NAME,
         )
-            .fallbackToDestructiveMigration()
             .createFromAsset("database/word-galaxy.db")
+            .fallbackToDestructiveMigration()
             .build()
 }

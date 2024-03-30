@@ -18,13 +18,14 @@ sealed class CategoryDetailsUiState(
 
     data class Success(
         override val title: String = "Category",
-        val embeddedWords: List<EmbeddedWord> = emptyList(),
-        val selectedWord: EmbeddedWord? = null,
-        val indexToScroll: Int = -1,
         override val topAppBarMenuExpanded: Boolean = false,
         override val orderDialogVisible: Boolean = false,
         override val resetProgressDialogVisible: Boolean = false,
         override val selectedSortOrder: WordSortOrder = WordSortOrder.ALPHABETICAL,
         override val direction: Direction = Direction.ASC,
+        val embeddedWords: List<EmbeddedWord> = emptyList(),
+        val selectedWord: EmbeddedWord? = null,
+        val indexToScroll: Int = -1,
+        val wordsInProcessQueue: List<EmbeddedWord> = emptyList(),
     ) : CategoryDetailsUiState(title)
 }

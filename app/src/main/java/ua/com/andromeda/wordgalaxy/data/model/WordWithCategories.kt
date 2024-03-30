@@ -5,6 +5,7 @@ import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.ForeignKey.Companion.CASCADE
+import androidx.room.ForeignKey.Companion.SET_NULL
 import androidx.room.Junction
 import androidx.room.Relation
 
@@ -22,7 +23,8 @@ import androidx.room.Relation
             entity = Category::class,
             parentColumns = ["id"],
             childColumns = ["category_id"],
-            onUpdate = CASCADE
+            onUpdate = CASCADE,
+            onDelete = SET_NULL
         )
     ]
 )

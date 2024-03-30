@@ -1,7 +1,9 @@
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3Api::class)
+
 package ua.com.andromeda.wordgalaxy.ui.screens.start.vocabulary.categorydetails
 
+import android.content.res.Configuration
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -22,6 +24,7 @@ import androidx.compose.material.icons.outlined.HourglassEmpty
 import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.material.icons.rounded.Square
 import androidx.compose.material3.DismissDirection
+import androidx.compose.material3.DismissState
 import androidx.compose.material3.DismissValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -30,8 +33,8 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.SwipeToDismiss
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDismissState
@@ -42,21 +45,27 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.launch
 import ua.com.andromeda.wordgalaxy.R
+import ua.com.andromeda.wordgalaxy.data.DefaultStorage
 import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
 import ua.com.andromeda.wordgalaxy.data.model.WordStatus
 import ua.com.andromeda.wordgalaxy.data.model.isNew
 import ua.com.andromeda.wordgalaxy.ui.common.CenteredLoadingSpinner
 import ua.com.andromeda.wordgalaxy.ui.common.Message
 import ua.com.andromeda.wordgalaxy.ui.common.ScrollToTop
+import ua.com.andromeda.wordgalaxy.ui.common.showUndoSnackbar
+import ua.com.andromeda.wordgalaxy.ui.theme.WordGalaxyTheme
 import ua.com.andromeda.wordgalaxy.utils.playPronunciation
 
 @Composable
@@ -67,19 +76,11 @@ fun CategoryDetailsScreen(
     modifier: Modifier = Modifier,
 ) {
     val viewModel: CategoryDetailsViewModel = hiltViewModel()
-    val state by viewModel.uiState.collectAsState()
     Scaffold(
         topBar = {
             CategoryDetailsTopAppBar(
-                title = state.title,
-                sortOrder = state.selectedSortOrder,
-                direction = state.direction,
                 navigateUp = navigateUp,
-                updateSortDirection = viewModel::updateSortDirection,
-                menuExpanded = state.topAppBarMenuExpanded,
-                openConfirmResetProgressDialog = viewModel::openConfirmResetProgressDialog,
-                expandMenu = viewModel::expandTopAppBarMenu,
-                openOrderDialog = viewModel::openOrderDialog
+                viewModel = viewModel,
             )
         },
         modifier = modifier
@@ -114,18 +115,19 @@ private fun CategoryDetailsMain(
             val listState = rememberLazyListState()
             val scope = rememberCoroutineScope()
 
-            Dialogs(
-                state = state,
-                viewModel = viewModel,
-                snackbarHostState = snackbarHostState,
-                navigateTo = navigateTo,
-            )
+
             WordList(
                 items = state.embeddedWords,
                 listState = listState,
                 snackbarHostState = snackbarHostState,
                 viewModel = viewModel,
                 modifier = modifier,
+            )
+            Dialogs(
+                state = state,
+                viewModel = viewModel,
+                snackbarHostState = snackbarHostState,
+                navigateTo = navigateTo,
             )
             ScrollToTop(listState = listState)
 
@@ -150,28 +152,26 @@ private fun WordList(
     viewModel: CategoryDetailsViewModel = hiltViewModel(),
     listState: LazyListState = rememberLazyListState(),
 ) {
-    val scope = rememberCoroutineScope()
     // SnackbarDuration.Long == 10 seconds
     val removeMessage = stringResource(R.string.word_will_be_removed_in_seconds, 10)
-
+    val resetMessage = stringResource(R.string.progress_has_been_reset_successfully)
+    val scope = rememberCoroutineScope()
     LazyColumn(
         modifier = modifier,
         state = listState,
-        verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_smallest))
+        verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_smaller))
     ) {
         items(items, key = { it.word.id }) {
-            WordListItem(
+            SwipeWordListItem(
                 embeddedWord = it,
                 onSwipeLeft = {
-                    viewModel.removeWord(it)
-                    LaunchedEffect(it.word) {
-                        scope.launch {
-                            snackbarHostState.showSnackbar(
-                                message = removeMessage,
-                                actionLabel = "Undo",
-                                duration = SnackbarDuration.Long,
-                            )
-                        }
+                    viewModel.addWordToQueue(it)
+                    scope.launch {
+                        snackbarHostState.showUndoSnackbar(
+                            message = removeMessage,
+                            onActionPerformed = viewModel::removeWordFromQueue,
+                            onDismiss = viewModel::removeWord,
+                        )
                     }
                 },
                 onSwipeRight = {
@@ -179,13 +179,21 @@ private fun WordList(
                         viewModel.updateWordStatus(it, WordStatus.InProgress)
                     } else {
                         viewModel.resetWordProgress(it)
+                        scope.launch {
+                            snackbarHostState.showUndoSnackbar(
+                                message = resetMessage,
+                                onActionPerformed = viewModel::recoverWord,
+                                onDismiss = viewModel::removeWordFromQueue,
+                            )
+                        }
                     }
                 },
                 modifier = Modifier
                     .animateItemPlacement(tween(500))
-                    .clickable {
-                        viewModel.selectWord(it)
-                    }
+                    .clip(MaterialTheme.shapes.small),
+                onClick = {
+                    viewModel.selectWord(it)
+                },
             )
         }
     }
@@ -193,169 +201,194 @@ private fun WordList(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun WordListItem(
+private fun SwipeWordListItem(
     embeddedWord: EmbeddedWord,
-    onSwipeLeft: @Composable () -> Unit,
-    onSwipeRight: @Composable () -> Unit,
-    modifier: Modifier = Modifier
+    onSwipeLeft: () -> Unit,
+    onSwipeRight: () -> Unit,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
 ) {
-    val (word, _, phonetics) = embeddedWord
-    val context = LocalContext.current
-    val status = word.status
-    val amountRepetition = word.amountRepetition ?: 0
-    val numberReview = amountRepetition + 1
-    val label = stringResource(status.labelRes, numberReview)
     val dismissState = rememberDismissState(positionalThreshold = { _ -> 86.dp.toPx() })
 
-    // check if the user swipes
-    if (dismissState.isDismissed(direction = DismissDirection.EndToStart)) {
-        onSwipeLeft()
-    } else if (dismissState.isDismissed(direction = DismissDirection.StartToEnd)) {
-        onSwipeRight()
-    }
-
-    if (dismissState.currentValue != DismissValue.Default) {
-        LaunchedEffect(Unit) {
-            dismissState.reset()
-        }
-    }
+    handleDismiss(dismissState, onSwipeLeft, onSwipeRight)
     SwipeToDismiss(
+        modifier = modifier,
         state = dismissState,
         directions = DismissDirection.entries.toSet(),
         background = {
-            // this background is visible when we swipe.
-            // it contains the icon
-
-            // background color
-            val backgroundColor by animateColorAsState(
-                when (dismissState.targetValue) {
-                    DismissValue.DismissedToStart -> Color.Red.copy(alpha = 0.8f)
-                    DismissValue.DismissedToEnd -> {
-                        if (word.isNew) WordStatus.InProgress.iconColor
-                        else WordStatus.New.iconColor
-                    }
-
-                    else -> Color.Transparent
-                },
-                label = ""
-            )
-
-            // icon
-            val iconImageVector = when (dismissState.targetValue) {
-                DismissValue.DismissedToEnd -> {
-                    if (word.isNew) Icons.Outlined.Lightbulb
-                    else Icons.Outlined.HourglassEmpty
-                }
-
-                else -> Icons.Outlined.Delete
-            }
-
-            // icon placement
-            val iconAlignment = when (dismissState.targetValue) {
-                DismissValue.DismissedToEnd -> Alignment.CenterStart
-                else -> Alignment.CenterEnd
-            }
-
-            // icon size
-            val iconScale by animateFloatAsState(
-                targetValue = if (dismissState.targetValue == DismissValue.Default) 0.5f else 1.3f
-            )
-            Box(
-                Modifier
-                    .fillMaxSize()
-                    .background(color = backgroundColor)
-                    .padding(
-                        start = dimensionResource(R.dimen.padding_medium),
-                        end = dimensionResource(R.dimen.padding_medium)
-                    ),
-                contentAlignment = iconAlignment
-            ) {
-                Icon(
-                    modifier = Modifier.scale(iconScale),
-                    imageVector = iconImageVector,
-                    contentDescription = null,
-                    tint = Color.White
-                )
-            }
+            SwipeBackground(dismissState, embeddedWord)
         },
         dismissContent = {
-            ListItem(
-                headlineContent = {
-                    Text(
-                        text = word.value,
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                },
-                overlineContent = {
-                    Text(text = label)
-                },
-                supportingContent = {
-                    Text(text = word.translation)
-                },
-                leadingContent = {
-                    Icon(
-                        imageVector = Icons.Rounded.Square,
-                        contentDescription = label,
-                        modifier = Modifier.padding(
-                            end = dimensionResource(R.dimen.padding_small)
-                        ),
-                        tint = status.iconColor
-                    )
-                },
-                trailingContent = {
-                    IconButton(
-                        onClick = {
-                            context.playPronunciation(phonetics)
-                        },
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.PlayCircleFilled,
-                            contentDescription = stringResource(R.string.play_pronunciation),
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(dimensionResource(R.dimen.icon_size_large))
-                        )
-                    }
-                },
-                colors = ListItemDefaults.colors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    headlineColor = MaterialTheme.colorScheme.onSecondaryContainer
-                ),
-                modifier = modifier
+            // Content displayed when not dismissed
+            WordListItem(
+                embeddedWord = embeddedWord,
+                modifier = Modifier.clickable(onClick = onClick),
             )
         }
     )
 }
 
-//@Preview
-//@Composable
-//fun WordListPreview() {
-//    WordGalaxyTheme {
-//        Surface {
-//            WordList(
-//                items = DefaultStorage.embeddedWords,
-//                removeItem = {},
-//                navigateTo = {},
-//                selectItem = {},
-//                modifier = Modifier.padding(dimensionResource(R.dimen.padding_small)),
-//                snackbarHostState = SnackbarHostState()
-//            )
-//        }
-//    }
-//}
-//
-//@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-//@Composable
-//fun WordListDarkThemePreview() {
-//    WordGalaxyTheme {
-//        Surface {
-//            WordList(
-//                items = DefaultStorage.embeddedWords,
-//                removeItem = {},
-//                navigateTo = {},
-//                selectItem = {},
-//                modifier = Modifier.padding(dimensionResource(R.dimen.padding_small)),
-//                snackbarHostState = SnackbarHostState()
-//            )
-//        }
-//    }
-//}
+@Composable
+private fun WordListItem(
+    embeddedWord: EmbeddedWord,
+    modifier: Modifier = Modifier,
+) {
+    val context = LocalContext.current
+    val (word, _, phonetics) = embeddedWord
+    val status = word.status
+    val amountRepetition = word.amountRepetition ?: 0
+    val label = stringResource(status.labelRes, amountRepetition)
+
+    ListItem(
+        headlineContent = {
+            Text(
+                text = word.value,
+                style = MaterialTheme.typography.titleMedium
+            )
+        },
+        overlineContent = { Text(text = label) },
+        supportingContent = { Text(text = word.translation) },
+        leadingContent = {
+            Icon(
+                imageVector = Icons.Rounded.Square,
+                contentDescription = label,
+                tint = status.iconColor
+            )
+        },
+        trailingContent = {
+            IconButton(
+                onClick = {
+                    context.playPronunciation(phonetics)
+                },
+            ) {
+                Icon(
+                    imageVector = Icons.Default.PlayCircleFilled,
+                    contentDescription = stringResource(R.string.play_pronunciation),
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(dimensionResource(R.dimen.icon_size_large))
+                )
+            }
+        },
+        colors = ListItemDefaults.colors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            headlineColor = MaterialTheme.colorScheme.onSecondaryContainer
+        ),
+        modifier = modifier,
+    )
+}
+
+@Composable
+private fun SwipeBackground(
+    dismissState: DismissState,
+    embeddedWord: EmbeddedWord
+) {
+    val dismissValue = dismissState.targetValue
+
+    val iconImageVector = getIconImageVector(embeddedWord, dismissValue)
+    val iconAlignment = getIconAlignment(dismissValue)
+    val iconScale = getIconScale(dismissValue)
+    val backgroundColor by animateColorAsState(
+        targetValue = getBackgroundColor(embeddedWord, dismissValue),
+        label = ""
+    )
+
+    Box(
+        Modifier
+            .fillMaxSize()
+            .background(color = backgroundColor)
+            .padding(
+                start = dimensionResource(R.dimen.padding_medium),
+                end = dimensionResource(R.dimen.padding_medium)
+            ),
+        contentAlignment = iconAlignment
+    ) {
+        Icon(
+            modifier = Modifier.scale(iconScale),
+            imageVector = iconImageVector,
+            contentDescription = null,
+            tint = Color.White
+        )
+    }
+}
+
+@Composable
+private fun handleDismiss(
+    dismissState: DismissState,
+    onSwipeLeft: () -> Unit,
+    onSwipeRight: () -> Unit
+) {
+    val dismissValue = dismissState.currentValue
+    LaunchedEffect(dismissValue) {
+        // Only execute the swipe actions when the dismissal is completed
+        if (dismissValue != DismissValue.Default) {
+            if (dismissState.isDismissed(direction = DismissDirection.EndToStart)) {
+                onSwipeLeft()
+            } else if (dismissState.isDismissed(direction = DismissDirection.StartToEnd)) {
+                onSwipeRight()
+            }
+
+            // Reset dismiss state after executing the actions
+            dismissState.reset()
+        }
+    }
+}
+
+private fun getBackgroundColor(word: EmbeddedWord, dismissValue: DismissValue) =
+    when (dismissValue) {
+        DismissValue.DismissedToStart -> Color.Red.copy(alpha = 0.8f)
+        DismissValue.DismissedToEnd -> {
+            if (word.word.isNew) WordStatus.InProgress.iconColor
+            else WordStatus.New.iconColor
+        }
+
+        else -> Color.Transparent
+    }
+
+private fun getIconImageVector(
+    embeddedWord: EmbeddedWord,
+    dismissValue: DismissValue
+): ImageVector =
+    when (dismissValue) {
+        DismissValue.DismissedToEnd -> {
+            if (embeddedWord.word.isNew) Icons.Outlined.Lightbulb
+            else Icons.Outlined.HourglassEmpty
+        }
+
+        else -> Icons.Outlined.Delete
+    }
+
+private fun getIconAlignment(dismissValue: DismissValue): Alignment =
+    when (dismissValue) {
+        DismissValue.DismissedToEnd -> Alignment.CenterStart
+        else -> Alignment.CenterEnd
+    }
+
+private fun getIconScale(dismissValue: DismissValue) =
+    if (dismissValue == DismissValue.Default) 0.5f else 1.3f
+
+
+@Preview
+@Composable
+fun WordListItemPreview() {
+    WordGalaxyTheme {
+        Surface {
+            WordListItem(
+                embeddedWord = DefaultStorage.embeddedWord,
+                modifier = Modifier.padding(dimensionResource(R.dimen.padding_small)),
+            )
+        }
+    }
+}
+
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun WordListItemDarkThemePreview() {
+    WordGalaxyTheme {
+        Surface {
+            WordListItem(
+                embeddedWord = DefaultStorage.embeddedWord,
+                modifier = Modifier.padding(dimensionResource(R.dimen.padding_small)),
+            )
+        }
+    }
+}

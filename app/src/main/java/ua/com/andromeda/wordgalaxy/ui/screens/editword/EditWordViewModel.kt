@@ -36,7 +36,7 @@ class EditWordViewModel @Inject constructor(
             launch(Dispatchers.IO) {
                 combine(
                     wordRepository.findEmbeddedWordById(wordId),
-                    categoryRepository.findAllChildCategories()
+                    categoryRepository.findAll()
                 ) { embeddedWord, categories ->
                     _uiState.update {
                         EditWordUiState.Success(

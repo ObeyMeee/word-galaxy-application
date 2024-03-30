@@ -6,7 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -17,59 +17,39 @@ import javax.inject.Inject
 
 @HiltViewModel
 class NewCategoryViewModel @Inject constructor(
-    private val categoryRepository: CategoryRepository
+    private val categoryRepository: CategoryRepository,
 ) : ViewModel() {
-    private var _uiState: MutableStateFlow<NewCategoryUiState> =
-        MutableStateFlow(NewCategoryUiState.Default)
-    val uiState: StateFlow<NewCategoryUiState> = _uiState
+    private var _uiState = MutableStateFlow(NewCategoryUiState())
+    val uiState = _uiState.asStateFlow()
+    val fabEnabled = uiState.map { it.title.isNotBlank() }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Eagerly,
+            initialValue = false
+        )
 
-    init {
-        viewModelScope.launch(Dispatchers.IO) {
-            categoryRepository.findAllByParentCategoryId()
-                .map {
-                    NewCategoryUiState.Success(
-                        parentCategories = it
-                    )
-                }
-                .stateIn(
-                    scope = viewModelScope,
-                    started = SharingStarted.WhileSubscribed(5_000),
-                    initialValue = NewCategoryUiState.Default
-                )
-                .collect {
-                    _uiState.value = it
-                }
-        }
-    }
-
-    private fun updateState(action: (NewCategoryUiState.Success) -> NewCategoryUiState.Success) {
-        _uiState.update {
-            if (it is NewCategoryUiState.Success) {
-                action(it)
-            } else {
-                NewCategoryUiState.Error()
-            }
-        }
-    }
+    private val coroutineDispatcher = Dispatchers.IO
 
     fun updateCategoryTitle(value: String) {
-        updateState {
-            it.copy(title = value)
+        _uiState.update { state ->
+            state.copy(title = value)
         }
     }
 
-    fun updateParentCategory(value: Category?) {
-        updateState {
-            it.copy(
-                selectedCategory = value,
-                parentCategoriesExpanded = false
-            )
+    fun updateSelectedIcon(icon: String?) {
+        _uiState.update { state ->
+            state.copy(selectedIcon = icon)
         }
     }
 
-    fun expandParentCategories(expanded: Boolean = false) {
-        updateState {
-            it.copy(parentCategoriesExpanded = expanded)
-        }
+    fun createCategory() = viewModelScope.launch(coroutineDispatcher) {
+        if (!fabEnabled.value) return@launch
+
+        val currentState = uiState.value
+        val category = Category(
+            name = currentState.title,
+            materialIconId = currentState.selectedIcon
+        )
+        categoryRepository.insert(category)
     }
 }

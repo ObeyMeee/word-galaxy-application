@@ -13,8 +13,7 @@ import ua.com.andromeda.wordgalaxy.data.model.WordAndCategoryCrossRef
 import ua.com.andromeda.wordgalaxy.utils.Converters
 
 @Database(
-    version = 2,
-    exportSchema = false,
+    version = 3,
     entities = [
         Word::class,
         Category::class,
@@ -27,4 +26,8 @@ import ua.com.andromeda.wordgalaxy.utils.Converters
 abstract class AppDatabase : RoomDatabase() {
     abstract fun wordDao(): WordDao
     abstract fun categoryDao(): CategoryDao
+
+    companion object {
+        const val DATABASE_NAME = "word-galaxy.db"
+    }
 }

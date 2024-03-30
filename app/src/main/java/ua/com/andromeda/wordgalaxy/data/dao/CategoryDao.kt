@@ -1,6 +1,7 @@
 package ua.com.andromeda.wordgalaxy.data.dao
 
 import androidx.room.Dao
+import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.RewriteQueriesToDropUnusedColumns
 import kotlinx.coroutines.flow.Flow
@@ -9,6 +10,9 @@ import ua.com.andromeda.wordgalaxy.data.model.VocabularyCategory
 
 @Dao
 interface CategoryDao {
+    @Query("SELECT * FROM categories")
+    fun findAll(): Flow<List<Category>>
+
     @RewriteQueriesToDropUnusedColumns
     @Query(
         """
@@ -22,29 +26,10 @@ interface CategoryDao {
         FROM categories 
         LEFT JOIN words_categories ON categories.id = words_categories.category_id 
         LEFT JOIN Word ON words_categories.word_id = Word.id 
-        WHERE categories.parent_category_id IS :parentCategoryId 
         GROUP BY categories.id
         """
     )
-    fun findCategoriesWithWordCountAndCompletedWordsCount(parentCategoryId: Long?): Flow<List<VocabularyCategory>>
-
-    @Query(
-        """
-        SELECT * 
-        FROM categories
-        WHERE parent_category_id IS NOT NULL
-        """
-    )
-    fun findCategoriesWhereParentIsNotNull(): Flow<List<Category>>
-
-    @Query(
-        """
-        SELECT *
-        FROM categories
-        WHERE parent_category_id IS :parentCategoryId
-        """
-    )
-    fun findCategoriesByParentCategoryId(parentCategoryId: Int?): Flow<List<Category>>
+    fun findCategoriesWithWordCountAndCompletedWordsCount(): Flow<List<VocabularyCategory>>
 
     @Query(
         """
@@ -54,4 +39,7 @@ interface CategoryDao {
         """
     )
     fun findByCategoryId(id: Long): Flow<Category?>
+
+    @Insert
+    fun insert(vararg categories: Category)
 }

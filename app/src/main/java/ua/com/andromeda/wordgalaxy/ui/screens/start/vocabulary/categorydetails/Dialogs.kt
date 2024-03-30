@@ -5,11 +5,9 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material.icons.Icons
@@ -24,7 +22,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.RadioButton
-import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -43,6 +40,8 @@ import kotlinx.coroutines.launch
 import ua.com.andromeda.wordgalaxy.R
 import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
 import ua.com.andromeda.wordgalaxy.data.model.WordStatus
+import ua.com.andromeda.wordgalaxy.ui.common.HorizontalSpacer
+import ua.com.andromeda.wordgalaxy.ui.common.showUndoSnackbar
 import ua.com.andromeda.wordgalaxy.ui.navigation.Destination
 
 @Composable
@@ -52,12 +51,15 @@ fun Dialogs(
     navigateTo: (String) -> Unit,
     viewModel: CategoryDetailsViewModel = hiltViewModel(),
 ) {
-    WordActionDialog(
-        selectedWord = state.selectedWord,
-        snackbarHostState = snackbarHostState,
-        closeDialog = viewModel::selectWord,
-        navigateTo = navigateTo
-    )
+    val scope = rememberCoroutineScope()
+    state.selectedWord?.let {
+        WordActionDialog(
+            selectedWord = it,
+            snackbarHostState = snackbarHostState,
+            navigateTo = navigateTo,
+            scope = scope
+        )
+    }
     ResetProgressDialog(
         visible = state.resetProgressDialogVisible,
         closeDialog = viewModel::openConfirmResetProgressDialog,
@@ -156,16 +158,14 @@ fun SelectOrderDialog(
 
 @Composable
 fun WordActionDialog(
-    selectedWord: EmbeddedWord?,
+    selectedWord: EmbeddedWord,
     snackbarHostState: SnackbarHostState,
-    closeDialog: () -> Unit,
     navigateTo: (String) -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: CategoryDetailsViewModel = hiltViewModel()
+    viewModel: CategoryDetailsViewModel = hiltViewModel(),
+    scope: CoroutineScope,
 ) {
-    val coroutineScope = rememberCoroutineScope()
-    if (selectedWord == null) return
-
+    val closeDialog = { viewModel.selectWord() }
     AlertDialog(
         onDismissRequest = closeDialog,
         confirmButton = {},
@@ -180,58 +180,71 @@ fun WordActionDialog(
                     WordActionButton(
                         labelRes = R.string.mark_word_as_already_known,
                         icon = Icons.Default.Check,
-                        snackbarHostState = snackbarHostState,
-                        coroutineScope = coroutineScope,
-                        messageRes = R.string.you_have_successfully_marked_word_as_already_known,
-                        action = { viewModel.updateWordStatus(WordStatus.AlreadyKnown) }
+                        onClick = {
+                            viewModel.updateWordStatus(WordStatus.AlreadyKnown)
+                            closeDialog()
+                        },
                     )
                     WordActionButton(
                         labelRes = R.string.learn,
                         icon = Icons.Default.Lightbulb,
-                        snackbarHostState = snackbarHostState,
-                        coroutineScope = coroutineScope,
-                        messageRes = R.string.word_status_has_been_changed,
-                        action = { viewModel.updateWordStatus(WordStatus.InProgress) }
+                        onClick = {
+                            viewModel.updateWordStatus(WordStatus.InProgress)
+                            closeDialog()
+                        },
                     )
                 } else {
                     WordActionButton(
                         labelRes = R.string.reset_progress_for_this_word,
                         icon = Icons.Default.HourglassEmpty,
                         snackbarHostState = snackbarHostState,
-                        coroutineScope = coroutineScope,
-                        messageRes = R.string.progress_has_been_reset_successfully,
-                        action = { viewModel.resetWordProgress() }
+                        message = stringResource(R.string.progress_has_been_reset_successfully),
+                        scope = scope,
+                        onClick = {
+                            viewModel.resetWordProgress()
+                            closeDialog()
+                        },
+                        snackbarOnActionPerformed = viewModel::recoverWord,
+                        snackbarOnDismiss = viewModel::removeWordFromQueue,
                     )
                 }
                 WordActionButton(
                     labelRes = R.string.copy_to_my_category,
                     icon = Icons.Default.FolderCopy,
                     snackbarHostState = snackbarHostState,
-                    coroutineScope = coroutineScope,
-                    messageRes = R.string.word_has_been_copied_to_your_category,
-                    action = { viewModel.copyWordToMyCategory() }
+                    message = stringResource(R.string.word_has_been_copied_to_your_category),
+                    scope = scope,
+                    onClick = {
+                        viewModel.copyWordToMyCategory().invokeOnCompletion {
+                            closeDialog()
+                        }
+                    },
+                    snackbarOnActionPerformed = viewModel::removeWordFromMyCategory,
+                    snackbarOnDismiss = viewModel::removeWordFromQueue,
                 )
                 WordActionButton(
                     labelRes = R.string.report_a_mistake,
                     icon = Icons.Default.Report,
-                    coroutineScope = coroutineScope,
-                    snackbarHostState = snackbarHostState,
-                    action = { navigateTo(Destination.ReportMistakeScreen(wordId)) }
+                    onClick = { navigateTo(Destination.ReportMistakeScreen(wordId)) }
                 )
                 WordActionButton(
                     labelRes = R.string.edit,
                     icon = Icons.Default.Edit,
-                    coroutineScope = coroutineScope,
-                    snackbarHostState = snackbarHostState,
-                    action = { navigateTo(Destination.EditWord(wordId)) }
+                    onClick = { navigateTo(Destination.EditWord(wordId)) }
                 )
                 WordActionButton(
                     labelRes = R.string.remove,
                     icon = Icons.Default.Remove,
-                    coroutineScope = coroutineScope,
                     snackbarHostState = snackbarHostState,
-                    messageRes = R.string.word_will_be_removed_in_seconds,
-                    action = { viewModel.removeWord() }
+                    // SnackbarDuration.Long == 10s
+                    message = stringResource(R.string.word_will_be_removed_in_seconds, 10),
+                    onClick = {
+                        viewModel.addWordToQueue(selectedWord)
+                        closeDialog()
+                    },
+                    scope = scope,
+                    snackbarOnActionPerformed = viewModel::removeWordFromQueue,
+                    snackbarOnDismiss = viewModel::removeWord,
                 )
             }
         }
@@ -242,23 +255,23 @@ fun WordActionDialog(
 private fun WordActionButton(
     @StringRes labelRes: Int,
     icon: ImageVector,
-    snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier,
-    coroutineScope: CoroutineScope = rememberCoroutineScope(),
-    @StringRes messageRes: Int? = null,
-    action: () -> Unit = {}
+    snackbarHostState: SnackbarHostState? = null,
+    message: String = "Success",
+    scope: CoroutineScope = rememberCoroutineScope(),
+    onClick: () -> Unit = {},
+    snackbarOnActionPerformed: () -> Unit = {},
+    snackbarOnDismiss: () -> Unit = {},
 ) {
-    val message = if (messageRes == null) "" else stringResource(messageRes)
-
     Button(
         onClick = {
-            action()
-            messageRes?.let {
-                coroutineScope.launch {
-                    snackbarHostState.showSnackbar(
+            onClick()
+            snackbarHostState?.let {
+                scope.launch {
+                    it.showUndoSnackbar(
                         message = message,
-                        withDismissAction = true,
-                        duration = SnackbarDuration.Short
+                        onActionPerformed = snackbarOnActionPerformed,
+                        onDismiss = snackbarOnDismiss,
                     )
                 }
             }
@@ -274,7 +287,7 @@ private fun WordActionButton(
                 imageVector = icon,
                 contentDescription = null
             )
-            Spacer(Modifier.width(dimensionResource(R.dimen.padding_small)))
+            HorizontalSpacer(width = R.dimen.padding_small)
             Text(text = stringResource(labelRes))
         }
     }

@@ -11,10 +11,9 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
-import ua.com.andromeda.wordgalaxy.data.model.VocabularyCategory
 import ua.com.andromeda.wordgalaxy.data.repository.category.CategoryRepository
 import ua.com.andromeda.wordgalaxy.data.repository.word.WordRepository
-import ua.com.andromeda.wordgalaxy.data.repository.word.copyWordToMyCategories
+import ua.com.andromeda.wordgalaxy.data.repository.word.copyWordToMyCategory
 import javax.inject.Inject
 
 private const val MIN_SEARCH_QUERY_LENGTH = 2
@@ -37,7 +36,7 @@ class VocabularyViewModel @Inject constructor(
 
     private fun CoroutineScope.observeCategories() = launch {
         categoryRepository
-            .findVocabularyCategories(null)
+            .findAllVocabularyCategories()
             .collect { categories ->
                 _uiState.update {
                     VocabularyUiState.Success(vocabularyCategories = categories)
@@ -52,31 +51,6 @@ class VocabularyViewModel @Inject constructor(
             } else {
                 VocabularyUiState.Error()
             }
-        }
-    }
-
-    fun fetchSubCategories(parent: VocabularyCategory) {
-        if (parent.subcategories.isNotEmpty()) return
-
-        viewModelScope.launch(coroutineDispatcher) {
-            categoryRepository
-                .findVocabularyCategories(parent.category.id)
-                .collect { subcategories ->
-                    updateState { state ->
-                        val updatedCategories =
-                            state.vocabularyCategories.toMutableList().apply {
-                                val index = indexOf(parent)
-                                if (index != -1) {
-                                    this[index] = parent.copy(
-                                        subcategories = subcategories
-                                    )
-                                }
-                            }
-                        state.copy(
-                            vocabularyCategories = updatedCategories
-                        )
-                    }
-                }
         }
     }
 
@@ -138,7 +112,7 @@ class VocabularyViewModel @Inject constructor(
                         VocabularyUiState.Error()
                     }
                 } else {
-                    wordRepository.copyWordToMyCategories(selectedWord)
+                    wordRepository.copyWordToMyCategory(selectedWord)
                 }
             }
             selectSuggestedWord()

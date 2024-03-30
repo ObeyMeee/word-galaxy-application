@@ -17,11 +17,10 @@ import ua.com.andromeda.wordgalaxy.data.local.PreferenceDataStoreConstants.DEFAU
 import ua.com.andromeda.wordgalaxy.data.local.PreferenceDataStoreConstants.KEY_AMOUNT_WORDS_TO_LEARN_PER_DAY
 import ua.com.andromeda.wordgalaxy.data.local.PreferenceDataStoreHelper
 import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
-import ua.com.andromeda.wordgalaxy.data.model.MY_WORDS_CATEGORY
 import ua.com.andromeda.wordgalaxy.data.model.reset
-import ua.com.andromeda.wordgalaxy.data.model.toWordWithCategories
 import ua.com.andromeda.wordgalaxy.data.repository.word.WordRepository
-import ua.com.andromeda.wordgalaxy.data.repository.word.copyWordToMyCategories
+import ua.com.andromeda.wordgalaxy.data.repository.word.copyWordToMyCategory
+import ua.com.andromeda.wordgalaxy.data.repository.word.removeWordFromMyCategory
 import ua.com.andromeda.wordgalaxy.ui.common.CardMode
 
 abstract class FlashcardViewModel(
@@ -182,7 +181,7 @@ abstract class FlashcardViewModel(
         viewModelScope.launch(coroutineDispatcher) {
             (_uiState.value as? FlashcardUiState.Success)?.let { state ->
                 val currentWord = state.memorizingWordsQueue.first()
-                wordRepository.copyWordToMyCategories(currentWord)
+                wordRepository.copyWordToMyCategory(currentWord)
             }
         }
     }
@@ -198,16 +197,13 @@ abstract class FlashcardViewModel(
     fun removeWordFromMyCategory() {
         viewModelScope.launch(coroutineDispatcher) {
             (_uiState.value as? FlashcardUiState.Success)?.let { state ->
-                val wordWithCategories =
-                    state.wordsInProcessQueue.firstOrNull()?.toWordWithCategories()
-                        ?: throw IllegalStateException("Word is null")
-                val updatedCategories = wordWithCategories.categories - MY_WORDS_CATEGORY
-                wordRepository.updateWordWithCategories(
-                    wordWithCategories.copy(
-                        categories = updatedCategories,
-                    )
-                )
-                removeWordFromQueue()
+                val processedWord = state.wordsInProcessQueue.firstOrNull()
+                if (processedWord == null) {
+                    _uiState.update { FlashcardUiState.Error() }
+                } else {
+                    wordRepository.removeWordFromMyCategory(processedWord)
+                    removeWordFromQueue()
+                }
             }
         }
     }

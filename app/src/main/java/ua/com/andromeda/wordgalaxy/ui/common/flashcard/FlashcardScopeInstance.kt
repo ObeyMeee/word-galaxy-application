@@ -51,9 +51,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -102,6 +100,7 @@ import ua.com.andromeda.wordgalaxy.ui.common.CardMode
 import ua.com.andromeda.wordgalaxy.ui.common.Divider
 import ua.com.andromeda.wordgalaxy.ui.common.DropdownItemState
 import ua.com.andromeda.wordgalaxy.ui.common.HorizontalSpacer
+import ua.com.andromeda.wordgalaxy.ui.common.showUndoSnackbar
 import ua.com.andromeda.wordgalaxy.utils.playPronunciation
 
 internal object FlashcardScopeInstance : FlashcardScope {
@@ -158,8 +157,6 @@ internal object FlashcardScopeInstance : FlashcardScope {
         modifier: Modifier = Modifier,
         scope: CoroutineScope = rememberCoroutineScope(),
     ) {
-        val actionLabel = stringResource(R.string.undo)
-
         AnimatedVisibility(
             visible = expanded,
             enter = expandVertically(),
@@ -180,16 +177,11 @@ internal object FlashcardScopeInstance : FlashcardScope {
                             onExpand(false)
                             itemState.snackbarMessage?.let { message ->
                                 scope.launch {
-                                    val snackbarResult = snackbarHostState.showSnackbar(
+                                    snackbarHostState.showUndoSnackbar(
                                         message = message,
-                                        actionLabel = actionLabel,
-                                        duration = SnackbarDuration.Long,
-                                        withDismissAction = true,
+                                        onActionPerformed = itemState.onActionPerformed,
+                                        onDismiss = itemState.onDismissAction
                                     )
-                                    when (snackbarResult) {
-                                        SnackbarResult.Dismissed -> itemState.onDismissAction()
-                                        SnackbarResult.ActionPerformed -> itemState.onActionPerformed()
-                                    }
                                 }
                             }
                         },

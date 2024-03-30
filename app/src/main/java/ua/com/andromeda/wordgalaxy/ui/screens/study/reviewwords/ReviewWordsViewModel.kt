@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import ua.com.andromeda.wordgalaxy.data.local.PreferenceDataStoreHelper
 import ua.com.andromeda.wordgalaxy.data.model.EmbeddedWord
-import ua.com.andromeda.wordgalaxy.data.model.WordStatus
 import ua.com.andromeda.wordgalaxy.data.model.repeat
 import ua.com.andromeda.wordgalaxy.data.repository.word.WordRepository
 import ua.com.andromeda.wordgalaxy.ui.common.flashcard.FlashcardUiState
@@ -27,10 +26,7 @@ class ReviewWordsViewModel @Inject constructor(
     )
 
     override suspend fun buildWordsQueue(): List<EmbeddedWord> {
-        return wordRepository.findRandomWordsWhereStatusEquals(
-            status = WordStatus.Memorized,
-            limit = LIMIT_AMOUNT_WORDS_IN_REVIEW_QUEUE
-        ).first()
+        return wordRepository.findWordsToReview(LIMIT_AMOUNT_WORDS_IN_REVIEW_QUEUE).first()
     }
 
     fun repeatWord() {

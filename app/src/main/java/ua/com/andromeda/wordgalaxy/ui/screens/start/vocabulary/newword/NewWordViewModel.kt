@@ -31,7 +31,7 @@ class NewWordViewModel @Inject constructor(
     init {
         viewModelScope.launch(Dispatchers.IO) {
             launch(Dispatchers.IO) {
-                categoryRepository.findAllChildCategories().collect { categories ->
+                categoryRepository.findAll().collect { categories ->
                     _uiState.update {
                         NewWordUiState.Success(
                             suggestedCategories = categories

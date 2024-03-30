@@ -27,8 +27,8 @@ class WordRepositoryImpl @Inject constructor(
     override fun findRandomWordsWhereStatusEquals(status: WordStatus, limit: Int) =
         wordDao.findRandomWordsWhereStatusEquals(status, limit)
 
-    override fun findWordToReview() =
-        wordDao.findRandomWordToReview().map { it.firstOrNull() }
+    override fun findWordsToReview(limit: Int) =
+        wordDao.findRandomWordToReview(limit)
 
     override fun findWordById(id: Long) =
         wordDao.findWordById(id)

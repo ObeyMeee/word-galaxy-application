@@ -54,7 +54,6 @@ fun NavGraphBuilder.vocabularyGraph(
             )
         }
 
-
         navigation(
             startDestination = newWordStartDestination,
             route = newWordRoute

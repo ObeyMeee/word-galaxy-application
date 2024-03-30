@@ -21,11 +21,6 @@ fun NavGraphBuilder.menuNavGraph(
                 towards = AnimatedContentTransitionScope.SlideDirection.Left
             )
         },
-        exitTransition = {
-            slideOutOfContainer(
-                towards = AnimatedContentTransitionScope.SlideDirection.Right
-            )
-        },
     ) {
         MenuScreen(
             navigateTo = navController::navigate,

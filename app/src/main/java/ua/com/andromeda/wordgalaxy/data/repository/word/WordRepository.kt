@@ -12,7 +12,7 @@ import java.time.temporal.TemporalUnit
 
 interface WordRepository {
     fun findRandomWordsWhereStatusEquals(status: WordStatus, limit: Int): Flow<List<EmbeddedWord>>
-    fun findWordToReview(): Flow<EmbeddedWord?>
+    fun findWordsToReview(limit: Int): Flow<List<EmbeddedWord>>
     fun findWordById(id: Long): Flow<Word>
     fun findEmbeddedWordById(id: Long): Flow<EmbeddedWord>
     fun findWordsByValue(value: String): Flow<List<ExistingWord>>
@@ -33,13 +33,27 @@ interface WordRepository {
     suspend fun insertAll(embeddedWords: List<EmbeddedWord>)
 }
 
-suspend fun WordRepository.copyWordToMyCategories(wordWithCategories: WordWithCategories) {
+suspend fun WordRepository.copyWordToMyCategory(wordWithCategories: WordWithCategories) {
     val updatedCategories = wordWithCategories.categories + MY_WORDS_CATEGORY
     updateWordWithCategories(
         wordWithCategories.copy(categories = updatedCategories)
     )
 }
 
-suspend fun WordRepository.copyWordToMyCategories(embeddedWord: EmbeddedWord) {
-    copyWordToMyCategories(embeddedWord.toWordWithCategories())
+suspend fun WordRepository.copyWordToMyCategory(embeddedWord: EmbeddedWord) {
+    copyWordToMyCategory(embeddedWord.toWordWithCategories())
+}
+
+suspend fun WordRepository.removeWordFromMyCategory(embeddedWord: EmbeddedWord) {
+    removeWordFromMyCategory(embeddedWord.toWordWithCategories())
+}
+
+suspend fun WordRepository.removeWordFromMyCategory(wordWithCategories: WordWithCategories) {
+    val updatedCategories = wordWithCategories.categories.toMutableList()
+    updatedCategories.removeIf { it.name == MY_WORDS_CATEGORY.name }
+    updateWordWithCategories(
+        wordWithCategories.copy(
+            categories = updatedCategories,
+        )
+    )
 }

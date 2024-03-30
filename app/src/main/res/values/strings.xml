@@ -130,6 +130,11 @@
     <string name="playstore_link">https://play.google.com/store/apps/details?id=ua.com.andromeda.wordgalaxy</string>
     <string name="support_email">andrrromeda88@gmail.com</string>
     <string name="scroll_to_the_top">Scroll to the top</string>
+    <string name="search">Search</string>
+    <string name="icon_picker_dialog_title">Choose an icon for new category</string>
+    <string name="accept">Accept</string>
+    <string name="no_icons_selected">No icons selected</string>
+    <string name="category_icon">Category icon</string>
 
     <plurals name="days">
         <item quantity="one">day</item>

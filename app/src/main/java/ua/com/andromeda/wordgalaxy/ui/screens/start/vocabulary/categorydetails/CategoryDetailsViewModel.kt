@@ -1,5 +1,6 @@
 package ua.com.andromeda.wordgalaxy.ui.screens.start.vocabulary.categorydetails
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -17,10 +18,12 @@ import ua.com.andromeda.wordgalaxy.data.model.reset
 import ua.com.andromeda.wordgalaxy.data.model.updateStatus
 import ua.com.andromeda.wordgalaxy.data.repository.category.CategoryRepository
 import ua.com.andromeda.wordgalaxy.data.repository.word.WordRepository
-import ua.com.andromeda.wordgalaxy.data.repository.word.copyWordToMyCategories
+import ua.com.andromeda.wordgalaxy.data.repository.word.copyWordToMyCategory
+import ua.com.andromeda.wordgalaxy.data.repository.word.removeWordFromMyCategory
 import ua.com.andromeda.wordgalaxy.ui.navigation.Destination.Start.VocabularyScreen.CategoryDetailsScreen.ID_KEY
 import ua.com.andromeda.wordgalaxy.ui.navigation.Destination.Start.VocabularyScreen.CategoryDetailsScreen.WORD_ID_KEY
 import ua.com.andromeda.wordgalaxy.utils.Direction
+import ua.com.andromeda.wordgalaxy.utils.TAG
 import javax.inject.Inject
 
 @HiltViewModel
@@ -66,6 +69,7 @@ class CategoryDetailsViewModel @Inject constructor(
     ) = launch {
         wordRepository.findWordsByCategoryId(categoryId).collect { words ->
             _uiState.update { state ->
+                Log.d(this@CategoryDetailsViewModel.TAG, "Observe words ==> ${words.size}")
                 if (state is CategoryDetailsUiState.Success) {
                     state.copy(embeddedWords = words)
                 } else {
@@ -93,7 +97,7 @@ class CategoryDetailsViewModel @Inject constructor(
                 if (it is CategoryDetailsUiState.Success) {
                     action(it)
                 } else {
-                    CategoryDetailsUiState.Error()
+                    errorState()
                 }
             }
         }
@@ -107,33 +111,70 @@ class CategoryDetailsViewModel @Inject constructor(
         }
     }
 
-    fun resetWordProgress(embeddedWord: EmbeddedWord) =
-        viewModelScope.launch(coroutineDispatcher) {
-            wordRepository.update(embeddedWord.word.reset())
-        }
+    fun resetWordProgress(embeddedWord: EmbeddedWord) = viewModelScope.launch(coroutineDispatcher) {
+        addWordToQueue(embeddedWord)
+        wordRepository.update(embeddedWord.word.reset())
+    }
 
-    fun copyWordToMyCategory() {
+    fun copyWordToMyCategory() = viewModelScope.launch(coroutineDispatcher) {
         (_uiState.value as? CategoryDetailsUiState.Success)?.let { state ->
             state.selectedWord?.let { embeddedWord ->
-                viewModelScope.launch(coroutineDispatcher) {
-                    wordRepository.copyWordToMyCategories(embeddedWord)
+                addWordToQueue(embeddedWord)
+                wordRepository.copyWordToMyCategory(embeddedWord)
+            }
+        }
+    }
+
+    fun removeWordFromMyCategory() {
+        viewModelScope.launch(coroutineDispatcher) {
+            (_uiState.value as? CategoryDetailsUiState.Success)?.let { state ->
+                val processedWord = state.wordsInProcessQueue.firstOrNull()
+                if (processedWord == null) {
+                    _uiState.update { errorState() }
+                } else {
+                    wordRepository.removeWordFromMyCategory(processedWord)
+                    removeWordFromQueue()
                 }
             }
         }
     }
+
+    private fun errorState(message: String = "Something went wrong") =
+        CategoryDetailsUiState.Error(message)
+
+    fun removeWordFromQueue() {
+        updateUiState {
+            val updatedQueue = it.wordsInProcessQueue.toMutableList()
+            updatedQueue.removeFirst()
+            it.copy(wordsInProcessQueue = updatedQueue)
+        }
+    }
+
+    fun addWordToQueue(embeddedWord: EmbeddedWord) {
+        updateUiState { state ->
+            state.copy(
+                wordsInProcessQueue = state.wordsInProcessQueue + embeddedWord
+            )
+        }
+    }
+
 
     fun removeWord() {
-        (_uiState.value as? CategoryDetailsUiState.Success)?.let { state ->
-            state.selectedWord?.let {
-                viewModelScope.launch(coroutineDispatcher) {
-                    wordRepository.remove(it)
-                }
+        viewModelScope.launch(coroutineDispatcher) {
+            (_uiState.value as? CategoryDetailsUiState.Success)?.let { state ->
+                val removedWord = state.wordsInProcessQueue.first()
+                wordRepository.remove(removedWord)
             }
+            removeWordFromQueue()
         }
     }
 
-    fun removeWord(embeddedWord: EmbeddedWord) = viewModelScope.launch(coroutineDispatcher) {
-        wordRepository.remove(embeddedWord)
+    fun recoverWord() = viewModelScope.launch(coroutineDispatcher) {
+        (_uiState.value as? CategoryDetailsUiState.Success)?.let { state ->
+            val recoveredWord = state.wordsInProcessQueue.first()
+            wordRepository.update(recoveredWord)
+            removeWordFromQueue()
+        }
     }
 
     fun updateWordStatus(status: WordStatus) {

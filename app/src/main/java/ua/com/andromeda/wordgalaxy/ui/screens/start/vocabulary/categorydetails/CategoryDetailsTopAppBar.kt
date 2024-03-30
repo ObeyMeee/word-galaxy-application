@@ -17,30 +17,28 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.hilt.navigation.compose.hiltViewModel
 import ua.com.andromeda.wordgalaxy.R
 import ua.com.andromeda.wordgalaxy.utils.Direction
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryDetailsTopAppBar(
-    title: String,
-    sortOrder: WordSortOrder,
-    direction: Direction,
+    navigateUp: () -> Unit,
     modifier: Modifier = Modifier,
-    menuExpanded: Boolean = false,
-    updateSortDirection: () -> Unit = {},
-    openConfirmResetProgressDialog: (Boolean) -> Unit = {},
-    navigateUp: () -> Unit = {},
-    expandMenu: (Boolean) -> Unit = {},
-    openOrderDialog: (Boolean) -> Unit = {},
+    viewModel: CategoryDetailsViewModel = hiltViewModel(),
 ) {
+    val state by viewModel.uiState.collectAsState()
+
     TopAppBar(
-        title = { Text(text = title) },
+        title = { Text(text = state.title) },
         modifier = modifier,
         navigationIcon = {
             IconButton(onClick = navigateUp) {
@@ -51,13 +49,13 @@ fun CategoryDetailsTopAppBar(
             }
         },
         actions = {
-            SortIconButton(direction, onClick = updateSortDirection)
+            SortIconButton(state.direction, onClick = viewModel::updateSortDirection)
             TopAppBarMenu(
-                onExpand = expandMenu,
-                expanded = menuExpanded,
-                sortOrder = sortOrder,
-                openConfirmResetProgressDialog = openConfirmResetProgressDialog,
-                openOrderDialog = openOrderDialog,
+                onExpand = viewModel::expandTopAppBarMenu,
+                expanded = state.topAppBarMenuExpanded,
+                sortOrder = state.selectedSortOrder,
+                openConfirmResetProgressDialog = viewModel::openConfirmResetProgressDialog,
+                openOrderDialog = viewModel::openOrderDialog,
                 modifier = Modifier.wrapContentSize(Alignment.TopStart)
             )
         }
