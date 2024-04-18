@@ -40,10 +40,14 @@ abstract class FlashcardViewModel(
         val amountWordsToLearnPerDay = getAmountWordsToLearnPerDay()
         val words = buildWordsQueue()
         updateUiState {
-            it.copy(
-                memorizingWordsQueue = words,
-                amountWordsLearnPerDay = amountWordsToLearnPerDay
-            )
+            if (words.isEmpty()) {
+                FlashcardUiState.Error("No words to review")
+            } else {
+                it.copy(
+                    memorizingWordsQueue = words,
+                    amountWordsLearnPerDay = amountWordsToLearnPerDay
+                )
+            }
         }
     }
 

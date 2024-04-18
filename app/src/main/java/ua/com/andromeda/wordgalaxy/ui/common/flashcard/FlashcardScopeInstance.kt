@@ -2,8 +2,6 @@ package ua.com.andromeda.wordgalaxy.ui.common.flashcard
 
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -32,7 +30,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.MoreHoriz
@@ -65,7 +62,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
@@ -100,6 +96,7 @@ import ua.com.andromeda.wordgalaxy.ui.common.CardMode
 import ua.com.andromeda.wordgalaxy.ui.common.Divider
 import ua.com.andromeda.wordgalaxy.ui.common.DropdownItemState
 import ua.com.andromeda.wordgalaxy.ui.common.HorizontalSpacer
+import ua.com.andromeda.wordgalaxy.ui.common.RotatingExpandIcon
 import ua.com.andromeda.wordgalaxy.ui.common.showUndoSnackbar
 import ua.com.andromeda.wordgalaxy.utils.playPronunciation
 
@@ -382,11 +379,7 @@ internal object FlashcardScopeInstance : FlashcardScope {
         modifier: Modifier = Modifier
     ) {
         var expanded by remember { mutableStateOf(false) }
-        val rotationAngle by animateFloatAsState(
-            targetValue = if (expanded) 180f else 0f,
-            animationSpec = spring(),
-            label = "ExpandExampleAnimation"
-        )
+
         Column(modifier) {
             Row(
                 modifier = Modifier
@@ -395,11 +388,7 @@ internal object FlashcardScopeInstance : FlashcardScope {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    imageVector = Icons.Default.KeyboardArrowDown,
-                    contentDescription = stringResource(R.string.expand),
-                    modifier = Modifier.rotate(rotationAngle)
-                )
+                RotatingExpandIcon(expanded)
                 HorizontalSpacer(R.dimen.padding_small)
                 Text(
                     text = example.text,

@@ -62,15 +62,12 @@
     <string name="text">Text</string>
     <string name="this_word_already_exists">This word already exists</string>
     <string name="new_category">New Category</string>
-    <string name="title">Title</string>
     <string name="type_at_least_two_letters">Type at least 2 letters</string>
     <string name="play_pronunciation">Play pronunciation</string>
     <string name="no_words_found">No words found</string>
     <string name="word_actions">Word actions</string>
     <string name="jump_to_this_word">Jump to this word</string>
-    <string name="you_have_successfully_marked_word_as_already_known">You have successfully marked word as already known</string>
     <string name="mark_word_as_already_known">"Mark word as Already known "</string>
-    <string name="word_status_has_been_changed">Word status has been changed</string>
     <string name="reset_progress">Reset progress</string>
     <string name="word_order">Word order: %s</string>
     <string name="are_you_sure_you_want_to_reset_progress_of_all_words_of_current_category">Are you sure you want to reset progress of all words of current category?</string>
@@ -81,7 +78,6 @@
     <string name="report_on_word_has_been_sent_successfully">Report on word \'%s\' has been sent successfully</string>
     <string name="click_button_to_add_some_examples">Click button to add some examples</string>
     <string name="next">Next</string>
-    <string name="select_categories">Select categories</string>
     <string name="add_examples">Add examples</string>
     <string name="delete_category">Delete category</string>
     <string name="save">Save</string>
@@ -94,7 +90,6 @@
     <string name="type_answer">Type answer</string>
     <string name="default_mode">Default mode</string>
     <string name="show_this_word_later">Show this word later</string>
-    <string name="undo">Undo</string>
     <string name="tap_to_share_the_app">Tap to share the app</string>
     <string name="tap_to_show_our_playstore_page">Tap to show our PlayStore page</string>
     <string name="tap_to_go_to_our_support_page">Tap to go to our support page</string>
@@ -124,15 +119,12 @@
     <string name="cambridge_dictionary_link">https://dictionary.cambridge.org</string>
     <string name="issues_with_app">🛠️If you have any issues, bugs with the app don\'t rush to uninstall it. Please, contact me by any way you like, I\'ll respond ASAP. All my contacts are on the bottom of the screen👇</string>
     <string name="rate_this_app">"⭐Rate this app on the Play Store. It gives me extra energy to improve it"</string>
-    <string name="support_app">💸If you find this app useful you can buy me a coffee https://www.buymeacoffee.com/Andrrromeda. This definitely helps me work on this project harder😉</string>
     <string name="about_this_app">About this app</string>
     <string name="freepik_link">https://www.flaticon.com/authors/freepik</string>
     <string name="playstore_link">https://play.google.com/store/apps/details?id=ua.com.andromeda.wordgalaxy</string>
     <string name="support_email">andrrromeda88@gmail.com</string>
     <string name="scroll_to_the_top">Scroll to the top</string>
     <string name="search">Search</string>
-    <string name="icon_picker_dialog_title">Choose an icon for new category</string>
-    <string name="accept">Accept</string>
     <string name="no_icons_selected">No icons selected</string>
     <string name="category_icon">Category icon</string>
 

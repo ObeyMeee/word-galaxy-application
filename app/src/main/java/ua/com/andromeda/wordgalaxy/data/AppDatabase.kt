@@ -14,6 +14,7 @@ import ua.com.andromeda.wordgalaxy.utils.Converters
 
 @Database(
     version = 3,
+    exportSchema = false,
     entities = [
         Word::class,
         Category::class,

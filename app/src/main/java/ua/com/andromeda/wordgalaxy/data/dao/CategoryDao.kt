@@ -27,6 +27,7 @@ interface CategoryDao {
         LEFT JOIN words_categories ON categories.id = words_categories.category_id 
         LEFT JOIN Word ON words_categories.word_id = Word.id 
         GROUP BY categories.id
+        ORDER BY categories.name
         """
     )
     fun findCategoriesWithWordCountAndCompletedWordsCount(): Flow<List<VocabularyCategory>>

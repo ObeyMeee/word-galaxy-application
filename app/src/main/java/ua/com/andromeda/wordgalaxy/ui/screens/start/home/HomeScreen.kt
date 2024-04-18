@@ -9,6 +9,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -49,13 +50,11 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import ua.com.andromeda.wordgalaxy.R
+import ua.com.andromeda.wordgalaxy.data.model.WordStatus
 import ua.com.andromeda.wordgalaxy.ui.common.CenteredLoadingSpinner
 import ua.com.andromeda.wordgalaxy.ui.common.HorizontalSpacer
 import ua.com.andromeda.wordgalaxy.ui.common.Message
-import ua.com.andromeda.wordgalaxy.ui.common.VerticalSpacer
 import ua.com.andromeda.wordgalaxy.ui.navigation.Destination
 import ua.com.andromeda.wordgalaxy.ui.screens.start.home.graphics.ResultBarChart
 import ua.com.andromeda.wordgalaxy.ui.theme.WordGalaxyTheme
@@ -65,7 +64,7 @@ import java.time.LocalDateTime
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
-    navController: NavController = rememberNavController(),
+    navigateTo: (String) -> Unit,
 ) {
     val viewModel: HomeViewModel = hiltViewModel()
     val homeUiState by viewModel.uiState.collectAsState()
@@ -76,16 +75,26 @@ fun HomeScreen(
         is HomeUiState.Success -> {
             val scrollState = rememberScrollState()
 
-            Column(modifier = modifier.verticalScroll(scrollState)) {
-                RepetitionSection(state, navController)
-                VerticalSpacer(R.dimen.padding_medium)
-                StatsSection(state, modifier = Modifier.fillMaxWidth())
-                VerticalSpacer(R.dimen.padding_medium)
+            Column(
+                modifier = modifier.verticalScroll(scrollState),
+                verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_medium))
+            ) {
+                RepetitionSection(
+                    learnedWordsToday = state.learnedWordsToday,
+                    amountWordsToLearnPerDay = state.amountWordsToLearnPerDay,
+                    amountWordsToReview = state.amountWordsToReview,
+                    navigateTo = navigateTo,
+                )
+                StatsSection(
+                    currentStreak = state.currentStreak,
+                    bestStreak = state.bestStreak,
+                )
                 ChartSection(
-                    state = state,
+                    timePeriod = state.timePeriod,
+                    listOfWordsCountOfStatus = state.listOfWordsCountOfStatus,
+                    showTimePeriodDialog = state.showTimePeriodDialog,
                     updateTimePeriod = viewModel::updateTimePeriod,
                     showDialog = viewModel::updateShowTimePeriodDialog,
-                    modifier = Modifier.fillMaxWidth()
                 )
             }
         }
@@ -94,35 +103,36 @@ fun HomeScreen(
 
 @Composable
 private fun RepetitionSection(
-    state: HomeUiState.Success,
-    navController: NavController = rememberNavController()
+    learnedWordsToday: Int,
+    amountWordsToLearnPerDay: Int,
+    amountWordsToReview: Int,
+    navigateTo: (String) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    Text(
-        text = stringResource(R.string.repetition),
-        style = MaterialTheme.typography.labelMedium
-    )
-    VerticalSpacer(R.dimen.padding_small)
-    Column(verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_medium))) {
+    Section(modifier) {
+        Text(
+            text = stringResource(R.string.repetition),
+            style = MaterialTheme.typography.labelMedium
+        )
         LearningTab(
             icon = painterResource(R.drawable.bulb_icon),
             textRes = R.string.learn_new_words,
-            labelRes = R.string.learned_today,
-            iconColor = Color.Yellow,
-            labelParams = arrayOf(
-                state.learnedWordsToday,
-                state.amountWordsToLearnPerDay
+            label = stringResource(
+                id = R.string.learned_today,
+                learnedWordsToday,
+                amountWordsToLearnPerDay
             ),
+            iconColor = Color.Yellow,
         ) {
-            navController.navigate(Destination.Study.LearnWordsScreen())
+            navigateTo(Destination.Study.LearnWordsScreen())
         }
         LearningTab(
             icon = rememberVectorPainter(image = Icons.Outlined.Refresh),
             textRes = R.string.review_words,
-            labelRes = R.string.words_to_review,
+            label = stringResource(R.string.words_to_review, amountWordsToReview),
             iconColor = Color.Green,
-            labelParams = arrayOf(state.amountWordsToReview),
         ) {
-            navController.navigate(Destination.Study.ReviewWordsScreen())
+            navigateTo(Destination.Study.ReviewWordsScreen())
         }
     }
 }
@@ -132,8 +142,7 @@ private fun RepetitionSection(
 private fun LearningTab(
     icon: Painter,
     @StringRes textRes: Int,
-    @StringRes labelRes: Int,
-    labelParams: Array<Int>,
+    label: String,
     iconColor: Color,
     modifier: Modifier = Modifier,
     onClick: () -> Unit = {},
@@ -148,14 +157,14 @@ private fun LearningTab(
                 painter = icon,
                 contentDescription = null,
                 modifier = Modifier
-                    .height(dimensionResource(R.dimen.icon_size_large))
+                    .size(dimensionResource(R.dimen.icon_size_large))
                     .padding(end = dimensionResource(R.dimen.padding_small)),
                 tint = iconColor
             )
             Column {
                 Text(text = stringResource(textRes))
                 Text(
-                    text = stringResource(labelRes, *labelParams),
+                    text = label,
                     color = MaterialTheme.colorScheme.secondary,
                     fontStyle = FontStyle.Italic,
                     style = MaterialTheme.typography.labelMedium
@@ -166,26 +175,50 @@ private fun LearningTab(
 }
 
 @Composable
+private inline fun Section(
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(
+            dimensionResource(R.dimen.padding_small)
+        ),
+    ) {
+        content()
+    }
+}
+
+@Composable
 fun StatsSection(
-    state: HomeUiState.Success,
+    currentStreak: Int,
+    bestStreak: Int,
     modifier: Modifier = Modifier
 ) {
-    Text(
-        text = stringResource(R.string.stats),
-        style = MaterialTheme.typography.labelMedium
-    )
-    VerticalSpacer(R.dimen.padding_small)
     val fillMaxWidthModifier = Modifier.fillMaxWidth()
-    Card(modifier = modifier) {
-        Column(modifier = Modifier.padding(dimensionResource(R.dimen.padding_medium))) {
-            DaysOfWeekRow(modifier = fillMaxWidthModifier)
-            ActiveDayOfWeekArrow(modifier = fillMaxWidthModifier)
-            StreakRow(state = state, modifier = fillMaxWidthModifier)
+    Section(modifier) {
+        Text(
+            text = stringResource(R.string.stats),
+            style = MaterialTheme.typography.labelMedium
+        )
+        Card {
+            Column(
+                modifier = Modifier.padding(
+                    dimensionResource(R.dimen.padding_medium)
+                ),
+            ) {
+                DaysOfWeekRow(modifier = fillMaxWidthModifier)
+                ActiveDayOfWeekArrow(modifier = fillMaxWidthModifier)
+                StreakRow(
+                    currentStreak = currentStreak,
+                    bestStreak = bestStreak,
+                    modifier = fillMaxWidthModifier
+                )
+            }
         }
     }
 }
 
-@OptIn(ExperimentalStdlibApi::class)
 @Composable
 private fun DaysOfWeekRow(modifier: Modifier = Modifier) {
     val dayOfWeeks = DayOfWeek.entries
@@ -228,7 +261,6 @@ private fun DayOfWeekItem(dayOfWeek: DayOfWeek) {
     }
 }
 
-@OptIn(ExperimentalStdlibApi::class)
 @Composable
 private fun ActiveDayOfWeekArrow(modifier: Modifier = Modifier) {
     val dayOfWeeks = DayOfWeek.entries
@@ -253,7 +285,8 @@ private fun ActiveDayOfWeekArrow(modifier: Modifier = Modifier) {
 
 @Composable
 private fun StreakRow(
-    state: HomeUiState.Success,
+    currentStreak: Int,
+    bestStreak: Int,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -263,12 +296,12 @@ private fun StreakRow(
         StreakCard(
             labelResId = R.string.current_streak,
             valueResId = R.plurals.days,
-            count = state.currentStreak
+            count = currentStreak
         )
         StreakCard(
             labelResId = R.string.best_streak,
             valueResId = R.plurals.days_in_a_row,
-            count = state.bestStreak
+            count = bestStreak
         )
     }
 }
@@ -304,46 +337,48 @@ private fun StreakCard(
 
 @Composable
 fun ChartSection(
-    state: HomeUiState.Success,
+    timePeriod: TimePeriodChartOptions,
+    showTimePeriodDialog: Boolean,
+    listOfWordsCountOfStatus: List<Map<WordStatus, Int>>,
     modifier: Modifier = Modifier,
     showDialog: (Boolean) -> Unit = {},
     updateTimePeriod: (TimePeriodChartOptions) -> Unit = {}
 ) {
     val configuration = LocalConfiguration.current
     val chartHeight = configuration.screenHeightDp / 2.5
-
-    Text(
-        text = stringResource(R.string.chart),
-        style = MaterialTheme.typography.labelMedium
-    )
-    VerticalSpacer(R.dimen.padding_small)
-    Card(modifier = modifier) {
-        Row(modifier = Modifier.padding(dimensionResource(R.dimen.padding_medium))) {
-            Text(text = stringResource(id = R.string.time_period))
-            Text(
-                text = state.timePeriod.label,
-                textDecoration = TextDecoration.Underline,
-                color = MaterialTheme.colorScheme.primary,
+    Section(modifier) {
+        Text(
+            text = stringResource(R.string.chart),
+            style = MaterialTheme.typography.labelMedium
+        )
+        Card {
+            Row(modifier = Modifier.padding(dimensionResource(R.dimen.padding_medium))) {
+                Text(text = stringResource(id = R.string.time_period))
+                Text(
+                    text = timePeriod.label,
+                    textDecoration = TextDecoration.Underline,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .padding(start = dimensionResource(R.dimen.padding_smaller))
+                        .clickable {
+                            showDialog(true)
+                        }
+                )
+                TimePeriodDialog(
+                    currentOption = timePeriod,
+                    visible = showTimePeriodDialog,
+                    showDialog = showDialog,
+                    onOptionSelected = updateTimePeriod
+                )
+            }
+            ResultBarChart(
+                data = listOfWordsCountOfStatus,
+                days = timePeriod.days,
                 modifier = Modifier
-                    .padding(start = dimensionResource(R.dimen.padding_smaller))
-                    .clickable {
-                        showDialog(true)
-                    }
-            )
-            TimePeriodDialog(
-                currentOption = state.timePeriod,
-                visible = state.showTimePeriodDialog,
-                showDialog = showDialog,
-                onOptionSelected = updateTimePeriod
+                    .height(chartHeight.dp)
+                    .fillMaxSize()
             )
         }
-        ResultBarChart(
-            data = state.listOfWordsCountOfStatus,
-            days = state.timePeriod.days,
-            modifier = Modifier
-                .height(chartHeight.dp)
-                .fillMaxSize()
-        )
     }
 }
 
@@ -411,7 +446,8 @@ fun HomeScreenPreview() {
     WordGalaxyTheme {
         Surface {
             HomeScreen(
-                modifier = Modifier.padding(dimensionResource(R.dimen.padding_small))
+                modifier = Modifier.padding(dimensionResource(R.dimen.padding_small)),
+                navigateTo = {},
             )
         }
     }
@@ -422,7 +458,10 @@ fun HomeScreenPreview() {
 fun StatsSectionPreview() {
     WordGalaxyTheme {
         Surface {
-            StatsSection(HomeUiState.Success())
+            StatsSection(
+                currentStreak = 4,
+                bestStreak = 5
+            )
         }
     }
 }

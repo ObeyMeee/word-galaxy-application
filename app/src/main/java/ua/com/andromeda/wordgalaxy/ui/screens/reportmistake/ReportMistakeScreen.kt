@@ -35,6 +35,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import ua.com.andromeda.wordgalaxy.R
 import ua.com.andromeda.wordgalaxy.ui.common.CenteredLoadingSpinner
 import ua.com.andromeda.wordgalaxy.ui.common.Message
+import ua.com.andromeda.wordgalaxy.ui.common.TitledTopAppBar
 import ua.com.andromeda.wordgalaxy.ui.common.VerticalSpacer
 
 @Composable
@@ -48,7 +49,10 @@ fun ReportMistakeScreen(
 
     Scaffold(
         topBar = {
-            ReportMistakeTopAppBar(navigateUp = navigateUp)
+            TitledTopAppBar(
+                titleRes = R.string.report_a_mistake,
+                navigateUp = navigateUp
+            )
         },
         floatingActionButton = {
             if (uiState is ReportMistakeUiState.Success) {

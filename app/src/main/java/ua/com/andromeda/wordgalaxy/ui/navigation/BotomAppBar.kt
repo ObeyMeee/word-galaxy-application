@@ -12,25 +12,20 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.navigation.NavController
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
 import ua.com.andromeda.wordgalaxy.R
 
 @Composable
 fun StartBottomAppBar(
+    currentRoute: String?,
+    navigateTo: (String) -> Unit,
     modifier: Modifier = Modifier,
-    navController: NavController = rememberNavController()
 ) {
-    val backStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = backStackEntry?.destination?.route
     BottomAppBar(modifier) {
         NavigationBar {
             BottomNavigationBarItem(
@@ -38,21 +33,21 @@ fun StartBottomAppBar(
                 currentRoute = currentRoute,
                 icon = painterResource(R.drawable.flash_cards_icon),
                 label = R.string.learn,
-                navController = navController
+                navigateTo = navigateTo,
             )
             BottomNavigationBarItem(
                 destination = Destination.Start.VocabularyScreen.CategoriesScreen(),
                 currentRoute = currentRoute,
                 icon = rememberVectorPainter(Icons.Default.Book),
                 label = R.string.vocabulary,
-                navController = navController
+                navigateTo = navigateTo,
             )
             BottomNavigationBarItem(
                 destination = Destination.Start.MenuScreen(),
                 currentRoute = currentRoute,
                 icon = rememberVectorPainter(Icons.Default.Menu),
                 label = R.string.menu,
-                navController = navController
+                navigateTo = navigateTo,
             )
         }
     }
@@ -65,11 +60,11 @@ fun RowScope.BottomNavigationBarItem(
     icon: Painter,
     @StringRes label: Int,
     modifier: Modifier = Modifier,
-    navController: NavController = rememberNavController()
+    navigateTo: (String) -> Unit,
 ) {
     NavigationBarItem(
         selected = destination == currentRoute,
-        onClick = { navController.navigate(destination) },
+        onClick = { navigateTo(destination) },
         icon = {
             Icon(
                 painter = icon,

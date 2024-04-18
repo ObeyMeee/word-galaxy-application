@@ -90,6 +90,5 @@ fun calculateNextRepeatAt(amountRepetition: Int): LocalDateTime {
             FIRST_HOURS_INTERVAL
         else
             FIRST_HOURS_INTERVAL * INTERVAL_MULTIPLIER.pow(amountRepetition)
-    // TODO: For developing purpose, change to plusHours
-    return initialRepetitionTime.plusMinutes(hoursIntervalToRepeat.toLong())
+    return initialRepetitionTime.plusHours(hoursIntervalToRepeat.toLong())
 }

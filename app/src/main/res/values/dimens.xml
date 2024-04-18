@@ -10,28 +10,9 @@
     <dimen name="padding_largest">40dp</dimen>
     <dimen name="padding_huge">64dp</dimen>
 
-    <dimen name="offset_smallest">2dp</dimen>
-    <dimen name="offset_smaller">4dp</dimen>
     <dimen name="offset_small">8dp</dimen>
-    <dimen name="offset_mediumish">12dp</dimen>
-    <dimen name="offset_medium">16dp</dimen>
-    <dimen name="offset_large">24dp</dimen>
-    <dimen name="offset_larger">32dp</dimen>
-    <dimen name="offset_largest">40dp</dimen>
-
-    <dimen name="round_small">8dp</dimen>
-    <dimen name="round_medium">16dp</dimen>
-    <dimen name="round_large">24dp</dimen>
-    <dimen name="round_larger">32dp</dimen>
-    <dimen name="round_largest">40dp</dimen>
 
     <dimen name="border_smallest">1dp</dimen>
-    <dimen name="border_smaller">2dp</dimen>
-    <dimen name="border_small">4dp</dimen>
-    <dimen name="border_medium">6dp</dimen>
-    <dimen name="border_large">8dp</dimen>
-    <dimen name="border_larger">12dp</dimen>
-    <dimen name="border_largest">16dp</dimen>
 
     <dimen name="icon_size_small">16dp</dimen>
     <dimen name="icon_size_default">24dp</dimen>
@@ -41,7 +22,6 @@
 
     <dimen name="day_of_week_size_box">32dp</dimen>
     <dimen name="action_button_height">70dp</dimen>
-    <dimen name="bottom_app_bar_height">70dp</dimen>
     <dimen name="card_mode_icon">110dp</dimen>
     <dimen name="icon_item_width">90dp</dimen>
 </resources>

@@ -36,14 +36,16 @@ import ua.com.andromeda.wordgalaxy.utils.playPronunciation
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 fun VocabularySearchBar(
-    state: VocabularyUiState.Success,
+    query: String,
+    active: Boolean,
+    suggestedWords: List<EmbeddedWord>,
     modifier: Modifier = Modifier,
     viewModel: VocabularyViewModel = hiltViewModel(),
 ) {
     SearchBar(
-        query = state.searchQuery,
+        query = query,
         onQueryChange = viewModel::updateSearchQuery,
-        active = state.activeSearch,
+        active = active,
         onSearch = {},
         onActiveChange = viewModel::updateActive,
         modifier = modifier,
@@ -52,7 +54,7 @@ fun VocabularySearchBar(
         },
         leadingIcon = {
             LeadingIcon(
-                activeSearch = state.activeSearch,
+                activeSearch = active,
                 onBackClicked = {
                     viewModel.updateActive()
                     viewModel.clearSearch()
@@ -60,7 +62,7 @@ fun VocabularySearchBar(
             )
         },
         trailingIcon = {
-            AnimatedVisibility(visible = state.activeSearch) {
+            AnimatedVisibility(visible = active) {
                 IconButton(onClick = viewModel::clearSearch) {
                     Icon(
                         imageVector = Icons.Default.Close,
@@ -71,8 +73,8 @@ fun VocabularySearchBar(
         }
     ) {
         SearchBarContent(
-            items = state.suggestedWords,
-            query = state.searchQuery,
+            items = suggestedWords,
+            query = query,
             selectSuggestion = viewModel::selectSuggestedWord,
         )
     }

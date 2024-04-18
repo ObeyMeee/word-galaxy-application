@@ -4,7 +4,12 @@ import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListState
@@ -74,7 +79,10 @@ fun WordGalaxyNavHost(modifier: Modifier = Modifier) {
         },
         bottomBar = {
             StartContent(currentRoute) {
-                StartBottomAppBar(navController = navController)
+                StartBottomAppBar(
+                    currentRoute = currentRoute,
+                    navigateTo = navController::navigate,
+                )
             }
         },
         snackbarHost = {
@@ -96,14 +104,23 @@ fun WordGalaxyNavHost(modifier: Modifier = Modifier) {
                 route = start
             ) {
                 composable(
-                    startScreenRoute,
+                    route = startScreenRoute,
                     enterTransition = {
-                        slideIntoContainer(towards = AnimatedContentTransitionScope.SlideDirection.Right)
+                        slideInHorizontally(
+                            animationSpec = tween(ANIMATION_DURATION_MILLIS),
+                            initialOffsetX = { -it / 2 },
+                        ) + fadeIn(tween(ANIMATION_DURATION_MILLIS), INITIAL_ALPHA)
                     },
+                    exitTransition = {
+                        slideOutHorizontally(
+                            animationSpec = tween(ANIMATION_DURATION_MILLIS),
+                            targetOffsetX = { -it },
+                        ) + fadeOut(tween(ANIMATION_DURATION_MILLIS), TARGET_ALPHA)
+                    }
                 ) {
                     HomeScreen(
                         modifier = modifierWithSmallPadding,
-                        navController = navController
+                        navigateTo = navController::navigate
                     )
                 }
                 vocabularyGraph(
@@ -112,40 +129,41 @@ fun WordGalaxyNavHost(modifier: Modifier = Modifier) {
                     categoriesState = categoriesState,
                     modifier = modifierWithSmallPadding
                 )
-                studyNavGraph(
-                    navController = navController,
-                    snackbarHostState = snackbarHostState,
-                    modifier = modifierWithSmallPadding
-                )
                 menuNavGraph(
                     navController = navController,
                     modifier = modifierWithSmallPadding
                 )
-                composable(
-                    route = Destination.ReportMistakeScreen.fullRoute,
-                    arguments = listOf(
-                        navArgument(Destination.ReportMistakeScreen.WORD_ID_KEY) {
-                            type = NavType.LongType
-                        }
-                    ),
-                    enterTransition = {
-                        slideIntoContainer(towards = AnimatedContentTransitionScope.SlideDirection.Right)
-                    },
-                    exitTransition = {
-                        slideOutOfContainer(towards = AnimatedContentTransitionScope.SlideDirection.Left)
-                    },
-                ) {
-                    ReportMistakeScreen(
-                        modifier = modifierWithSmallPadding,
-                        navigateUp = navigateUp
-                    )
-                }
-                editNavGraph(
-                    navController = navController,
-                    snackbarHostState = snackbarHostState,
+            }
+            studyNavGraph(
+                navController = navController,
+                snackbarHostState = snackbarHostState,
+                modifier = modifierWithSmallPadding
+            )
+
+            composable(
+                route = Destination.ReportMistakeScreen.fullRoute,
+                arguments = listOf(
+                    navArgument(Destination.ReportMistakeScreen.WORD_ID_KEY) {
+                        type = NavType.LongType
+                    }
+                ),
+                enterTransition = {
+                    slideIntoContainer(towards = AnimatedContentTransitionScope.SlideDirection.Right)
+                },
+                exitTransition = {
+                    slideOutOfContainer(towards = AnimatedContentTransitionScope.SlideDirection.Left)
+                },
+            ) {
+                ReportMistakeScreen(
                     modifier = modifierWithSmallPadding,
+                    navigateUp = navigateUp
                 )
             }
+            editNavGraph(
+                navController = navController,
+                snackbarHostState = snackbarHostState,
+                modifier = modifierWithSmallPadding,
+            )
         }
     }
 }

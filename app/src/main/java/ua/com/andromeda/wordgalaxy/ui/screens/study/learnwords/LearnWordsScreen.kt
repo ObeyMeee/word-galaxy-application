@@ -150,7 +150,10 @@ fun LearnWordsMain(
                         flashcardState = flashcardState,
                     ) { columnScope ->
                         FlashcardContent(
-                            state = state,
+                            menuExpanded = state.menuExpanded,
+                            cardMode = state.cardMode,
+                            userGuess = state.userGuess,
+                            amountAttempts = state.amountAttempts,
                             viewModel = viewModel,
                             menuItems = menuItems,
                             snackbarHostState = snackbarHostState,

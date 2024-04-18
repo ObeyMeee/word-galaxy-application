@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.BrokenImage
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
@@ -73,7 +74,9 @@ fun VocabularyScreen(
                 snackbarHostState = snackbarHostState
             )
             VocabularySearchBar(
-                state = state,
+                query = state.searchQuery,
+                active = state.activeSearch,
+                suggestedWords = state.suggestedWords,
                 viewModel = viewModel,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -165,7 +168,7 @@ fun CategoryItem(
                         shape = MaterialTheme.shapes.extraLarge
                     )
                     .size(dimensionResource(R.dimen.icon_size_largest))
-                    .padding(dimensionResource(R.dimen.padding_smaller))
+                    .padding(dimensionResource(R.dimen.padding_small))
             )
         },
         supportingContent = {
@@ -188,11 +191,12 @@ private fun CategoryIcon(
     else if (category.customIconId != null)
         painterResource(category.customIconId)
     else rememberVectorPainter(Icons.Default.BrokenImage)
+    val tint = if (category.customIconId != null) Color.Unspecified else LocalContentColor.current
 
     Icon(
         painter = painter,
         contentDescription = null,
-        tint = Color.Unspecified,
+        tint = tint,
         modifier = modifier,
     )
 }

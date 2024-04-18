@@ -1,6 +1,8 @@
 package ua.com.andromeda.wordgalaxy.ui.navigation.graph
 
-import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.ui.Modifier
@@ -10,6 +12,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.navArgument
+import ua.com.andromeda.wordgalaxy.ui.navigation.ANIMATION_DURATION_MILLIS
 import ua.com.andromeda.wordgalaxy.ui.navigation.Destination
 import ua.com.andromeda.wordgalaxy.ui.navigation.sharedViewModel
 import ua.com.andromeda.wordgalaxy.ui.screens.start.vocabulary.categories.VocabularyScreen
@@ -29,6 +32,8 @@ fun NavGraphBuilder.vocabularyGraph(
     val categoryDetailsScreen = Destination.Start.VocabularyScreen.CategoryDetailsScreen
     val newWordStartDestination = Destination.Start.VocabularyScreen.NewWord.Screen()
     val newWordRoute = Destination.Start.VocabularyScreen.NewWord()
+    val currentRoute = navController.currentBackStackEntry?.destination?.route
+    val previousRoute = navController.previousBackStackEntry?.destination?.route
 
     val navigateTo = { route: String -> navController.navigate(route) }
     val navigateUp: () -> Unit = {
@@ -39,10 +44,20 @@ fun NavGraphBuilder.vocabularyGraph(
         startDestination = categoriesScreenRoute,
         route = Destination.Start.VocabularyScreen(),
         enterTransition = {
-            slideIntoContainer(towards = AnimatedContentTransitionScope.SlideDirection.Left)
+            slideInHorizontally(
+                animationSpec = tween(ANIMATION_DURATION_MILLIS),
+                initialOffsetX = {
+                    if (previousRoute == Destination.Start.HomeScreen()) it / 2 else -it / 2
+                }
+            )
         },
         exitTransition = {
-            slideOutOfContainer(towards = AnimatedContentTransitionScope.SlideDirection.Right)
+            slideOutHorizontally(
+                animationSpec = tween(ANIMATION_DURATION_MILLIS),
+                targetOffsetX = {
+                    if (currentRoute == Destination.Start.HomeScreen()) it else -it
+                }
+            )
         }
     ) {
         composable(categoriesScreenRoute) {
@@ -58,7 +73,25 @@ fun NavGraphBuilder.vocabularyGraph(
             startDestination = newWordStartDestination,
             route = newWordRoute
         ) {
-            composable(newWordStartDestination) {
+            composable(
+                route = newWordStartDestination,
+                enterTransition = {
+                    slideInHorizontally(
+                        animationSpec = tween(ANIMATION_DURATION_MILLIS),
+                        initialOffsetX = {
+                            if (previousRoute == Destination.Start.HomeScreen()) it / 2 else -it / 2
+                        }
+                    )
+                },
+                exitTransition = {
+                    slideOutHorizontally(
+                        animationSpec = tween(ANIMATION_DURATION_MILLIS),
+                        targetOffsetX = {
+                            if (currentRoute == Destination.Start.HomeScreen()) it else -it
+                        }
+                    )
+                },
+            ) {
                 val viewModel = it.sharedViewModel<NewWordViewModel>(navController)
                 NewWordScreen(
                     navigateUp = navigateUp,
@@ -67,7 +100,25 @@ fun NavGraphBuilder.vocabularyGraph(
                     modifier = modifier
                 )
             }
-            composable(Destination.Start.VocabularyScreen.NewWord.ExamplesScreen()) {
+            composable(
+                route = Destination.Start.VocabularyScreen.NewWord.ExamplesScreen(),
+                enterTransition = {
+                    slideInHorizontally(
+                        animationSpec = tween(ANIMATION_DURATION_MILLIS),
+                        initialOffsetX = {
+                            if (previousRoute == Destination.Start.HomeScreen()) it / 2 else -it / 2
+                        }
+                    )
+                },
+                exitTransition = {
+                    slideOutHorizontally(
+                        animationSpec = tween(ANIMATION_DURATION_MILLIS),
+                        targetOffsetX = {
+                            if (currentRoute == Destination.Start.HomeScreen()) it else -it
+                        }
+                    )
+                },
+            ) {
                 val viewModel = it.sharedViewModel<NewWordViewModel>(navController)
                 ExamplesScreen(
                     navigateUp = navigateUp,
@@ -78,7 +129,25 @@ fun NavGraphBuilder.vocabularyGraph(
                 )
             }
         }
-        composable(Destination.Start.VocabularyScreen.NewCategoryScreen()) {
+        composable(
+            route = Destination.Start.VocabularyScreen.NewCategoryScreen(),
+            enterTransition = {
+                slideInHorizontally(
+                    animationSpec = tween(ANIMATION_DURATION_MILLIS),
+                    initialOffsetX = {
+                        if (previousRoute == Destination.Start.HomeScreen()) it / 2 else -it / 2
+                    }
+                )
+            },
+            exitTransition = {
+                slideOutHorizontally(
+                    animationSpec = tween(ANIMATION_DURATION_MILLIS),
+                    targetOffsetX = {
+                        if (currentRoute == Destination.Start.HomeScreen()) it else -it
+                    }
+                )
+            },
+        ) {
             NewCategoryScreen(
                 navigateUp = navigateUp,
                 modifier = modifier
@@ -96,7 +165,23 @@ fun NavGraphBuilder.vocabularyGraph(
                     type = NavType.LongType
                     defaultValue = -1
                 }
-            )
+            ),
+            enterTransition = {
+                slideInHorizontally(
+                    animationSpec = tween(ANIMATION_DURATION_MILLIS),
+                    initialOffsetX = {
+                        if (previousRoute == Destination.Start.HomeScreen()) it / 2 else -it / 2
+                    }
+                )
+            },
+            exitTransition = {
+                slideOutHorizontally(
+                    animationSpec = tween(ANIMATION_DURATION_MILLIS),
+                    targetOffsetX = {
+                        if (currentRoute == Destination.Start.HomeScreen()) it else -it
+                    }
+                )
+            },
         ) {
             CategoryDetailsScreen(
                 navigateUp = navigateUp,

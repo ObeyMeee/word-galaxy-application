@@ -5,5 +5,4 @@ enum class TimePeriodChartOptions(val days: Int, val label: String) {
     MONTH(30, "30 days"),
     SEASON(90, "90 days"),
     YEAR(365, "1 year"),
-    ALL_TIME(Integer.MAX_VALUE, "All time");
 }

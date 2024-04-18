@@ -25,10 +25,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.IntOffset
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -90,8 +90,13 @@ fun Flashcard(
                 }
             )
             .offset { IntOffset(cardXOffset.value.toInt(), cardYOffset.value.toInt()) }
-            .scale(1 - (abs(cardXOffset.value * FLASHCARD_SCALE_COEFFICIENT) / SWIPE_CARD_BOUND))
-            .rotate(cardXOffset.value * FLASHCARD_ROTATE_COEFFICIENT),
+            .graphicsLayer {
+                val scale =
+                    1 - (abs(cardXOffset.value * FLASHCARD_SCALE_COEFFICIENT) / SWIPE_CARD_BOUND)
+                rotationZ = cardXOffset.value * FLASHCARD_ROTATE_COEFFICIENT
+                scaleX = scale
+                scaleY = scale
+            },
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.secondaryContainer
         )
@@ -115,7 +120,10 @@ fun Flashcard(
 
 @Composable
 fun FlashcardScope.FlashcardContent(
-    state: FlashcardUiState.Success,
+    menuExpanded: Boolean,
+    cardMode: CardMode,
+    userGuess: TextFieldValue,
+    amountAttempts: Int,
     viewModel: FlashcardViewModel,
     menuItems: List<DropdownItemState>,
     embeddedWord: EmbeddedWord,
@@ -129,7 +137,7 @@ fun FlashcardScope.FlashcardContent(
     val numberReview = amountRepetition + 1
     with(columnScope) {
         Header(
-            menuExpanded = state.menuExpanded,
+            menuExpanded = menuExpanded,
             onExpandMenu = viewModel::updateMenuExpanded,
             squareColor = status.iconColor,
             label = stringResource(status.labelRes, numberReview),
@@ -155,11 +163,11 @@ fun FlashcardScope.FlashcardContent(
         )
         CardModeContent(
             embeddedWord = embeddedWord,
-            flashcardMode = state.cardMode,
+            flashcardMode = cardMode,
             updateCardMode = viewModel::updateCardMode,
-            userGuess = state.userGuess,
+            userGuess = userGuess,
             updateUserGuess = viewModel::updateUserGuess,
-            amountAttempts = state.amountAttempts,
+            amountAttempts = amountAttempts,
             checkAnswer = viewModel::checkAnswer,
             revealOneLetter = viewModel::revealOneLetter,
             modifier = Modifier.weight(1f)
