@@ -37,7 +37,7 @@ interface WordDao {
         """
         SELECT *
         FROM word
-        WHERE strftime('%s', 'now') > strftime('%s', next_repeat_at)
+        WHERE strftime('%s', 'now', 'localtime') > strftime('%s', next_repeat_at)
         ORDER BY RANDOM() 
         LIMIT :limit
         """
@@ -49,7 +49,7 @@ interface WordDao {
         SELECT COUNT(*) 
         FROM word
         WHERE status = 'Memorized' 
-        AND strftime('%Y-%m-%d', status_changed_at) = strftime('%Y-%m-%d', 'now');
+        AND strftime('%Y-%m-%d', status_changed_at) = strftime('%Y-%m-%d', 'now', 'localtime');
         """
     )
     fun countMemorizedWordsToday(): Flow<Int>
@@ -59,7 +59,7 @@ interface WordDao {
         SELECT COUNT(*) 
         FROM word
         WHERE status = 'Memorized' 
-        AND strftime('%Y-%m-%d', 'now') = strftime('%Y-%m-%d', repeated_at);
+        AND strftime('%Y-%m-%d', 'now', 'localtime') = strftime('%Y-%m-%d', repeated_at);
         """
     )
     fun countReviewedWordsToday(): Flow<Int>
@@ -69,7 +69,7 @@ interface WordDao {
         SELECT COUNT(*)
         FROM word
         WHERE status = 'Memorized'
-        AND strftime('%s', 'now') > strftime('%s', next_repeat_at);
+        AND strftime('%s', 'now', 'localtime') > strftime('%s', next_repeat_at);
         """
     )
     fun countWordsToReview(): Flow<Int>

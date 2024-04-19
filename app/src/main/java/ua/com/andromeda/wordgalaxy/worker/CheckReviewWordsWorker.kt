@@ -2,8 +2,11 @@ package ua.com.andromeda.wordgalaxy.worker
 
 import android.content.Context
 import android.util.Log
+import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
@@ -11,16 +14,14 @@ import ua.com.andromeda.wordgalaxy.R
 import ua.com.andromeda.wordgalaxy.data.repository.word.WordRepository
 import ua.com.andromeda.wordgalaxy.utils.TAG
 import ua.com.andromeda.wordgalaxy.utils.notification.NotificationService
-import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
-class CheckReviewWordsWorker(
-    context: Context,
-    params: WorkerParameters
+@HiltWorker
+class CheckReviewWordsWorker @AssistedInject constructor(
+    @Assisted context: Context,
+    @Assisted params: WorkerParameters,
+    private val notificationService: NotificationService,
+    private val wordRepository: WordRepository,
 ) : CoroutineWorker(context, params) {
-    @Inject lateinit var notificationService: NotificationService
-    @Inject lateinit var wordRepository: WordRepository
 
     override suspend fun doWork() = withContext(Dispatchers.IO) {
         return@withContext try {
