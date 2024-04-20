@@ -160,6 +160,7 @@ fun ReviewWordsMain(
                     ) { columnScope ->
                         FlashcardContent(
                             menuExpanded = state.menuExpanded,
+                            isWrongInput = state.isWrongInput,
                             cardMode = state.cardMode,
                             userGuess = state.userGuess,
                             amountAttempts = state.amountAttempts,

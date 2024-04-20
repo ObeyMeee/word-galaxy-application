@@ -2,6 +2,7 @@ package ua.com.andromeda.wordgalaxy.study.flashcard.presentation.scope
 
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -98,7 +99,10 @@ import ua.com.andromeda.wordgalaxy.core.presentation.components.HorizontalSpacer
 import ua.com.andromeda.wordgalaxy.core.presentation.components.RotatingExpandIcon
 import ua.com.andromeda.wordgalaxy.core.presentation.components.showUndoSnackbar
 import ua.com.andromeda.wordgalaxy.study.flashcard.domain.CardMode
+import ua.com.andromeda.wordgalaxy.utils.conditional
 import ua.com.andromeda.wordgalaxy.utils.playPronunciation
+import ua.com.andromeda.wordgalaxy.utils.shake.ShakeConfig
+import ua.com.andromeda.wordgalaxy.utils.shake.shake
 
 internal object FlashcardScopeInstance : FlashcardScope {
 
@@ -437,6 +441,7 @@ internal object FlashcardScopeInstance : FlashcardScope {
     @Composable
     override fun TypeAnswerMode(
         textFieldValue: TextFieldValue,
+        isWrongInput: Boolean,
         onValueChanged: (TextFieldValue) -> Unit,
         amountAttempts: Int,
         revealOneLetter: () -> Unit,
@@ -445,6 +450,12 @@ internal object FlashcardScopeInstance : FlashcardScope {
     ) {
         val focusRequester = remember { FocusRequester() }
         val transparent = Color.Transparent
+        val textFieldColors = TextFieldDefaults.colors(
+            errorContainerColor = if (isWrongInput) Color.Red.copy(alpha = .2f) else transparent,
+            focusedContainerColor = transparent,
+            unfocusedContainerColor = transparent,
+            disabledContainerColor = transparent,
+        )
 
         Column(
             modifier = modifier.padding(
@@ -454,16 +465,23 @@ internal object FlashcardScopeInstance : FlashcardScope {
             TextField(
                 value = textFieldValue,
                 onValueChange = onValueChanged,
-                modifier = Modifier.focusRequester(focusRequester),
+                modifier = Modifier
+                    .focusRequester(focusRequester)
+                    .conditional(isWrongInput) {
+                        shake(
+                            ShakeConfig(
+                                iterations = 2,
+                                translateX = 30f,
+                                intensity = Spring.StiffnessHigh,
+                            )
+                        )
+                    },
                 placeholder = { Text(text = stringResource(R.string.type_here)) },
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                 keyboardActions = KeyboardActions { checkAnswer() },
                 singleLine = true,
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = transparent,
-                    unfocusedContainerColor = transparent,
-                    disabledContainerColor = transparent,
-                )
+                colors = textFieldColors,
+                isError = isWrongInput,
             )
 
             // autofocus the text field
@@ -700,6 +718,7 @@ fun TypeAnswerModePreview() {
         Surface {
             FlashcardScopeInstance.TypeAnswerMode(
                 textFieldValue = TextFieldValue("check"),
+                isWrongInput = false,
                 onValueChanged = {},
                 amountAttempts = 1,
                 revealOneLetter = {},

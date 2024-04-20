@@ -41,6 +41,7 @@ interface FlashcardScope {
     @Composable
     fun TypeAnswerMode(
         textFieldValue: TextFieldValue,
+        isWrongInput: Boolean,
         onValueChanged: (TextFieldValue) -> Unit,
         amountAttempts: Int,
         revealOneLetter: () -> Unit,
@@ -79,6 +80,7 @@ interface FlashcardScope {
 @Composable
 fun FlashcardScope.CardModeContent(
     embeddedWord: EmbeddedWord,
+    isWrongInput: Boolean,
     flashcardMode: CardMode,
     updateCardMode: (CardMode) -> Unit,
     userGuess: TextFieldValue,
@@ -109,6 +111,7 @@ fun FlashcardScope.CardModeContent(
             CardMode.TypeAnswer -> {
                 TypeAnswerMode(
                     textFieldValue = userGuess,
+                    isWrongInput = isWrongInput,
                     amountAttempts = amountAttempts,
                     onValueChanged = updateUserGuess,
                     revealOneLetter = revealOneLetter,
@@ -139,6 +142,7 @@ fun DefaultCardModeContentPreview() {
         Surface {
             FlashcardScopeInstance.CardModeContent(
                 embeddedWord = DefaultStorage.embeddedWord,
+                isWrongInput = false,
                 flashcardMode = CardMode.Default,
                 updateCardMode = {},
                 userGuess = TextFieldValue(""),
@@ -158,6 +162,7 @@ fun TypeAnswerCardModeContentPreview() {
         Surface {
             FlashcardScopeInstance.CardModeContent(
                 embeddedWord = DefaultStorage.embeddedWord,
+                isWrongInput = false,
                 flashcardMode = CardMode.TypeAnswer,
                 updateCardMode = {},
                 userGuess = TextFieldValue(""),
@@ -177,6 +182,7 @@ fun ShowAnswerCardModeContentPreview() {
         Surface {
             FlashcardScopeInstance.CardModeContent(
                 embeddedWord = DefaultStorage.embeddedWord,
+                isWrongInput = false,
                 flashcardMode = CardMode.ShowAnswer,
                 updateCardMode = {},
                 userGuess = TextFieldValue(""),

@@ -1,5 +1,6 @@
 package ua.com.andromeda.wordgalaxy.study.flashcard.presentation
 
+import androidx.compose.runtime.Stable
 import androidx.compose.ui.text.input.TextFieldValue
 import ua.com.andromeda.wordgalaxy.core.domain.model.EmbeddedWord
 import ua.com.andromeda.wordgalaxy.study.flashcard.DEFAULT_AMOUNT_USER_ATTEMPTS_TO_GUESS
@@ -9,6 +10,7 @@ sealed interface FlashcardUiState {
     data object Default : FlashcardUiState
     data class Error(val message: String = "Unexpected error occurred") : FlashcardUiState
 
+    @Stable
     data class Success(
         val memorizingWordsQueue: List<EmbeddedWord> = emptyList(),
         val cardMode: CardMode = CardMode.Default,
@@ -16,6 +18,7 @@ sealed interface FlashcardUiState {
         val amountWordsLearnPerDay: Int = 0,
         val amountWordsToReview: Int = 0,
         val userGuess: TextFieldValue = TextFieldValue(),
+        val isWrongInput: Boolean = false,
         val amountAttempts: Int = DEFAULT_AMOUNT_USER_ATTEMPTS_TO_GUESS,
         val menuExpanded: Boolean = false,
         val wordsInProcessQueue: List<EmbeddedWord> = emptyList(),

@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,6 +22,7 @@ import ua.com.andromeda.wordgalaxy.core.data.repository.word.copyWordToMyCategor
 import ua.com.andromeda.wordgalaxy.core.data.repository.word.removeWordFromMyCategory
 import ua.com.andromeda.wordgalaxy.core.domain.model.EmbeddedWord
 import ua.com.andromeda.wordgalaxy.core.domain.model.reset
+import ua.com.andromeda.wordgalaxy.study.flashcard.SHAKE_TEXT_FIELD_ANIMATION_DURATION_MILLIS
 import ua.com.andromeda.wordgalaxy.study.flashcard.domain.CardMode
 
 abstract class FlashcardViewModel(
@@ -158,7 +160,17 @@ abstract class FlashcardViewModel(
             if (actual == userGuess || amountAttemptsLeft == 0)
                 state.correctAnswer()
             else
-                state.copy(amountAttempts = amountAttemptsLeft)
+                state.copy(
+                    amountAttempts = amountAttemptsLeft,
+                    isWrongInput = true,
+                )
+        }
+
+        viewModelScope.launch {
+            delay(SHAKE_TEXT_FIELD_ANIMATION_DURATION_MILLIS)
+            updateUiState {
+                it.copy(isWrongInput = false)
+            }
         }
     }
 

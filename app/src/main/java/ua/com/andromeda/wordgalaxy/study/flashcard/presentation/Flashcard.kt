@@ -124,6 +124,7 @@ fun Flashcard(
 @Composable
 fun FlashcardScope.FlashcardContent(
     menuExpanded: Boolean,
+    isWrongInput: Boolean,
     cardMode: CardMode,
     userGuess: TextFieldValue,
     amountAttempts: Int,
@@ -166,6 +167,7 @@ fun FlashcardScope.FlashcardContent(
         )
         CardModeContent(
             embeddedWord = embeddedWord,
+            isWrongInput = isWrongInput,
             flashcardMode = cardMode,
             updateCardMode = viewModel::updateCardMode,
             userGuess = userGuess,
