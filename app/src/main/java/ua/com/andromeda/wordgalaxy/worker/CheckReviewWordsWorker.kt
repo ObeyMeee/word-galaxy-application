@@ -11,9 +11,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import ua.com.andromeda.wordgalaxy.R
-import ua.com.andromeda.wordgalaxy.data.repository.word.WordRepository
+import ua.com.andromeda.wordgalaxy.core.data.repository.word.WordRepository
+import ua.com.andromeda.wordgalaxy.notification.NotificationService
 import ua.com.andromeda.wordgalaxy.utils.TAG
-import ua.com.andromeda.wordgalaxy.utils.notification.NotificationService
 
 @HiltWorker
 class CheckReviewWordsWorker @AssistedInject constructor(

@@ -7,9 +7,9 @@ import androidx.work.WorkManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import ua.com.andromeda.wordgalaxy.data.local.PreferenceDataStoreConstants.DEFAULT_NOTIFICATIONS_FREQUENCY
-import ua.com.andromeda.wordgalaxy.data.local.PreferenceDataStoreConstants.KEY_NOTIFICATIONS_FREQUENCY
-import ua.com.andromeda.wordgalaxy.data.local.PreferenceDataStoreHelper
+import ua.com.andromeda.wordgalaxy.core.data.pref.PreferenceDataStoreConstants.DEFAULT_NOTIFICATIONS_FREQUENCY
+import ua.com.andromeda.wordgalaxy.core.data.pref.PreferenceDataStoreConstants.KEY_NOTIFICATIONS_FREQUENCY
+import ua.com.andromeda.wordgalaxy.core.data.pref.PreferenceDataStoreHelper
 import java.time.Duration
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject

@@ -4,8 +4,8 @@ import android.content.Context
 import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.net.Uri
-import ua.com.andromeda.wordgalaxy.data.model.AudioUrl
-import ua.com.andromeda.wordgalaxy.data.model.Phonetic
+import ua.com.andromeda.wordgalaxy.core.domain.model.AudioUrl
+import ua.com.andromeda.wordgalaxy.core.domain.model.Phonetic
 
 private var currentMediaPlayer: MediaPlayer? = null
 
