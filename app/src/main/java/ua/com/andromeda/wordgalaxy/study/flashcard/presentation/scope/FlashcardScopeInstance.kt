@@ -388,7 +388,10 @@ internal object FlashcardScopeInstance : FlashcardScope {
             Row(
                 modifier = Modifier
                     .clickable { expanded = !expanded }
-                    .padding(horizontal = dimensionResource(R.dimen.padding_medium)),
+                    .padding(
+                        horizontal = dimensionResource(R.dimen.padding_medium),
+                        vertical = dimensionResource(R.dimen.padding_smallest),
+                    ),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -409,11 +412,7 @@ internal object FlashcardScopeInstance : FlashcardScope {
                 text = example.translation,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surface)
-                    .padding(
-                        vertical = dimensionResource(R.dimen.padding_mediumish),
-                        horizontal = dimensionResource(R.dimen.padding_large)
-                    ),
+                    .background(MaterialTheme.colorScheme.surface),
             )
         }
     }
@@ -434,6 +433,10 @@ internal object FlashcardScopeInstance : FlashcardScope {
                 text = text,
                 color = MaterialTheme.colorScheme.onSurface,
                 style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(
+                    vertical = dimensionResource(R.dimen.padding_small),
+                    horizontal = dimensionResource(R.dimen.padding_large)
+                )
             )
         }
     }
