@@ -6,12 +6,17 @@ import android.content.res.Configuration
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
@@ -23,7 +28,6 @@ import androidx.compose.material.icons.filled.PlayCircleFilled
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.HourglassEmpty
 import androidx.compose.material.icons.outlined.Lightbulb
-import androidx.compose.material.icons.rounded.Square
 import androidx.compose.material3.DismissDirection
 import androidx.compose.material3.DismissState
 import androidx.compose.material3.DismissValue
@@ -254,7 +258,9 @@ private fun SwipeWordListItem(
             // Content displayed when not dismissed
             WordListItem(
                 embeddedWord = embeddedWord,
-                modifier = Modifier.clickable(onClick = onClick),
+                modifier = Modifier
+                    .clickable(onClick = onClick)
+                    .heightIn(max = dimensionResource(R.dimen.word_item_height))
             )
         }
     )
@@ -281,24 +287,33 @@ private fun WordListItem(
         overlineContent = { Text(text = label) },
         supportingContent = { Text(text = word.translation) },
         leadingContent = {
-            Icon(
-                imageVector = Icons.Rounded.Square,
-                contentDescription = label,
-                tint = status.iconColor
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .width(dimensionResource(R.dimen.padding_smaller))
+                    .background(
+                        color = status.iconColor,
+                        shape = MaterialTheme.shapes.extraLarge
+                    )
             )
         },
         trailingContent = {
-            IconButton(
-                onClick = {
-                    context.playPronunciation(phonetics)
-                },
+            Column(
+                modifier = Modifier.fillMaxHeight(),
+                verticalArrangement = Arrangement.Center,
             ) {
-                Icon(
-                    imageVector = Icons.Default.PlayCircleFilled,
-                    contentDescription = stringResource(R.string.play_pronunciation),
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(dimensionResource(R.dimen.icon_size_large))
-                )
+                IconButton(
+                    onClick = {
+                        context.playPronunciation(phonetics)
+                    },
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.PlayCircleFilled,
+                        contentDescription = stringResource(R.string.play_pronunciation),
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(dimensionResource(R.dimen.icon_size_large))
+                    )
+                }
             }
         },
         colors = ListItemDefaults.colors(
