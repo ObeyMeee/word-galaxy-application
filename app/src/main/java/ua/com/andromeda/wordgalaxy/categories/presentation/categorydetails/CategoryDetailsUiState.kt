@@ -2,10 +2,10 @@ package ua.com.andromeda.wordgalaxy.categories.presentation.categorydetails
 
 import ua.com.andromeda.wordgalaxy.categories.presentation.categorydetails.components.WordSortOrder
 import ua.com.andromeda.wordgalaxy.core.domain.enums.Direction
+import ua.com.andromeda.wordgalaxy.core.domain.model.Category
 import ua.com.andromeda.wordgalaxy.core.domain.model.EmbeddedWord
 
 sealed class CategoryDetailsUiState(
-    open val title: String = "Category",
     open val topAppBarMenuExpanded: Boolean = false,
     open val orderDialogVisible: Boolean = false,
     open val resetProgressDialogVisible: Boolean = false,
@@ -18,15 +18,15 @@ sealed class CategoryDetailsUiState(
     ) : CategoryDetailsUiState()
 
     data class Success(
-        override val title: String = "Category",
         override val topAppBarMenuExpanded: Boolean = false,
         override val orderDialogVisible: Boolean = false,
         override val resetProgressDialogVisible: Boolean = false,
         override val selectedSortOrder: WordSortOrder = WordSortOrder.ALPHABETICAL,
         override val direction: Direction = Direction.ASC,
+        val category: Category? = null,
         val embeddedWords: List<EmbeddedWord> = emptyList(),
         val selectedWord: EmbeddedWord? = null,
         val indexToScroll: Int = -1,
         val wordsInProcessQueue: List<EmbeddedWord> = emptyList(),
-    ) : CategoryDetailsUiState(title)
+    ) : CategoryDetailsUiState()
 }

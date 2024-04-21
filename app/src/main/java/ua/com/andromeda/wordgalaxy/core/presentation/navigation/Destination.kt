@@ -15,7 +15,15 @@ sealed class Destination(protected val route: String, vararg params: String) {
         data object VocabularyScreen : NoArgumentsDestination("vocabulary") {
             data object CategoriesScreen : NoArgumentsDestination("vocabulary/categories")
             data object NewWord : NoArgumentsDestination("vocabulary/new_word") {
-                data object Screen : NoArgumentsDestination("vocabulary/word/new")
+                data object Screen :
+                    NoArgumentsDestination("vocabulary/word/new?category_id={category_id}") {
+                    const val CATEGORY_ID_KEY = "category_id"
+                    operator fun invoke(categoryId: Long? = null): String {
+                        val value = categoryId ?: -1
+                        return route.appendParams(CATEGORY_ID_KEY to value)
+                    }
+                }
+
                 data object ExamplesScreen : NoArgumentsDestination("vocabulary/word/new/examples")
             }
 

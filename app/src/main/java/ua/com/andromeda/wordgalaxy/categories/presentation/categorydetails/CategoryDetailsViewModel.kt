@@ -1,6 +1,5 @@
 package ua.com.andromeda.wordgalaxy.categories.presentation.categorydetails
 
-import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,7 +8,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import ua.com.andromeda.wordgalaxy.categories.presentation.categorydetails.components.WordSortOrder
@@ -24,7 +22,6 @@ import ua.com.andromeda.wordgalaxy.core.domain.model.reset
 import ua.com.andromeda.wordgalaxy.core.domain.model.updateStatus
 import ua.com.andromeda.wordgalaxy.core.presentation.navigation.Destination.Start.VocabularyScreen.CategoryDetailsScreen.ID_KEY
 import ua.com.andromeda.wordgalaxy.core.presentation.navigation.Destination.Start.VocabularyScreen.CategoryDetailsScreen.WORD_ID_KEY
-import ua.com.andromeda.wordgalaxy.utils.TAG
 import javax.inject.Inject
 
 @HiltViewModel
@@ -46,20 +43,20 @@ class CategoryDetailsViewModel @Inject constructor(
         } else {
             viewModelScope.launch(coroutineDispatcher) {
                 val firstShownItem = savedStateHandle.get<Long>(WORD_ID_KEY)
-                fetchTitle(categoryId)
+                fetchCategory(categoryId)
                 observeWordList(categoryId, firstShownItem)
             }
         }
     }
 
-    private fun CoroutineScope.fetchTitle(categoryId: Long) = launch {
-        val category = categoryRepository.findById(categoryId).first()
-        val title = category?.name ?: "Category"
-        _uiState.update { state ->
-            if (state is CategoryDetailsUiState.Success) {
-                state.copy(title = title)
-            } else {
-                CategoryDetailsUiState.Success(title = title)
+    private fun CoroutineScope.fetchCategory(categoryId: Long) = launch {
+        categoryRepository.findById(categoryId).collect { category ->
+            _uiState.update { state ->
+                if (state is CategoryDetailsUiState.Success) {
+                    state.copy(category = category)
+                } else {
+                    CategoryDetailsUiState.Success(category = category)
+                }
             }
         }
     }
@@ -70,7 +67,6 @@ class CategoryDetailsViewModel @Inject constructor(
     ) = launch {
         wordRepository.findWordsByCategoryId(categoryId).collect { words ->
             _uiState.update { state ->
-                Log.d(this@CategoryDetailsViewModel.TAG, "Observe words ==> ${words.size}")
                 if (state is CategoryDetailsUiState.Success) {
                     state.copy(embeddedWords = words)
                 } else {
@@ -242,11 +238,10 @@ class CategoryDetailsViewModel @Inject constructor(
 
     fun updateSortDirection() {
         updateUiState {
-            val newDirection =
-                if (it.direction == Direction.ASC)
-                    Direction.DESC
-                else
-                    Direction.ASC
+            val newDirection = if (it.direction == Direction.ASC)
+                Direction.DESC
+            else
+                Direction.ASC
 
             it.copy(
                 direction = newDirection,

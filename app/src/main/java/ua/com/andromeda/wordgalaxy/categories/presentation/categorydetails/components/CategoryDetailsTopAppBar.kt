@@ -26,6 +26,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import ua.com.andromeda.wordgalaxy.R
+import ua.com.andromeda.wordgalaxy.categories.presentation.categorydetails.CategoryDetailsUiState
 import ua.com.andromeda.wordgalaxy.categories.presentation.categorydetails.CategoryDetailsViewModel
 import ua.com.andromeda.wordgalaxy.core.domain.enums.Direction
 
@@ -37,9 +38,9 @@ fun CategoryDetailsTopAppBar(
     viewModel: CategoryDetailsViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
-
+    val title = (state as? CategoryDetailsUiState.Success)?.category?.name ?: "Category"
     TopAppBar(
-        title = { Text(text = state.title) },
+        title = { Text(text = title) },
         modifier = modifier,
         navigationIcon = {
             IconButton(onClick = navigateUp) {

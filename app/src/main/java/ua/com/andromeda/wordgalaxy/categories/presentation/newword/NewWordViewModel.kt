@@ -1,5 +1,6 @@
 package ua.com.andromeda.wordgalaxy.categories.presentation.newword
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,25 +18,41 @@ import ua.com.andromeda.wordgalaxy.core.domain.model.EmbeddedWord
 import ua.com.andromeda.wordgalaxy.core.domain.model.Example
 import ua.com.andromeda.wordgalaxy.core.domain.model.Phonetic
 import ua.com.andromeda.wordgalaxy.core.domain.model.Word
+import ua.com.andromeda.wordgalaxy.core.presentation.navigation.Destination.Start.VocabularyScreen.NewWord.Screen.CATEGORY_ID_KEY
 import java.util.Random
 import javax.inject.Inject
 
 @HiltViewModel
 class NewWordViewModel @Inject constructor(
     private val wordRepository: WordRepository,
-    private val categoryRepository: CategoryRepository
+    private val categoryRepository: CategoryRepository,
+    savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow<NewWordUiState>(NewWordUiState.Default)
     val uiState: StateFlow<NewWordUiState> = _uiState
 
+    private val coroutineDispatcher = Dispatchers.IO
+
     init {
-        viewModelScope.launch(Dispatchers.IO) {
-            launch(Dispatchers.IO) {
+        val selectedCategoryId: Long = savedStateHandle[CATEGORY_ID_KEY]!!
+        viewModelScope.launch(coroutineDispatcher) {
+            if (selectedCategoryId == -1L) {
                 categoryRepository.findAll().collect { categories ->
                     _uiState.update {
                         NewWordUiState.Success(
-                            suggestedCategories = categories
+                            suggestedCategories = categories,
                         )
+                    }
+                }
+            } else {
+                categoryRepository.findById(selectedCategoryId).first()?.let { selectedCategory ->
+                    categoryRepository.findAll().collect { categories ->
+                        _uiState.update {
+                            NewWordUiState.Success(
+                                suggestedCategories = categories,
+                                selectedCategories = listOf(selectedCategory to false)
+                            )
+                        }
                     }
                 }
             }
@@ -49,7 +66,7 @@ class NewWordViewModel @Inject constructor(
                 isFormValid = isFormValid(value, it.translation, it.selectedCategories)
             )
         }
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(coroutineDispatcher) {
             val existingWords = wordRepository.findWordsByValue(value).first()
             updateUiState {
                 it.copy(existingWords = existingWords)
@@ -146,7 +163,7 @@ class NewWordViewModel @Inject constructor(
         }
     }
 
-    fun submitForm() = viewModelScope.launch(Dispatchers.IO) {
+    fun submitForm() = viewModelScope.launch(coroutineDispatcher) {
         val state = uiState.value
         if (state is NewWordUiState.Success) {
             val embeddedWord = buildEmbeddedWord(state)

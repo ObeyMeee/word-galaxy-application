@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.PlayCircleFilled
 import androidx.compose.material.icons.outlined.Delete
@@ -27,6 +28,7 @@ import androidx.compose.material3.DismissDirection
 import androidx.compose.material3.DismissState
 import androidx.compose.material3.DismissValue
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -68,6 +70,7 @@ import ua.com.andromeda.wordgalaxy.core.domain.model.isNew
 import ua.com.andromeda.wordgalaxy.core.presentation.components.CenteredLoadingSpinner
 import ua.com.andromeda.wordgalaxy.core.presentation.components.Message
 import ua.com.andromeda.wordgalaxy.core.presentation.components.showUndoSnackbar
+import ua.com.andromeda.wordgalaxy.core.presentation.navigation.Destination
 import ua.com.andromeda.wordgalaxy.ui.theme.WordGalaxyTheme
 import ua.com.andromeda.wordgalaxy.utils.playPronunciation
 
@@ -79,6 +82,9 @@ fun CategoryDetailsScreen(
     modifier: Modifier = Modifier,
 ) {
     val viewModel: CategoryDetailsViewModel = hiltViewModel()
+    val state by viewModel.uiState.collectAsState()
+    val categoryId = (state as? CategoryDetailsUiState.Success)?.category?.id
+
     Scaffold(
         topBar = {
             CategoryDetailsTopAppBar(
@@ -86,10 +92,24 @@ fun CategoryDetailsScreen(
                 viewModel = viewModel,
             )
         },
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                onClick = {
+                    navigateTo(Destination.Start.VocabularyScreen.NewWord.Screen(categoryId))
+                },
+                text = {
+                    Text(stringResource(R.string.word))
+                },
+                icon = {
+                    Icon(imageVector = Icons.Default.Add, contentDescription = null)
+                },
+            )
+        },
         modifier = modifier
     ) { innerPadding ->
         CategoryDetailsMain(
             viewModel = viewModel,
+            state = state,
             snackbarHostState = snackbarHostState,
             navigateTo = navigateTo,
             modifier = Modifier.padding(innerPadding),
@@ -100,13 +120,12 @@ fun CategoryDetailsScreen(
 @Composable
 private fun CategoryDetailsMain(
     snackbarHostState: SnackbarHostState,
+    state: CategoryDetailsUiState,
     navigateTo: (String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: CategoryDetailsViewModel = hiltViewModel(),
 ) {
-    val uiState by viewModel.uiState.collectAsState()
-
-    when (val state = uiState) {
+    when (state) {
         is CategoryDetailsUiState.Default -> CenteredLoadingSpinner(modifier)
         is CategoryDetailsUiState.Error ->
             Message(

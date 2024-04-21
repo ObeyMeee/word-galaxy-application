@@ -20,6 +20,7 @@ import ua.com.andromeda.wordgalaxy.categories.presentation.newword.NewWordViewMo
 import ua.com.andromeda.wordgalaxy.categories.presentation.root.VocabularyScreen
 import ua.com.andromeda.wordgalaxy.core.presentation.navigation.ANIMATION_DURATION_MILLIS
 import ua.com.andromeda.wordgalaxy.core.presentation.navigation.Destination
+import ua.com.andromeda.wordgalaxy.core.presentation.navigation.Destination.Start.VocabularyScreen.NewWord.Screen.CATEGORY_ID_KEY
 import ua.com.andromeda.wordgalaxy.core.presentation.navigation.sharedViewModel
 
 fun NavGraphBuilder.vocabularyGraph(
@@ -75,6 +76,12 @@ fun NavGraphBuilder.vocabularyGraph(
         ) {
             composable(
                 route = newWordStartDestination,
+                arguments = listOf(
+                    navArgument(CATEGORY_ID_KEY) {
+                        type = NavType.LongType
+                        defaultValue = -1
+                    }
+                ),
                 enterTransition = {
                     slideInHorizontally(
                         animationSpec = tween(ANIMATION_DURATION_MILLIS),
@@ -156,9 +163,7 @@ fun NavGraphBuilder.vocabularyGraph(
         composable(
             route = categoryDetailsScreen.fullRoute,
             arguments = listOf(
-                navArgument(
-                    categoryDetailsScreen.ID_KEY
-                ) {
+                navArgument(categoryDetailsScreen.ID_KEY) {
                     type = NavType.LongType
                 },
                 navArgument(categoryDetailsScreen.WORD_ID_KEY) {
