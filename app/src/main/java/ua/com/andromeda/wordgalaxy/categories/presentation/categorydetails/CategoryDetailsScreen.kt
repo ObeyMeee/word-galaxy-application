@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.PlayCircleFilled
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.HourglassEmpty
@@ -117,8 +118,19 @@ private fun CategoryDetailsMain(
             val listState = rememberLazyListState()
             val scope = rememberCoroutineScope()
 
+            val embeddedWords = state.embeddedWords
+            if (embeddedWords.isEmpty()) {
+                Message(
+                    message = stringResource(R.string.no_words_found),
+                    modifier = modifier.fillMaxSize(),
+                    backgroundColor = MaterialTheme.colorScheme.primaryContainer,
+                    icon = {
+                        Icon(imageVector = Icons.Default.Info, contentDescription = null)
+                    }
+                )
+            }
             WordList(
-                items = state.embeddedWords,
+                items = embeddedWords,
                 listState = listState,
                 snackbarHostState = snackbarHostState,
                 viewModel = viewModel,
