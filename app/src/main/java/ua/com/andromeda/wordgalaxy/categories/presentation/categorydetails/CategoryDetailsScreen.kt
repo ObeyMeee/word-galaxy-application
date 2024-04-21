@@ -3,8 +3,11 @@
 package ua.com.andromeda.wordgalaxy.categories.presentation.categorydetails
 
 import android.content.res.Configuration
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -60,6 +63,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.launch
@@ -85,9 +89,11 @@ fun CategoryDetailsScreen(
     snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier,
 ) {
+    val listState = rememberLazyListState()
     val viewModel: CategoryDetailsViewModel = hiltViewModel()
     val state by viewModel.uiState.collectAsState()
     val categoryId = (state as? CategoryDetailsUiState.Success)?.category?.id
+    val slideAnimationSpec = tween<IntOffset>(400)
 
     Scaffold(
         topBar = {
@@ -97,23 +103,30 @@ fun CategoryDetailsScreen(
             )
         },
         floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = {
-                    navigateTo(Destination.Start.VocabularyScreen.NewWord.Screen(categoryId))
-                },
-                text = {
-                    Text(stringResource(R.string.word))
-                },
-                icon = {
-                    Icon(imageVector = Icons.Default.Add, contentDescription = null)
-                },
-            )
+            AnimatedVisibility(
+                visible = !listState.isScrollInProgress,
+                enter = slideInVertically(slideAnimationSpec) { it },
+                exit = slideOutVertically(slideAnimationSpec) { it },
+            ) {
+                ExtendedFloatingActionButton(
+                    onClick = {
+                        navigateTo(Destination.Start.VocabularyScreen.NewWord.Screen(categoryId))
+                    },
+                    text = {
+                        Text(stringResource(R.string.word))
+                    },
+                    icon = {
+                        Icon(imageVector = Icons.Default.Add, contentDescription = null)
+                    },
+                )
+            }
         },
         modifier = modifier
     ) { innerPadding ->
         CategoryDetailsMain(
             viewModel = viewModel,
             state = state,
+            listState = listState,
             snackbarHostState = snackbarHostState,
             navigateTo = navigateTo,
             modifier = Modifier.padding(innerPadding),
@@ -125,6 +138,7 @@ fun CategoryDetailsScreen(
 private fun CategoryDetailsMain(
     snackbarHostState: SnackbarHostState,
     state: CategoryDetailsUiState,
+    listState: LazyListState,
     navigateTo: (String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: CategoryDetailsViewModel = hiltViewModel(),
@@ -138,7 +152,6 @@ private fun CategoryDetailsMain(
             )
 
         is CategoryDetailsUiState.Success -> {
-            val listState = rememberLazyListState()
             val scope = rememberCoroutineScope()
 
             val embeddedWords = state.embeddedWords

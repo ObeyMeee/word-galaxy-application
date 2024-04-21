@@ -2,11 +2,10 @@ package ua.com.andromeda.wordgalaxy.categories.presentation.categorydetails.comp
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.absoluteOffset
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -27,11 +26,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import ua.com.andromeda.wordgalaxy.R
 
-const val ANIMATION_DURATION_MILLIS = 500
+private const val ANIMATION_DURATION_MILLIS = 400
 
 @Composable
 fun ScrollToTop(
@@ -39,14 +37,14 @@ fun ScrollToTop(
     modifier: Modifier = Modifier,
 ) {
     val scope = rememberCoroutineScope()
-    val fadeAnimationSpec = tween<Float>(ANIMATION_DURATION_MILLIS)
     val slideAnimationSpec = tween<IntOffset>(ANIMATION_DURATION_MILLIS)
+    val buttonHeight = dimensionResource(R.dimen.scroll_to_top_button_height)
 
     AnimatedVisibility(
-        visible = !listState.isScrollingUp(),
+        visible = listState.isScrollingUp() && listState.isScrollInProgress,
         modifier = modifier,
-        enter = slideInVertically(slideAnimationSpec) { it } + fadeIn(fadeAnimationSpec, .3f),
-        exit = slideOutVertically(slideAnimationSpec) { it } + fadeOut(fadeAnimationSpec)
+        enter = slideInVertically(slideAnimationSpec) { -it },
+        exit = slideOutVertically(slideAnimationSpec) { -it },
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             FloatingActionButton(
@@ -57,8 +55,9 @@ fun ScrollToTop(
                 },
                 modifier = Modifier
                     .padding(dimensionResource(R.dimen.padding_medium))
-                    .size(50.dp)
-                    .align(Alignment.BottomEnd),
+                    .size(buttonHeight)
+                    .absoluteOffset(y = buttonHeight * 1.5f)
+                    .align(Alignment.TopCenter),
             ) {
                 Icon(
                     imageVector = Icons.Default.ArrowUpward,
@@ -71,7 +70,7 @@ fun ScrollToTop(
 
 
 @Composable
-private fun LazyListState.isScrollingUp(): Boolean {
+fun LazyListState.isScrollingUp(): Boolean {
     var previousIndex by remember {
         mutableIntStateOf(firstVisibleItemIndex)
     }

@@ -25,4 +25,5 @@
     <dimen name="card_mode_icon">110dp</dimen>
     <dimen name="icon_item_width">90dp</dimen>
     <dimen name="word_item_height">124dp</dimen>
+    <dimen name="scroll_to_top_button_height">50dp</dimen>
 </resources>
