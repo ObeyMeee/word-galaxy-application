@@ -14,13 +14,10 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ua.com.andromeda.wordgalaxy.core.data.pref.PreferenceDataStoreConstants.DEFAULT_AMOUNT_WORDS_TO_LEARN_PER_DAY
-import ua.com.andromeda.wordgalaxy.core.data.pref.PreferenceDataStoreConstants.DEFAULT_TIME_PERIOD_DAYS
 import ua.com.andromeda.wordgalaxy.core.data.pref.PreferenceDataStoreConstants.KEY_AMOUNT_WORDS_TO_LEARN_PER_DAY
-import ua.com.andromeda.wordgalaxy.core.data.pref.PreferenceDataStoreConstants.KEY_TIME_PERIOD_DAYS
 import ua.com.andromeda.wordgalaxy.core.data.pref.PreferenceDataStoreHelper
 import ua.com.andromeda.wordgalaxy.core.data.repository.word.WordRepository
-import ua.com.andromeda.wordgalaxy.home.presentation.components.TimePeriodChartOptions
-import java.time.temporal.ChronoUnit
+import java.time.LocalDate
 import javax.inject.Inject
 
 @HiltViewModel
@@ -38,9 +35,7 @@ class HomeViewModel @Inject constructor(
             launch {
                 fetchLatestData()
             }
-            launch {
-                fetchChartData()
-            }
+            fetchChartData()
         }
     }
 
@@ -80,22 +75,22 @@ class HomeViewModel @Inject constructor(
         }.first()
     }
 
-    private suspend fun fetchChartData() = withContext(Dispatchers.Default) {
-        dataStoreHelper.get(
-            KEY_TIME_PERIOD_DAYS,
-            DEFAULT_TIME_PERIOD_DAYS
-        ).collect { timePeriodDays ->
-            val timePeriod = TimePeriodChartOptions
-                .entries
-                .find { timePeriodDays == it.days } ?: TimePeriodChartOptions.WEEK
-            val listOfWordsCountByStatus = wordRepository.countWordsByStatusLast(
-                timePeriodDays,
-                ChronoUnit.DAYS
-            )
+    private fun fetchChartData() {
+        val currentState = _uiState.value
+
+        val chartData = wordRepository.countWordsByStatusInRange(
+            START_PERIOD_DEFAULT to END_PERIOD_DEFAULT
+        )
+        if (currentState is HomeUiState.Success) {
             updateUiState { state ->
                 state.copy(
-                    timePeriod = timePeriod,
-                    listOfWordsCountOfStatus = listOfWordsCountByStatus,
+                    chartData = chartData,
+                )
+            }
+        } else {
+            _uiState.update { _ ->
+                HomeUiState.Success(
+                    chartData = chartData,
                 )
             }
         }
@@ -117,21 +112,6 @@ class HomeViewModel @Inject constructor(
 
     }
 
-    fun updateTimePeriod(timePeriodChartOptions: TimePeriodChartOptions) =
-        viewModelScope.launch(coroutineDispatcher) {
-            dataStoreHelper.put(KEY_TIME_PERIOD_DAYS, timePeriodChartOptions.days)
-            updateShowTimePeriodDialog(false)
-            val listOfWordsCountByStatus = wordRepository.countWordsByStatusLast(
-                timePeriodChartOptions.days,
-                ChronoUnit.DAYS
-            )
-            updateUiState {
-                it.copy(
-                    listOfWordsCountOfStatus = listOfWordsCountByStatus
-                )
-            }
-        }
-
     private fun updateUiState(
         errorMessage: String = "Something went wrong",
         action: (HomeUiState.Success) -> HomeUiState.Success
@@ -150,7 +130,19 @@ class HomeViewModel @Inject constructor(
 
     fun updateShowTimePeriodDialog(value: Boolean) {
         updateUiState {
-            it.copy(showTimePeriodDialog = value)
+            it.copy(isPeriodDialogOpen = value)
+        }
+    }
+
+    fun updatePeriod(start: LocalDate, end: LocalDate) {
+        val chartData = wordRepository.countWordsByStatusInRange(start to end)
+        updateUiState {
+            it.copy(
+                startPeriod = start,
+                endPeriod = end,
+                chartData = chartData,
+                isPeriodDialogOpen = false,
+            )
         }
     }
 }

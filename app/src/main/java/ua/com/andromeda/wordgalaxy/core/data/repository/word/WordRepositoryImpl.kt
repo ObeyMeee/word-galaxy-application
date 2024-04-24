@@ -14,9 +14,9 @@ import ua.com.andromeda.wordgalaxy.core.domain.model.WordStatus
 import ua.com.andromeda.wordgalaxy.core.domain.model.WordWithCategories
 import ua.com.andromeda.wordgalaxy.core.domain.model.toWordWithCategories
 import ua.com.andromeda.wordgalaxy.core.presentation.ui.wordform.ExistingWord
-import ua.com.andromeda.wordgalaxy.utils.getLastNDates
+import ua.com.andromeda.wordgalaxy.home.presentation.components.AMOUNT_X_AXIS_LABELS
+import ua.com.andromeda.wordgalaxy.home.presentation.components.ChartPeriodRangeStart
 import java.time.LocalDate
-import java.time.temporal.TemporalUnit
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -66,63 +66,103 @@ class WordRepositoryImpl @Inject constructor(
     override fun countReviewedWordsToday() =
         wordDao.countReviewedWordsToday()
 
-    override fun countWordsByStatusLast(
-        value: Int,
-        unit: TemporalUnit
-    ): List<Map<WordStatus, Int>> {
-        val lastNDates = getLastNDates(value, unit)
-        var words: List<Word>
-        runBlocking {
-            words = wordDao.findAllWhereStatusNotIn(listOf(WordStatus.New, WordStatus.InProgress))
+    override fun countWordsByStatusInRange(
+        range: Pair<LocalDate, LocalDate>
+    ): Map<LocalDate, Map<WordStatus, Int>> {
+        val words = runBlocking {
+            wordDao.findAllWhereStatusNotIn(listOf(WordStatus.New, WordStatus.InProgress))
                 .first()
         }
-        return lastNDates.map { dateTime ->
-            val localDate = dateTime.toLocalDate()
+
+        val dates = generateDatesSequence(range, words)
+        val result = linkedMapOf<LocalDate, Map<WordStatus, Int>>()
+        for (i in dates.indices) {
             val countByWordStatus = linkedMapOf(
                 WordStatus.AlreadyKnown to 0,
                 WordStatus.InProgress to 0,
                 WordStatus.Memorized to 0,
                 WordStatus.Mastered to 0
             )
+            val currentDate = dates[i]
+            val prevDate = dates.getOrNull(i - 1)
 
-            words.forEach { word ->
-                val statusChangeAt = word.statusChangedAt!!.toLocalDate()
+            incrementResult(words, countByWordStatus, prevDate, currentDate)
+            result[currentDate] = countByWordStatus
+        }
+        return result
+    }
 
-                when (val status = word.status) {
-                    WordStatus.AlreadyKnown, WordStatus.Mastered -> {
-                        countByWordStatus.incrementCount(status) {
-                            statusChangeAt.isEqual(localDate)
-                        }
-                    }
+    private fun incrementResult(
+        words: List<Word>,
+        countByWordStatus: LinkedHashMap<WordStatus, Int>,
+        prevDate: LocalDate?,
+        currentDate: LocalDate
+    ) {
+        words.forEach { word ->
+            val statusChangeAt = word.statusChangedAt!!.toLocalDate()
 
-                    WordStatus.Memorized -> {
-                        countByWordStatus.incrementCount(WordStatus.InProgress) {
-                            statusChangeAt.isEqual(localDate)
-                        }
-                        countByWordStatus.incrementCount(WordStatus.Memorized) {
-                            val repeatedAt = word.repeatedAt?.toLocalDate()
-                            repeatedAt?.isEqual(localDate) == true && word.amountRepetition!! > 0
-                        }
-                    }
-
-                    WordStatus.New, WordStatus.InProgress -> {
-                        // No action for New and InProgress
+            when (val status = word.status) {
+                WordStatus.AlreadyKnown, WordStatus.Mastered -> {
+                    countByWordStatus.incrementCount(status) {
+                        (prevDate == null || statusChangeAt.isAfter(prevDate)) && (statusChangeAt.isBefore(
+                            currentDate
+                        ) || statusChangeAt.isEqual(currentDate))
                     }
                 }
+
+                WordStatus.Memorized -> {
+                    countByWordStatus.incrementCount(WordStatus.InProgress) {
+                        (prevDate == null || statusChangeAt.isAfter(prevDate)) && (statusChangeAt.isBefore(
+                            currentDate
+                        ) || statusChangeAt.isEqual(currentDate))
+                    }
+                    countByWordStatus.incrementCount(WordStatus.Memorized) {
+                        val repeatedAt = word.repeatedAt?.toLocalDate()
+                        (prevDate == null || repeatedAt?.isAfter(prevDate) == true) && (repeatedAt?.isBefore(
+                            currentDate
+                        ) == true || repeatedAt?.isEqual(currentDate) == true) && word.amountRepetition!! > 0
+                    }
+                }
+
+                WordStatus.New, WordStatus.InProgress -> {
+                    // No action for New and InProgress
+                }
             }
-            countByWordStatus
         }
     }
 
-    private fun calculateStreak(
-        getLocalDates: List<Word>.() -> List<LocalDate>,
-        transform: (List<LocalDate>) -> Int
-    ): Flow<Int> =
-        wordDao.findAllWhereStatusNotIn(listOf(WordStatus.New))
-            .map { wordsWithoutNew ->
-                val learningDates = wordsWithoutNew.getLocalDates()
-                transform(learningDates)
+    private fun generateDatesSequence(
+        range: Pair<LocalDate, LocalDate>,
+        words: List<Word>,
+    ): List<LocalDate> {
+        val (from, to) = range
+        val seed = calculateStartDate(from, words)
+        val amountDaysToCount = to.toEpochDay() - seed.toEpochDay() + 1
+        return generateSequence(seed) {
+            it.plusDays(amountDaysToCount / AMOUNT_X_AXIS_LABELS)
+        }.take(AMOUNT_X_AXIS_LABELS - 1)
+            .toList() + LocalDate.now()
+    }
+
+    private fun calculateStartDate(
+        from: LocalDate,
+        words: List<Word>,
+    ): LocalDate {
+        return if (from == ChartPeriodRangeStart.ALL_TIME) {
+            val firstStatusChangedAt = words.mapNotNull {
+                it.statusChangedAt
             }
+                .minOrNull()
+                ?.toLocalDate()
+            if (firstStatusChangedAt == null || firstStatusChangedAt.isAfter(ChartPeriodRangeStart.LAST_WEEK)) {
+                ChartPeriodRangeStart.LAST_WEEK
+            } else {
+                firstStatusChangedAt
+            }
+        } else {
+            from
+        }
+    }
 
     override fun countCurrentStreak(): Flow<Int> =
         calculateStreak(
@@ -135,6 +175,16 @@ class WordRepositoryImpl @Inject constructor(
             getLocalDates = { getDistinctLocalDates().sorted() },
             transform = ::calculateBestStreak
         )
+
+    private fun calculateStreak(
+        getLocalDates: List<Word>.() -> List<LocalDate>,
+        transform: (List<LocalDate>) -> Int
+    ): Flow<Int> =
+        wordDao.findAllWhereStatusNotIn(listOf(WordStatus.New))
+            .map { wordsWithoutNew ->
+                val learningDates = wordsWithoutNew.getLocalDates()
+                transform(learningDates)
+            }
 
     override suspend fun update(vararg words: Word) =
         wordDao.updateWord(*words)
@@ -182,10 +232,9 @@ class WordRepositoryImpl @Inject constructor(
 
     override suspend fun updateWordWithCategories(wordWithCategories: WordWithCategories) =
         wordDao.updateWordWithCategories(wordWithCategories)
-
 }
 
-private fun LinkedHashMap<WordStatus, Int>.incrementCount(
+private fun MutableMap<WordStatus, Int>.incrementCount(
     status: WordStatus,
     predicate: () -> Boolean
 ) {
@@ -195,7 +244,7 @@ private fun LinkedHashMap<WordStatus, Int>.incrementCount(
 }
 
 private fun List<Word>.getDistinctLocalDates(): List<LocalDate> =
-    this.flatMap { listOf(it.statusChangedAt?.toLocalDate(), it.repeatedAt?.toLocalDate()) }
+    flatMap { listOf(it.statusChangedAt?.toLocalDate(), it.repeatedAt?.toLocalDate()) }
         .filterNotNull()
         .distinct()
 

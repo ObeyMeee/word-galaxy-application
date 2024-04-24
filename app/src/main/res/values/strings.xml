@@ -127,6 +127,11 @@
     <string name="search">Search</string>
     <string name="no_icons_selected">No icons selected</string>
     <string name="category_icon">Category icon</string>
+    <string name="select">Select</string>
+    <string name="this_year">This year</string>
+    <string name="all_time">All time</string>
+    <string name="this_month">This month</string>
+    <string name="last_week">Last week</string>
 
     <plurals name="days">
         <item quantity="one">day</item>

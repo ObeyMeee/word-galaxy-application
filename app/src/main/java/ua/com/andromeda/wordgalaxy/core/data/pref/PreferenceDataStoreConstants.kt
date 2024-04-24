@@ -1,9 +1,7 @@
 package ua.com.andromeda.wordgalaxy.core.data.pref
 
 import androidx.datastore.preferences.core.booleanPreferencesKey
-import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
-import ua.com.andromeda.wordgalaxy.home.presentation.components.TimePeriodChartOptions
 
 object PreferenceDataStoreConstants {
     const val DARK_THEME = "dark_theme"
@@ -32,8 +30,5 @@ object PreferenceDataStoreConstants {
     const val MIN_DEFAULT_NOTIFICATIONS_FREQUENCY = 2
     const val MAX_DEFAULT_NOTIFICATIONS_FREQUENCY = 12
 
-    const val TIME_PERIOD_DAYS = "time_period_days"
-    val KEY_TIME_PERIOD_DAYS = intPreferencesKey(TIME_PERIOD_DAYS)
-    val DEFAULT_TIME_PERIOD_DAYS = TimePeriodChartOptions.WEEK.days
 }
 
